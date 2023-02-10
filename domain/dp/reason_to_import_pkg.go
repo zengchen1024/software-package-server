@@ -3,6 +3,8 @@ package dp
 import (
 	"errors"
 	"fmt"
+
+	"github.com/opensourceways/src-package-server/utils"
 )
 
 type ReasonToImportPkg interface {
@@ -16,7 +18,7 @@ func NewReasonToImportPkg(v string) (ReasonToImportPkg, error) {
 
 	if max := config.MaxLengthOfReasonToImportPkg; utils.StrLen(v) > max {
 		return nil, fmt.Errorf(
-			"the length of package desc should be less than %d", max,
+			"the length of reason should be less than %d", max,
 		)
 	}
 

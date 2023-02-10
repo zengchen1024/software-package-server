@@ -8,7 +8,7 @@ type PackagePlatform interface {
 
 func NewPackagePlatform(v string) (PackagePlatform, error) {
 	if v == "" {
-		return nil, errors.New("empty package license")
+		return nil, errors.New("empty package platform")
 	}
 
 	return packagePlatform(v), nil
