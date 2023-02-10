@@ -27,6 +27,6 @@ func NewPackageDesc(v string) (PackageDesc, error) {
 
 type packageDesc string
 
-func (r packageDesc) PackageDesc() string {
-	return string(r)
+func (v packageDesc) PackageDesc() string {
+	return string(v)
 }

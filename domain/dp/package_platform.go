@@ -16,6 +16,6 @@ func NewPackagePlatform(v string) (PackagePlatform, error) {
 
 type packagePlatform string
 
-func (r packagePlatform) PackagePlatform() string {
-	return string(r)
+func (v packagePlatform) PackagePlatform() string {
+	return string(v)
 }

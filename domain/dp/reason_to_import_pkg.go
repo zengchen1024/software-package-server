@@ -27,6 +27,6 @@ func NewReasonToImportPkg(v string) (ReasonToImportPkg, error) {
 
 type reasonToImportPkg string
 
-func (r reasonToImportPkg) ReasonToImportPkg() string {
-	return string(r)
+func (v reasonToImportPkg) ReasonToImportPkg() string {
+	return string(v)
 }

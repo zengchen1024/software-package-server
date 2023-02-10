@@ -16,6 +16,6 @@ func NewPackageLicense(v string) (PackageLicense, error) {
 
 type packageLicense string
 
-func (r packageLicense) PackageLicense() string {
-	return string(r)
+func (v packageLicense) PackageLicense() string {
+	return string(v)
 }

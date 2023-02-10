@@ -24,6 +24,6 @@ func NewURL(v string) (URL, error) {
 
 type dpURL string
 
-func (r dpURL) URL() string {
-	return string(r)
+func (v dpURL) URL() string {
+	return string(v)
 }
