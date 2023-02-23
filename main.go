@@ -8,8 +8,8 @@ import (
 	liboptions "github.com/opensourceways/community-robot-lib/options"
 	"github.com/sirupsen/logrus"
 
-	"github.com/opensourceways/src-package-server/config"
-	"github.com/opensourceways/src-package-server/server"
+	"github.com/opensourceways/software-package-server/config"
+	"github.com/opensourceways/software-package-server/server"
 )
 
 type options struct {

@@ -11,8 +11,8 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/opensourceways/src-package-server/config"
-	"github.com/opensourceways/src-package-server/docs"
+	"github.com/opensourceways/software-package-server/config"
+	"github.com/opensourceways/software-package-server/docs"
 )
 
 func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {

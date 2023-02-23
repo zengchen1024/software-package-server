@@ -3,7 +3,7 @@ package domain
 import (
 	"errors"
 
-	"github.com/opensourceways/src-package-server/domain/dp"
+	"github.com/opensourceways/software-package-server/domain/dp"
 )
 
 type SoftwarePkgBasicInfo struct {
