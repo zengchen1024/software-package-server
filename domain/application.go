@@ -3,10 +3,15 @@ package domain
 import "github.com/opensourceways/src-package-server/domain/dp"
 
 type Application struct {
-	SourceCodes       []dp.URL
+	SourceCode        SourceCode
+	PackageName       dp.PackageName
 	PackageDesc       dp.PackageDesc
-	PackageLicense    dp.PackageLicense
 	PackagePlatform   dp.PackagePlatform
-	SigToImportPkg    dp.SigToImportPkg
+	ImportingPkgSig   dp.ImportingPkgSig
 	ReasonToImportPkg dp.ReasonToImportPkg
+}
+
+type SourceCode struct {
+	Address dp.URL
+	License dp.License
 }
