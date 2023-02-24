@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/opensourceways/software-package-server/domain/dp"
+import "github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 
 type Application struct {
 	SourceCode        SourceCode

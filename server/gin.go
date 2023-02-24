@@ -13,6 +13,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/docs"
+	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 )
 
 func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
@@ -45,7 +46,13 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
 
-func setApiV1(v1 *gin.RouterGroup) {}
+func setApiV1(v1 *gin.RouterGroup) {
+	initSoftwarePkgService(v1)
+}
+
+func initSoftwarePkgService(v1 *gin.RouterGroup) {
+	softwarepkgapp.NewSoftwarePkgService(nil)
+}
 
 func logRequest() gin.HandlerFunc {
 	return func(c *gin.Context) {
