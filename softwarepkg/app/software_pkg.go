@@ -8,8 +8,12 @@ import (
 )
 
 type SoftwarePkgService interface {
-	ApplyNewSoftwarePkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
+	ApplyNewPkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
+	GetPkgIssue(string) (SoftwarePkgIssueDTO, error)
+	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 }
+
+var _ SoftwarePkgService = (*softwarePkgService)(nil)
 
 func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
 	return &softwarePkgService{repo}
@@ -19,11 +23,10 @@ type softwarePkgService struct {
 	repo repository.SoftwarePkg
 }
 
-func (s *softwarePkgService) ApplyNewSoftwarePkg(
-	user dp.Account, cmd *CmdToApplyNewSoftwarePkg,
-) (code string, err error) {
-	v := domain.NewSoftwarePkg(user, (*domain.Application)(cmd))
-
+func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoftwarePkg) (
+	code string, err error,
+) {
+	v := domain.NewSoftwarePkg(user, (*domain.SoftwarePkgApplication)(cmd))
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
@@ -31,4 +34,22 @@ func (s *softwarePkgService) ApplyNewSoftwarePkg(
 	}
 
 	return
+}
+
+func (s *softwarePkgService) GetPkgIssue(pid string) (SoftwarePkgIssueDTO, error) {
+	v, err := s.repo.FindSoftwarePkgIssue(pid)
+	if err != nil {
+		return SoftwarePkgIssueDTO{}, err
+	}
+
+	return toSoftwarePkgIssueDTO(&v), nil
+}
+
+func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
+	v, total, err := s.repo.FindSoftwarePkgs(*cmd)
+	if err != nil || len(v) == 0 {
+		return SoftwarePkgsDTO{}, nil
+	}
+
+	return toSoftwarePkgsDTO(v, total), nil
 }

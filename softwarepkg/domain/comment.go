@@ -1,3 +1,3 @@
 package domain
 
-type Comment struct{}
+type SoftwarePkgIssueComment struct{}
