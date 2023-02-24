@@ -13,6 +13,8 @@ type SoftwarePkgService interface {
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 }
 
+var _ SoftwarePkgService = (*softwarePkgService)(nil)
+
 func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
 	return &softwarePkgService{repo}
 }

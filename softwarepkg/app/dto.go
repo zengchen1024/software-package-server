@@ -36,7 +36,7 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 	return dto
 }
 
-func toSoftwarePkgsBasicInfoDTO(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePkgBasicInfoDTO) {
+func toSoftwarePkgBasicInfoDTOs(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePkgBasicInfoDTO) {
 	if n := len(v); n > 0 {
 		r = make([]SoftwarePkgBasicInfoDTO, n)
 		for i := range v {
@@ -78,7 +78,7 @@ func toSoftwarePkgIssueCommentDTO(v *domain.SoftwarePkgIssueComment) SoftwarePkg
 	return SoftwarePkgIssueCommentDTO{}
 }
 
-func toSoftwarePkgIssueCommentsDTO(v []domain.SoftwarePkgIssueComment) (r []SoftwarePkgIssueCommentDTO) {
+func toSoftwarePkgIssueCommentDTOs(v []domain.SoftwarePkgIssueComment) (r []SoftwarePkgIssueCommentDTO) {
 	if n := len(v); n > 0 {
 		r = make([]SoftwarePkgIssueCommentDTO, n)
 		for i := range v {
@@ -100,7 +100,7 @@ type SoftwarePkgIssueInfoDTO struct {
 func toSoftwarePkgIssueInfoDTO(v *domain.SoftwarePkgIssueInfo) SoftwarePkgIssueInfoDTO {
 	return SoftwarePkgIssueInfoDTO{
 		Application: toSoftwarePkgApplicationDTO(&v.Application),
-		Comments:    toSoftwarePkgIssueCommentsDTO(v.Comments),
+		Comments:    toSoftwarePkgIssueCommentDTOs(v.Comments),
 		ApprovedBy:  toAccounts(v.ApprovedBy),
 		RejectedBy:  toAccounts(v.RejectedBy),
 	}
@@ -138,7 +138,7 @@ type SoftwarePkgsDTO struct {
 
 func toSoftwarePkgsDTO(v []domain.SoftwarePkgBasicInfo, total int) SoftwarePkgsDTO {
 	return SoftwarePkgsDTO{
-		Pkgs:  toSoftwarePkgsBasicInfoDTO(v),
+		Pkgs:  toSoftwarePkgBasicInfoDTOs(v),
 		Total: total,
 	}
 }
