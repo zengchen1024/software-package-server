@@ -36,7 +36,7 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 }
 
 func main() {
-	logrusutil.ComponentInit("src-package")
+	logrusutil.ComponentInit("software-package")
 
 	o := gatherOptions(
 		flag.NewFlagSet(os.Args[0], flag.ExitOnError),

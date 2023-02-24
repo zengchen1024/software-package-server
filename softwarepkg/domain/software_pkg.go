@@ -23,6 +23,17 @@ type SoftwarePkg struct {
 	Comments []Comment
 }
 
+func NewSoftwarePkg(user dp.Account, app *Application) SoftwarePkg {
+	return SoftwarePkg{
+		SoftwarePkgBasicInfo: SoftwarePkgBasicInfo{
+			Importer:    user,
+			PackageName: app.PackageName,
+			Status:      dp.PackageStatusInProgress,
+		},
+		Application: *app,
+	}
+}
+
 // change the status of "creating repo"
 // send out the event
 // notify the importer

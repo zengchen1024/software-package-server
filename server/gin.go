@@ -35,7 +35,7 @@ func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
 //setRouter init router
 func setRouter(engine *gin.Engine, cfg *config.Config) {
 	docs.SwaggerInfo.BasePath = "/api"
-	docs.SwaggerInfo.Title = "Source Package"
+	docs.SwaggerInfo.Title = "Software Package"
 	docs.SwaggerInfo.Description = "set header: 'PRIVATE-TOKEN=xxx'"
 
 	v1 := engine.Group(docs.SwaggerInfo.BasePath)
