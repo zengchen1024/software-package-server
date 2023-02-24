@@ -2,8 +2,8 @@ package domain
 
 import "github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 
-type Application struct {
-	SourceCode        SourceCode
+type SoftwarePkgApplication struct {
+	SourceCode        SoftwarePkgSourceCode
 	PackageName       dp.PackageName
 	PackageDesc       dp.PackageDesc
 	PackagePlatform   dp.PackagePlatform
@@ -11,7 +11,7 @@ type Application struct {
 	ReasonToImportPkg dp.ReasonToImportPkg
 }
 
-type SourceCode struct {
+type SoftwarePkgSourceCode struct {
 	Address dp.URL
 	License dp.License
 }

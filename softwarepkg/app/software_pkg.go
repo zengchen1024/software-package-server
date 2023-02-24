@@ -21,11 +21,10 @@ type softwarePkgService struct {
 	repo repository.SoftwarePkg
 }
 
-func (s *softwarePkgService) ApplyNewPkg(
-	user dp.Account, cmd *CmdToApplyNewSoftwarePkg,
-) (code string, err error) {
-	v := domain.NewSoftwarePkg(user, (*domain.Application)(cmd))
-
+func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoftwarePkg) (
+	code string, err error,
+) {
+	v := domain.NewSoftwarePkg(user, (*domain.SoftwarePkgApplication)(cmd))
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
@@ -45,5 +44,10 @@ func (s *softwarePkgService) GetPkgIssue(pid string) (SoftwarePkgIssueDTO, error
 }
 
 func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
-	return SoftwarePkgsDTO{}, nil
+	v, total, err := s.repo.FindSoftwarePkgs(*cmd)
+	if err != nil || len(v) == 0 {
+		return SoftwarePkgsDTO{}, nil
+	}
+
+	return toSoftwarePkgsDTO(v, total), nil
 }

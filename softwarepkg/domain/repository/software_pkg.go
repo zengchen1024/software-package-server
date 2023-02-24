@@ -6,7 +6,8 @@ import (
 )
 
 type OptToFindSoftwarePkgs struct {
-	Status dp.PackageStatus
+	Importer dp.Account
+	Status   dp.PackageStatus
 
 	PageNum      int
 	CountPerPage int

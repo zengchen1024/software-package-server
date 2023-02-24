@@ -16,10 +16,10 @@ type SoftwarePkgBasicInfo struct {
 }
 
 type SoftwarePkgIssueInfo struct {
-	Application Application
+	Application SoftwarePkgApplication
 	ApprovedBy  []dp.Account
 	RejectedBy  []dp.Account
-	Comments    []Comment
+	Comments    []SoftwarePkgIssueComment
 }
 
 type SoftwarePkg struct {
@@ -28,7 +28,7 @@ type SoftwarePkg struct {
 	SoftwarePkgIssueInfo
 }
 
-func NewSoftwarePkg(user dp.Account, app *Application) SoftwarePkg {
+func NewSoftwarePkg(user dp.Account, app *SoftwarePkgApplication) SoftwarePkg {
 	basic := SoftwarePkgBasicInfo{
 		Importer: user,
 		PkgName:  app.PackageName,
