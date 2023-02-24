@@ -7,7 +7,7 @@ const (
 	packageStatusInProgress   = "in-progress"
 	packageStatusRejected     = "rejected"
 	packageStatusGivingUp     = "giving_up"
-	packageStatusNormal       = "normal"
+	packageStatusImported     = "imported"
 )
 
 var (
@@ -16,14 +16,14 @@ var (
 		packageStatusInProgress:   true,
 		packageStatusRejected:     true,
 		packageStatusGivingUp:     true,
-		packageStatusNormal:       true,
+		packageStatusImported:     true,
 	}
 
 	PackageStatusCreatingRepo = packageStatus(packageStatusCreatingRepo)
 	PackageStatusInProgress   = packageStatus(packageStatusInProgress)
 	PackageStatusRejected     = packageStatus(packageStatusRejected)
 	PackageStatusGivingUp     = packageStatus(packageStatusGivingUp)
-	PackageStatusNormal       = packageStatus(packageStatusNormal)
+	PackageStatusImported     = packageStatus(packageStatusImported)
 )
 
 type PackageStatus interface {

@@ -7,31 +7,44 @@ import (
 )
 
 type SoftwarePkgBasicInfo struct {
-	Id          string
-	Importer    dp.Account
-	PackageName dp.PackageName // can't change
+	Id        string
+	Importer  dp.Account
+	PkgName   dp.PackageName // can't change
+	Status    dp.PackageStatus
+	AppliedAt int64
+}
 
-	Status     dp.PackageStatus
-	ApprovedBy []dp.Account
+type SoftwarePkgIssueInfo struct {
+	Application Application
+	ApprovedBy  []dp.Account
+	RejectedBy  []dp.Account
+	Comments    []Comment
+}
+
+type ImportedSoftwarePkgInfo struct {
+	RepoLink dp.URL
 }
 
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
 
-	Application Application
+	SoftwarePkgIssueInfo
 
-	Comments []Comment
+	ImportedSoftwarePkgInfo
 }
 
 func NewSoftwarePkg(user dp.Account, app *Application) SoftwarePkg {
-	return SoftwarePkg{
-		SoftwarePkgBasicInfo: SoftwarePkgBasicInfo{
-			Importer:    user,
-			PackageName: app.PackageName,
-			Status:      dp.PackageStatusInProgress,
-		},
-		Application: *app,
+	basic := SoftwarePkgBasicInfo{
+		Importer: user,
+		PkgName:  app.PackageName,
+		Status:   dp.PackageStatusInProgress,
 	}
+
+	v := SoftwarePkg{}
+	v.SoftwarePkgBasicInfo = basic
+	v.Application = *app
+
+	return v
 }
 
 // change the status of "creating repo"

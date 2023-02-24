@@ -8,7 +8,9 @@ import (
 )
 
 type SoftwarePkgService interface {
-	ApplyNewSoftwarePkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
+	ApplyNewPkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
+	GetPkgIssue(string) (SoftwarePkgIssueDTO, error)
+	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 }
 
 func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
@@ -19,7 +21,7 @@ type softwarePkgService struct {
 	repo repository.SoftwarePkg
 }
 
-func (s *softwarePkgService) ApplyNewSoftwarePkg(
+func (s *softwarePkgService) ApplyNewPkg(
 	user dp.Account, cmd *CmdToApplyNewSoftwarePkg,
 ) (code string, err error) {
 	v := domain.NewSoftwarePkg(user, (*domain.Application)(cmd))
@@ -31,4 +33,17 @@ func (s *softwarePkgService) ApplyNewSoftwarePkg(
 	}
 
 	return
+}
+
+func (s *softwarePkgService) GetPkgIssue(pid string) (SoftwarePkgIssueDTO, error) {
+	v, err := s.repo.FindSoftwarePkgIssue(pid)
+	if err != nil {
+		return SoftwarePkgIssueDTO{}, err
+	}
+
+	return toSoftwarePkgIssueDTO(v), nil
+}
+
+func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
+	return SoftwarePkgsDTO{}, nil
 }
