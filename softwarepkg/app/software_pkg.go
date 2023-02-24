@@ -41,7 +41,7 @@ func (s *softwarePkgService) GetPkgIssue(pid string) (SoftwarePkgIssueDTO, error
 		return SoftwarePkgIssueDTO{}, err
 	}
 
-	return toSoftwarePkgIssueDTO(v), nil
+	return toSoftwarePkgIssueDTO(&v), nil
 }
 
 func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {

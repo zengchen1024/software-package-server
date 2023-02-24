@@ -34,7 +34,7 @@ type SoftwarePkgIssueDTO struct {
 	SoftwarePkgIssueInfoDTO
 }
 
-func toSoftwarePkgIssueDTO(v *domain.SoftwarePkgIssue) SoftwarePkgIssueDTO {
+func toSoftwarePkgIssueDTO(v *repository.SoftwarePkgIssue) SoftwarePkgIssueDTO {
 	return SoftwarePkgIssueDTO{}
 }
 

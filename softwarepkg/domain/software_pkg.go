@@ -11,6 +11,7 @@ type SoftwarePkgBasicInfo struct {
 	Importer  dp.Account
 	PkgName   dp.PackageName // can't change
 	Status    dp.PackageStatus
+	RepoLink  dp.URL
 	AppliedAt int64
 }
 
@@ -21,16 +22,10 @@ type SoftwarePkgIssueInfo struct {
 	Comments    []Comment
 }
 
-type ImportedSoftwarePkgInfo struct {
-	RepoLink dp.URL
-}
-
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
 
 	SoftwarePkgIssueInfo
-
-	ImportedSoftwarePkgInfo
 }
 
 func NewSoftwarePkg(user dp.Account, app *Application) SoftwarePkg {
