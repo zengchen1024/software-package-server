@@ -3,7 +3,7 @@ package domain
 import (
 	"errors"
 
-	"github.com/opensourceways/software-package-server/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 type SoftwarePkgBasicInfo struct {
@@ -21,6 +21,17 @@ type SoftwarePkg struct {
 	Application Application
 
 	Comments []Comment
+}
+
+func NewSoftwarePkg(user dp.Account, app *Application) SoftwarePkg {
+	return SoftwarePkg{
+		SoftwarePkgBasicInfo: SoftwarePkgBasicInfo{
+			Importer:    user,
+			PackageName: app.PackageName,
+			Status:      dp.PackageStatusInProgress,
+		},
+		Application: *app,
+	}
 }
 
 // change the status of "creating repo"
