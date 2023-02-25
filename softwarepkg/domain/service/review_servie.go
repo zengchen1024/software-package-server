@@ -10,13 +10,21 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
-type softwarePkgService struct {
+type SoftwarePkgReviewService interface {
+	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account) error
+
+	RejectPkg(pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account) error
+
+	Close(pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account) error
+}
+
+type reviewService struct {
 	maintainer maintainer.Maintainer
 	repo       repository.SoftwarePkg
 	message    message.SoftwarePkgMessage
 }
 
-func (s *softwarePkgService) ApprovePkg(
+func (s *reviewService) ApprovePkg(
 	pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account,
 ) error {
 	b, err := s.maintainer.HasPermission(pkg, user)
@@ -40,7 +48,7 @@ func (s *softwarePkgService) ApprovePkg(
 	return nil
 }
 
-func (s *softwarePkgService) RejectPkg(
+func (s *reviewService) RejectPkg(
 	pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account,
 ) error {
 	b, err := s.maintainer.HasPermission(pkg, user)
@@ -64,7 +72,7 @@ func (s *softwarePkgService) RejectPkg(
 	return nil
 }
 
-func (s *softwarePkgService) Close(
+func (s *reviewService) Close(
 	pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account,
 ) error {
 	b, err := s.maintainer.HasPermission(pkg, user)

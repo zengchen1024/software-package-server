@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type SoftwarePkgReviewComment struct {
@@ -11,6 +12,16 @@ type SoftwarePkgReviewComment struct {
 	CreatedAt int64
 	Author    dp.Account
 	Content   dp.ReviewComment
+}
+
+func NewSoftwarePkgReviewComment(
+	author dp.Account, content dp.ReviewComment,
+) SoftwarePkgReviewComment {
+	return SoftwarePkgReviewComment{
+		CreatedAt: utils.Now(),
+		Author:    author,
+		Content:   content,
+	}
 }
 
 // SoftwarePkgApplication
@@ -42,10 +53,15 @@ type SoftwarePkgBasicInfo struct {
 	RejectedBy   []dp.Account
 }
 
+func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
+	return entity.Phase.IsReviewing() || entity.Phase.IsCreatingRepo()
+}
+
 func (entity *SoftwarePkgBasicInfo) removeFromRejected(u dp.Account) bool {
 	i := -1
-	for j := range entity.RejectedBy {
-		if dp.IsSameAccount(entity.RejectedBy[j], u) {
+	v := entity.RejectedBy
+	for j := range v {
+		if dp.IsSameAccount(v[j], u) {
 			i = j
 
 			break
@@ -56,20 +72,21 @@ func (entity *SoftwarePkgBasicInfo) removeFromRejected(u dp.Account) bool {
 		return false
 	}
 
-	n := len(entity.RejectedBy) - 1
-
+	n := len(v) - 1
 	if i == 0 {
 		if n == 0 {
-			entity.RejectedBy = nil
+			v = nil
 		} else {
-			entity.RejectedBy = entity.RejectedBy[1:]
+			v = v[1:]
 		}
 	} else {
 		if i != n {
-			entity.RejectedBy[i] = entity.RejectedBy[n]
+			v[i] = v[n]
 		}
-		entity.RejectedBy = entity.RejectedBy[:n]
+		v = v[:n]
 	}
+
+	entity.RejectedBy = v
 
 	return true
 }
@@ -78,7 +95,7 @@ func (entity *SoftwarePkgBasicInfo) removeFromRejected(u dp.Account) bool {
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approved bool) {
-	if !dp.IsPackagePhaseReviewing(entity.Phase) {
+	if !entity.Phase.IsReviewing() {
 		return
 	}
 
@@ -107,7 +124,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approve
 
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (changed, rejected bool) {
-	if !dp.IsPackagePhaseReviewing(entity.Phase) {
+	if !entity.Phase.IsReviewing() {
 		return
 	}
 
@@ -124,7 +141,7 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (changed, rejected
 }
 
 func (entity *SoftwarePkgBasicInfo) GiveUp(user dp.Account) error {
-	if !dp.IsPackagePhaseReviewing(entity.Phase) {
+	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
 
@@ -138,7 +155,7 @@ func (entity *SoftwarePkgBasicInfo) GiveUp(user dp.Account) error {
 }
 
 func (entity *SoftwarePkgBasicInfo) Close() error {
-	if !dp.IsPackagePhaseReviewing(entity.Phase) {
+	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
 
@@ -154,16 +171,11 @@ type SoftwarePkg struct {
 	Comments []SoftwarePkgReviewComment
 }
 
-func NewSoftwarePkg(user dp.Account, app *SoftwarePkgApplication) SoftwarePkg {
-	basic := SoftwarePkgBasicInfo{
-		Importer: user,
-		PkgName:  app.PackageName,
-		Phase:    dp.PackagePhaseReviewing,
+func NewSoftwarePkg(user dp.Account, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
+	return SoftwarePkgBasicInfo{
+		Importer:    user,
+		PkgName:     app.PackageName,
+		Phase:       dp.PackagePhaseReviewing,
+		Application: *app,
 	}
-
-	v := SoftwarePkg{}
-	v.SoftwarePkgBasicInfo = basic
-	v.Application = *app
-
-	return v
 }

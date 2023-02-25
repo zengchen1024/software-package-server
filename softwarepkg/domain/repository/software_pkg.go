@@ -19,11 +19,11 @@ type SoftwarePkg interface {
 
 	SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error
 
-	FindSoftwarePkgBasicInfo(pid string) (domain.SoftwarePkgBasicInfo, error)
+	FindSoftwarePkgBasicInfo(pid string) (domain.SoftwarePkgBasicInfo, int, error)
 
-	FindSoftwarePkg(pid string) (domain.SoftwarePkg, error)
+	FindSoftwarePkg(pid string) (domain.SoftwarePkg, int, error)
 
 	FindSoftwarePkgs(OptToFindSoftwarePkgs) (r []domain.SoftwarePkgBasicInfo, total int, err error)
 
-	AddIssueComment(pid string, comment *domain.SoftwarePkgReviewComment) error
+	AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error
 }

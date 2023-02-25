@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/opensourceways/src-package-server/utils"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 const (

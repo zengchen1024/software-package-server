@@ -25,6 +25,8 @@ var (
 
 type PackagePhase interface {
 	PackagePhase() string
+	IsReviewing() bool
+	IsCreatingRepo() bool
 }
 
 func NewPackagePhase(v string) (PackagePhase, error) {
@@ -41,6 +43,10 @@ func (v packagePhase) PackagePhase() string {
 	return string(v)
 }
 
-func IsPackagePhaseReviewing(s PackagePhase) bool {
-	return s != nil && s.PackagePhase() == packagePhaseReviewing
+func (v packagePhase) IsReviewing() bool {
+	return string(v) == packagePhaseReviewing
+}
+
+func (v packagePhase) IsCreatingRepo() bool {
+	return string(v) == packagePhaseCreatingRepo
 }

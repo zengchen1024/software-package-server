@@ -5,22 +5,26 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 )
 
 type SoftwarePkgService interface {
 	ApplyNewPkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
-	GetPkgIssue(string) (SoftwarePkgIssueDTO, error)
+	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 }
 
 var _ SoftwarePkgService = (*softwarePkgService)(nil)
 
 func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
-	return &softwarePkgService{repo}
+	return &softwarePkgService{
+		repo: repo,
+	}
 }
 
 type softwarePkgService struct {
-	repo repository.SoftwarePkg
+	repo         repository.SoftwarePkg
+	reviewServie service.SoftwarePkgReviewService
 }
 
 func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoftwarePkg) (

@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/opensourceways/community-robot-lib v0.0.0-20230111083119-2d2c0df320bb
-	github.com/opensourceways/src-package-server v0.0.0-20230223121448-33ad50f7fe8c
 	github.com/sirupsen/logrus v1.9.0
 	github.com/swaggo/files v1.0.0
 	github.com/swaggo/gin-swagger v1.5.3
