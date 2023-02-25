@@ -91,6 +91,10 @@ func (entity *SoftwarePkgBasicInfo) removeFromRejected(u dp.Account) bool {
 	return true
 }
 
+func (entity *SoftwarePkgBasicInfo) IsImporter(user dp.Account) bool {
+	return dp.IsSameAccount(user, entity.Importer)
+}
+
 // change the status of "creating repo"
 // send out the event
 // notify the importer
@@ -138,20 +142,6 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (changed, rejected
 	}
 
 	return
-}
-
-func (entity *SoftwarePkgBasicInfo) GiveUp(user dp.Account) error {
-	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
-	}
-
-	if user.Account() != entity.Importer.Account() {
-		return errors.New("you are not the importer")
-	}
-
-	entity.Phase = dp.PackagePhaseClosed
-
-	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) Close() error {

@@ -4,6 +4,7 @@ import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 )
@@ -24,6 +25,7 @@ func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
 
 type softwarePkgService struct {
 	repo         repository.SoftwarePkg
+	maintainer   maintainer.Maintainer
 	reviewServie service.SoftwarePkgReviewService
 }
 
