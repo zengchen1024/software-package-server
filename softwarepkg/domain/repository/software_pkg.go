@@ -7,24 +7,23 @@ import (
 
 type OptToFindSoftwarePkgs struct {
 	Importer dp.Account
-	Status   dp.PackageStatus
+	Phase    dp.PackagePhase
 
 	PageNum      int
 	CountPerPage int
 }
 
-type SoftwarePkgIssue struct {
-	domain.SoftwarePkgBasicInfo
-
-	domain.SoftwarePkgIssueInfo
-}
-
 type SoftwarePkg interface {
 	// AddSoftwarePkg adds a new pkg
-	AddSoftwarePkg(*domain.SoftwarePkg) error
+	AddSoftwarePkg(*domain.SoftwarePkgBasicInfo) error
 
-	// FindSoftwarePkgIssue find an issue belonging to a pkg
-	FindSoftwarePkgIssue(pid string) (SoftwarePkgIssue, error)
+	SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error
+
+	FindSoftwarePkgBasicInfo(pid string) (domain.SoftwarePkgBasicInfo, error)
+
+	FindSoftwarePkg(pid string) (domain.SoftwarePkg, error)
 
 	FindSoftwarePkgs(OptToFindSoftwarePkgs) (r []domain.SoftwarePkgBasicInfo, total int, err error)
+
+	AddIssueComment(pid string, comment *domain.SoftwarePkgReviewComment) error
 }

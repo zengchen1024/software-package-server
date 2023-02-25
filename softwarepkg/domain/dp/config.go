@@ -9,6 +9,7 @@ func Init(cfg *Config) {
 type Config struct {
 	MaxLengthOfPackageName       int `json:"max_length_of_pkg_name"`
 	MaxLengthOfPackageDesc       int `json:"max_length_of_pkg_desc"`
+	MaxLengthOfReviewComment     int `json:"max_length_of_review_comment"`
 	MaxLengthOfReasonToImportPkg int `json:"max_length_of_reason_to_import_pkg"`
 }
 
@@ -19,6 +20,10 @@ func (cfg *Config) SetDefault() {
 
 	if cfg.MaxLengthOfPackageDesc <= 0 {
 		cfg.MaxLengthOfPackageDesc = 1000
+	}
+
+	if cfg.MaxLengthOfReviewComment <= 0 {
+		cfg.MaxLengthOfReviewComment = 500
 	}
 
 	if cfg.MaxLengthOfReasonToImportPkg <= 0 {

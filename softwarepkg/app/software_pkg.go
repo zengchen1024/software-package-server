@@ -36,15 +36,6 @@ func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoft
 	return
 }
 
-func (s *softwarePkgService) GetPkgIssue(pid string) (SoftwarePkgIssueDTO, error) {
-	v, err := s.repo.FindSoftwarePkgIssue(pid)
-	if err != nil {
-		return SoftwarePkgIssueDTO{}, err
-	}
-
-	return toSoftwarePkgIssueDTO(&v), nil
-}
-
 func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
 	v, total, err := s.repo.FindSoftwarePkgs(*cmd)
 	if err != nil || len(v) == 0 {

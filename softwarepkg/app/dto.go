@@ -10,6 +10,11 @@ type CmdToApplyNewSoftwarePkg = domain.SoftwarePkgApplication
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs
 
+type CmdToWriteSoftwarePkgReviewComment struct {
+	Author  dp.Account
+	Content dp.ReviewComment
+}
+
 // SoftwarePkgBasicInfoDTO
 type SoftwarePkgBasicInfoDTO struct {
 	Id        string `json:"id"`
