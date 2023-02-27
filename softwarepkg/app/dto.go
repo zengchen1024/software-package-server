@@ -4,6 +4,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type CmdToApplyNewSoftwarePkg = domain.SoftwarePkgApplication
@@ -31,7 +32,7 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 		Importer:  v.Importer.Account(),
 		PkgName:   v.PkgName.PackageName(),
 		Phase:     v.Phase.PackagePhase(),
-		AppliedAt: "", //TODO
+		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
 
 	if v.RepoLink != nil {

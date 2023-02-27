@@ -25,7 +25,7 @@ var (
 
 type ReviewComment interface {
 	ReviewComment() string
-	ParseReviewComment() (isCmd, isApprove, isReject bool)
+	ParseReviewComment() (isCmd, isApprove bool)
 }
 
 func NewReviewComment(v string) (ReviewComment, error) {
@@ -48,11 +48,10 @@ func (v reviewComment) ReviewComment() string {
 	return string(v)
 }
 
-func (v reviewComment) ParseReviewComment() (isCmd, isApprove, isReject bool) {
+func (v reviewComment) ParseReviewComment() (isCmd, isApprove bool) {
 	if cmd := parseReviewCommand(string(v)); cmd != "" {
 		isCmd = true
 		isApprove = cmd == cmdAPPROVE
-		isReject = cmd == cmdReject
 	}
 
 	return

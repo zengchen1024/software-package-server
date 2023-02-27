@@ -19,7 +19,3 @@ type packageReviewResult string
 func (v packageReviewResult) PackageReviewResult() string {
 	return string(v)
 }
-
-func IsReviewResultRejected(r PackageReviewResult) bool {
-	return r != nil && r.PackageReviewResult() == pkgReviewResultRejected
-}

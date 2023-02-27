@@ -25,13 +25,13 @@ func (s *softwarePkgService) NewReviewComment(
 	}
 
 	if !pkg.CanAddReviewComment() {
-		code = ""
+		code = errorSoftwarePkgCannotComment
 		err = errors.New("can't comment now")
 
 		return
 	}
 
-	isCmd, isApprove, isReject := cmd.Content.ParseReviewComment()
+	isCmd, isApprove := cmd.Content.ParseReviewComment()
 
 	if isCmd {
 		if code, err = s.checkPermission(&pkg, cmd.Author); err != nil {
@@ -45,12 +45,9 @@ func (s *softwarePkgService) NewReviewComment(
 	}
 
 	var success bool
-
 	if isApprove {
 		success = s.reviewServie.ApprovePkg(&pkg, version, cmd.Author)
-	}
-
-	if isReject {
+	} else {
 		success = s.reviewServie.RejectPkg(&pkg, version, cmd.Author)
 	}
 
@@ -89,7 +86,7 @@ func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, u
 	}
 
 	if !b {
-		code = "" // TODO
+		code = errorSoftwarePkgNoPermission
 		err = errors.New("no permission")
 	}
 

@@ -13,14 +13,14 @@ var (
 	validPackagePhase = map[string]bool{
 		packagePhaseCreatingRepo: true,
 		packagePhaseReviewing:    true,
-		packagePhaseClosed:       true,
 		packagePhaseImported:     true,
+		packagePhaseClosed:       true,
 	}
 
 	PackagePhaseCreatingRepo = packagePhase(packagePhaseCreatingRepo)
 	PackagePhaseReviewing    = packagePhase(packagePhaseReviewing)
-	PackagePhaseClosed       = packagePhase(packagePhaseClosed)
 	PackagePhaseImported     = packagePhase(packagePhaseImported)
+	PackagePhaseClosed       = packagePhase(packagePhaseClosed)
 )
 
 type PackagePhase interface {
