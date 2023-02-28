@@ -28,12 +28,12 @@ const docTemplate = `{
                 "summary": "apply a new software package",
                 "parameters": [
                     {
-                        "description": "body of apply a new software package",
+                        "description": "body of applying a new software package",
                         "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.softwareRequest"
+                            "$ref": "#/definitions/controller.softwarePkgRequest"
                         }
                     }
                 ],
@@ -67,7 +67,7 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.softwareRequest": {
+        "controller.softwarePkgRequest": {
             "type": "object",
             "required": [
                 "package_desc",

@@ -7,7 +7,7 @@ definitions:
       msg:
         type: string
     type: object
-  controller.softwareRequest:
+  controller.softwarePkgRequest:
     properties:
       package_desc:
         type: string
@@ -41,12 +41,12 @@ paths:
       - application/json
       description: apply a new software package
       parameters:
-      - description: body of apply a new software package
+      - description: body of applying a new software package
         in: body
         name: param
         required: true
         schema:
-          $ref: '#/definitions/controller.softwareRequest'
+          $ref: '#/definitions/controller.softwarePkgRequest'
       responses:
         "201":
           description: Created
