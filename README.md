@@ -1,1 +1,1 @@
-# src-package-server
+# software-package-server

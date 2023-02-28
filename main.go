@@ -51,9 +51,8 @@ func main() {
 		logrus.Debug("debug enabled.")
 	}
 
-	// cfg
-	cfg := new(config.Config)
-	if err := config.LoadConfig(o.service.ConfigFile, cfg); err != nil {
+	cfg, err := config.LoadConfig(o.service.ConfigFile)
+	if err != nil {
 		logrus.Fatalf("load config, err:%s", err.Error())
 	}
 
