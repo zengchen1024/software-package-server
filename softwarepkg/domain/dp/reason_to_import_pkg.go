@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/opensourceways/src-package-server/utils"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type ReasonToImportPkg interface {

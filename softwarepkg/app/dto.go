@@ -4,18 +4,24 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type CmdToApplyNewSoftwarePkg = domain.SoftwarePkgApplication
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs
 
+type CmdToWriteSoftwarePkgReviewComment struct {
+	Author  dp.Account
+	Content dp.ReviewComment
+}
+
 // SoftwarePkgBasicInfoDTO
 type SoftwarePkgBasicInfoDTO struct {
 	Id        string `json:"id"`
 	Importer  string `json:"importer"`
 	PkgName   string `json:"pkg_name"`
-	Status    string `json:"status"`
+	Phase     string `json:"phase"`
 	AppliedAt string `json:"applied_at"`
 	RepoLink  string `json:"repo_link"`
 }
@@ -25,8 +31,8 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 		Id:        v.Id,
 		Importer:  v.Importer.Account(),
 		PkgName:   v.PkgName.PackageName(),
-		Status:    v.Status.PackageStatus(),
-		AppliedAt: "",
+		Phase:     v.Phase.PackagePhase(),
+		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
 
 	if v.RepoLink != nil {
@@ -70,39 +76,42 @@ func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgAp
 	}
 }
 
-// SoftwarePkgIssueCommentDTO
-type SoftwarePkgIssueCommentDTO struct {
+// SoftwarePkgReviewCommentDTO
+type SoftwarePkgReviewCommentDTO struct {
 }
 
-func toSoftwarePkgIssueCommentDTO(v *domain.SoftwarePkgIssueComment) SoftwarePkgIssueCommentDTO {
-	return SoftwarePkgIssueCommentDTO{}
+func toSoftwarePkgReviewCommentDTO(v *domain.SoftwarePkgReviewComment) SoftwarePkgReviewCommentDTO {
+	return SoftwarePkgReviewCommentDTO{}
 }
 
-func toSoftwarePkgIssueCommentDTOs(v []domain.SoftwarePkgIssueComment) (r []SoftwarePkgIssueCommentDTO) {
+func toSoftwarePkgReviewCommentDTOs(v []domain.SoftwarePkgReviewComment) (r []SoftwarePkgReviewCommentDTO) {
 	if n := len(v); n > 0 {
-		r = make([]SoftwarePkgIssueCommentDTO, n)
+		r = make([]SoftwarePkgReviewCommentDTO, n)
 		for i := range v {
-			r[i] = toSoftwarePkgIssueCommentDTO(&v[i])
+			r[i] = toSoftwarePkgReviewCommentDTO(&v[i])
 		}
 	}
 
 	return
 }
 
-// SoftwarePkgIssueInfoDTO
-type SoftwarePkgIssueInfoDTO struct {
-	Application SoftwarePkgApplicationDTO    `json:"application"`
-	Comments    []SoftwarePkgIssueCommentDTO `json:"comments"`
-	ApprovedBy  []string                     `json:"approved_by"`
-	RejectedBy  []string                     `json:"rejected_by"`
+// SoftwarePkgReviewDTO
+type SoftwarePkgReviewDTO struct {
+	SoftwarePkgBasicInfoDTO
+
+	ApprovedBy  []string                      `json:"approved_by"`
+	RejectedBy  []string                      `json:"rejected_by"`
+	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
+	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
 
-func toSoftwarePkgIssueInfoDTO(v *domain.SoftwarePkgIssueInfo) SoftwarePkgIssueInfoDTO {
-	return SoftwarePkgIssueInfoDTO{
-		Application: toSoftwarePkgApplicationDTO(&v.Application),
-		Comments:    toSoftwarePkgIssueCommentDTOs(v.Comments),
-		ApprovedBy:  toAccounts(v.ApprovedBy),
-		RejectedBy:  toAccounts(v.RejectedBy),
+func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
+	return SoftwarePkgReviewDTO{
+		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
+		ApprovedBy:              toAccounts(v.ApprovedBy),
+		RejectedBy:              toAccounts(v.RejectedBy),
+		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
+		Application:             toSoftwarePkgApplicationDTO(&v.Application),
 	}
 }
 
@@ -115,19 +124,6 @@ func toAccounts(v []dp.Account) (r []string) {
 	}
 
 	return
-}
-
-// SoftwarePkgIssueDTO
-type SoftwarePkgIssueDTO struct {
-	SoftwarePkgBasicInfoDTO
-	SoftwarePkgIssueInfoDTO
-}
-
-func toSoftwarePkgIssueDTO(v *repository.SoftwarePkgIssue) SoftwarePkgIssueDTO {
-	return SoftwarePkgIssueDTO{
-		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
-		SoftwarePkgIssueInfoDTO: toSoftwarePkgIssueInfoDTO(&v.SoftwarePkgIssueInfo),
-	}
 }
 
 // SoftwarePkgsDTO

@@ -29,6 +29,10 @@ func (r dpAccount) Account() string {
 	return string(r)
 }
 
+func IsSameAccount(a, b Account) bool {
+	return a != nil && b != nil && a.Account() == b.Account()
+}
+
 // URL
 type URL interface {
 	URL() string

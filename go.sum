@@ -262,8 +262,6 @@ github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1y
 github.com/opensourceways/community-robot-lib v0.0.0-20230111083119-2d2c0df320bb h1:+G1/sm5wGn4nJS4yri3T3jujcty7PDuBjiIh2CP5k5c=
 github.com/opensourceways/community-robot-lib v0.0.0-20230111083119-2d2c0df320bb/go.mod h1:aeTHmjsRPhPpRuUDT95A5YFEFhGzc2OM7OL9HHjsmYM=
 github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96/go.mod h1:yvVsEMhp7frMblzN1sco4C7cRlnlpqkkn3O2JQNdRu0=
-github.com/opensourceways/src-package-server v0.0.0-20230223121448-33ad50f7fe8c h1:3sIVft2X6ET2ql7MANckDKBy//usYYPttTwSlq3MGdQ=
-github.com/opensourceways/src-package-server v0.0.0-20230223121448-33ad50f7fe8c/go.mod h1:/RPa0Xql1BxDRVlaDO8obquFHv7xT8UMlkdNB4a7BTw=
 github.com/otiai10/copy v1.7.0/go.mod h1:rmRl6QPdJj6EiUqXQ/4Nn2lLXoNQjFCQbbNrxgc/t3U=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
 github.com/otiai10/curr v1.0.0/go.mod h1:LskTG5wDwr8Rs+nNQ+1LlxRjAtTZZjtJW4rMXl6j4vs=
