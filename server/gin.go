@@ -14,6 +14,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/controller"
 )
 
 func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
@@ -51,7 +52,9 @@ func setApiV1(v1 *gin.RouterGroup) {
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup) {
-	softwarepkgapp.NewSoftwarePkgService(nil)
+	controller.AddRouteForSoftwarePkgController(
+		v1, softwarepkgapp.NewSoftwarePkgService(nil),
+	)
 }
 
 func logRequest() gin.HandlerFunc {

@@ -15,7 +15,94 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/v1/softwarepkg": {
+            "post": {
+                "description": "apply a new software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "apply a new software package",
+                "parameters": [
+                    {
+                        "description": "body of apply a new software package",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.softwareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controller.ResponseData": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "data": {},
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.softwareRequest": {
+            "type": "object",
+            "required": [
+                "package_desc",
+                "package_name",
+                "package_platform",
+                "package_reason",
+                "package_sig",
+                "source_code_license",
+                "source_code_url"
+            ],
+            "properties": {
+                "package_desc": {
+                    "type": "string"
+                },
+                "package_name": {
+                    "type": "string"
+                },
+                "package_platform": {
+                    "type": "string"
+                },
+                "package_reason": {
+                    "type": "string"
+                },
+                "package_sig": {
+                    "type": "string"
+                },
+                "source_code_license": {
+                    "type": "string"
+                },
+                "source_code_url": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

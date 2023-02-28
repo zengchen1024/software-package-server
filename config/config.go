@@ -18,12 +18,6 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	if err := postgresql.Init(&cfg.Postgresql); err != nil {
-		return nil, err
-	}
-
-	dp.Init(&cfg.SoftwarePkg)
-
 	return cfg, nil
 }
 
