@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/opensourceways/community-robot-lib/utils"
 
-	"github.com/opensourceways/software-package-server/infrastructure/db"
+	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
@@ -18,11 +18,11 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	if err := db.InitPostgresql(&cfg.Postgresql); err != nil {
+	if err := postgresql.Init(&cfg.Postgresql); err != nil {
 		return nil, err
 	}
 
-	dp.Init(&cfg.DP)
+	dp.Init(&cfg.SoftwarePkg)
 
 	return cfg, nil
 }
@@ -36,14 +36,14 @@ type configSetDefault interface {
 }
 
 type Config struct {
-	Postgresql db.PostgresqlConfig `json:"db" required:"true"`
-	DP         dp.Config           `json:"dp" required:"true"`
+	Postgresql  postgresql.Config `json:"postgresql" required:"true"`
+	SoftwarePkg dp.Config         `json:"software_pkg" required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.Postgresql,
-		&cfg.DP,
+		&cfg.SoftwarePkg,
 	}
 }
 
