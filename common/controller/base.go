@@ -28,3 +28,7 @@ func (ctl BaseController) SendBadRequest(ctx *gin.Context, code string, err erro
 
 	ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(code, err.Error()))
 }
+
+func (ctl BaseController) SendRespOfGet(ctx *gin.Context, data interface{}) {
+	ctx.JSON(http.StatusOK, newResponseData(data))
+}

@@ -17,6 +17,56 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/v1/softwarepkg": {
+            "get": {
+                "description": "list software packages",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "list software packages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "importer of the softwarePkg",
+                        "name": "importer",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "phase of the softwarePkg",
+                        "name": "phase",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "count per page",
+                        "name": "count_per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page num which starts from 1",
+                        "name": "page_num",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.SoftwarePkgsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "apply a new software package",
                 "consumes": [
@@ -55,6 +105,43 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "app.SoftwarePkgBasicInfoDTO": {
+            "type": "object",
+            "properties": {
+                "applied_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "importer": {
+                    "type": "string"
+                },
+                "phase": {
+                    "type": "string"
+                },
+                "pkg_name": {
+                    "type": "string"
+                },
+                "repo_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgsDTO": {
+            "type": "object",
+            "properties": {
+                "pkgs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgBasicInfoDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "controller.ResponseData": {
             "type": "object",
             "properties": {

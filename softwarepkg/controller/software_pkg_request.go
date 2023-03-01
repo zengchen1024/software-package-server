@@ -5,6 +5,11 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+const (
+	pageNum      = 1
+	countPerPage = 10
+)
+
 type softwarePkgRequest struct {
 	SourceCodeUrl     string `json:"source_code_url"     binding:"required"`
 	SourceCodeLicense string `json:"source_code_license" binding:"required"`
@@ -47,6 +52,41 @@ func (s softwarePkgRequest) toCmd() (pkg app.CmdToApplyNewSoftwarePkg, err error
 	}
 
 	pkg.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform)
+
+	return
+}
+
+type softwarePkgListQuery struct {
+	Importer     string `json:"importer"       form:"importer"`
+	Phase        string `json:"phase"          form:"phase"`
+	PageNum      int    `json:"page_num"       form:"page_num"`
+	CountPerPage int    `json:"count_per_page" form:"count_per_page"`
+}
+
+func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
+	if s.Importer != "" {
+		if pkg.Importer, err = dp.NewAccount(s.Importer); err != nil {
+			return
+		}
+	}
+
+	if s.Phase != "" {
+		if pkg.Phase, err = dp.NewPackagePhase(s.Phase); err != nil {
+			return
+		}
+	}
+
+	if s.PageNum > 0 {
+		pkg.PageNum = s.PageNum
+	} else {
+		pkg.PageNum = pageNum
+	}
+
+	if s.CountPerPage > 0 {
+		pkg.CountPerPage = s.CountPerPage
+	} else {
+		pkg.CountPerPage = countPerPage
+	}
 
 	return
 }
