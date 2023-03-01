@@ -1,8 +1,6 @@
 package repositoryimpl
 
 import (
-	"errors"
-
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
@@ -31,7 +29,9 @@ func (s softwarePkgImpl) FindSoftwarePkg(pid string) (domain.SoftwarePkg, int, e
 	return domain.SoftwarePkg{}, 0, nil
 }
 
-func (s softwarePkgImpl) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (r []domain.SoftwarePkgBasicInfo, total int, err error) {
+func (s softwarePkgImpl) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
+	r []domain.SoftwarePkgBasicInfo, total int, err error,
+) {
 	//TODO implement me
 	return nil, 0, err
 }
@@ -42,21 +42,12 @@ func (s softwarePkgImpl) AddReviewComment(pid string, comment *domain.SoftwarePk
 }
 
 func (s softwarePkgImpl) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
-	softwarePkgDO := s.toSoftwarePkgDO(pkg)
-
-	return s.save(softwarePkgDO)
-}
-
-func (s softwarePkgImpl) save(soft *SoftwarePkgDO) error {
-	filter := &SoftwarePkgDO{PackageName: soft.PackageName}
-	rows, err := s.cli.Insert(filter, soft)
-	if err != nil {
-		return err
+	v := s.toSoftwarePkgDO(pkg)
+	filter := SoftwarePkgDO{PackageName: pkg.PkgName.PackageName()}
+	err := s.cli.Insert(&filter, &v)
+	if err != nil && s.cli.IsRowExists(err) {
+		err = commonrepo.NewErrorDuplicateCreating(err)
 	}
 
-	if rows == 0 {
-		return commonrepo.NewErrorDuplicateCreating(errors.New("package exists"))
-	}
-
-	return nil
+	return err
 }

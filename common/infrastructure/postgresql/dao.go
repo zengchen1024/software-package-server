@@ -1,5 +1,12 @@
 package postgresql
 
+import "errors"
+
+var (
+	errRowExists    = errors.New("row exists")
+	errRowNotExists = errors.New("row doesn't exist")
+)
+
 type dbTable struct {
 	name string
 }
@@ -8,11 +15,24 @@ func NewDBTable(name string) dbTable {
 	return dbTable{name: name}
 }
 
-func (d dbTable) Insert(filter, result interface{}) (rows int64, err error) {
-	query := db.Table(d.name).Where(filter).FirstOrCreate(result)
+func (t dbTable) Insert(filter, result interface{}) error {
+	query := db.Table(t.name).Where(filter).FirstOrCreate(result)
 
-	err = query.Error
-	rows = query.RowsAffected
+	if err := query.Error; err != nil {
+		return err
+	}
 
-	return
+	if query.RowsAffected == 0 {
+		return errRowExists
+	}
+
+	return nil
+}
+
+func (t dbTable) IsRowNotExists(err error) bool {
+	return errors.Is(err, errRowNotExists)
+}
+
+func (t dbTable) IsRowExists(err error) bool {
+	return errors.Is(err, errRowExists)
 }
