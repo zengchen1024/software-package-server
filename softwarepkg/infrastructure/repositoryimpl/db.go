@@ -1,5 +1,8 @@
 package repositoryimpl
 
 type dbClient interface {
-	Insert(filter, result interface{}) (rows int64, err error)
+	Insert(filter, result interface{}) error
+
+	IsRowNotExists(err error) bool
+	IsRowExists(err error) bool
 }
