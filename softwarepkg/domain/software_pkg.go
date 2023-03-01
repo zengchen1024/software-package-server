@@ -167,5 +167,6 @@ func NewSoftwarePkg(user dp.Account, app *SoftwarePkgApplication) SoftwarePkgBas
 		PkgName:     app.PackageName,
 		Phase:       dp.PackagePhaseReviewing,
 		Application: *app,
+		AppliedAt:   utils.Now(),
 	}
 }

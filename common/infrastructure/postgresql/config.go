@@ -15,6 +15,11 @@ type Config struct {
 	Life    int    `json:"life"     required:"true"`
 	MaxConn int    `json:"max_conn" required:"true"`
 	MaxIdle int    `json:"max_idle" required:"true"`
+	Table   Table  `json:"table"    required:"true"`
+}
+
+type Table struct {
+	SoftwarePkg string `json:"software_pkg" required:"true"`
 }
 
 func (p *Config) SetDefault() {

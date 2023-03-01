@@ -11,10 +11,12 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
 
 func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
@@ -41,19 +43,20 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 	docs.SwaggerInfo.Description = "set header: 'PRIVATE-TOKEN=xxx'"
 
 	v1 := engine.Group(docs.SwaggerInfo.BasePath)
-	setApiV1(v1)
+	setApiV1(v1, cfg)
 
 	engine.UseRawPath = true
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
 
-func setApiV1(v1 *gin.RouterGroup) {
-	initSoftwarePkgService(v1)
+func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
+	initSoftwarePkgService(v1, cfg)
 }
 
-func initSoftwarePkgService(v1 *gin.RouterGroup) {
+func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
+	softwarePkg := repositoryimpl.NewSoftwarePkg(postgresql.NewDBTable(cfg.Postgresql.Table.SoftwarePkg))
 	controller.AddRouteForSoftwarePkgController(
-		v1, softwarepkgapp.NewSoftwarePkgService(nil),
+		v1, softwarepkgapp.NewSoftwarePkgService(softwarePkg),
 	)
 }
 
