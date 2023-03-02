@@ -114,12 +114,12 @@ type SoftwarePkgReviewDTO struct {
 	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
 
-func toSoftwarePkgReviewDTO(v *domain.SoftwarePkgBasicInfo, comments []domain.SoftwarePkgReviewComment) SoftwarePkgReviewDTO {
+func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
 	return SoftwarePkgReviewDTO{
-		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(v),
+		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
 		ApprovedBy:              toAccounts(v.ApprovedBy),
 		RejectedBy:              toAccounts(v.RejectedBy),
-		Comments:                toSoftwarePkgReviewCommentDTOs(comments),
+		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
 		Application:             toSoftwarePkgApplicationDTO(&v.Application),
 	}
 }

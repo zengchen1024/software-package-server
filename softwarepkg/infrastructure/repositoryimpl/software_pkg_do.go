@@ -32,8 +32,8 @@ type SoftwarePkgDO struct {
 	UpdatedAt       int64          `gorm:"column:update_time"`
 }
 
-func (s softwarePkgImpl) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo) *SoftwarePkgDO {
-	softwareDO := &SoftwarePkgDO{
+func (s softwarePkgTable) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgDO) {
+	*do = SoftwarePkgDO{
 		UUID:            uuid.New(),
 		Phase:           pkg.Phase.PackagePhase(),
 		SourceCode:      pkg.Application.SourceCode.Address.URL(),
@@ -47,11 +47,9 @@ func (s softwarePkgImpl) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo) *Soft
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
 	}
-
-	return softwareDO
 }
 
-func (s SoftwarePkgDO) toSoftwarePkgSummary() (info domain.SoftwarePkgBasicInfo, err error) {
+func (s SoftwarePkgDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
 	info.Id = s.UUID.String()
 
 	if info.PkgName, err = dp.NewPackageName(s.PackageName); err != nil {
