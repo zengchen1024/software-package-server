@@ -21,9 +21,9 @@ type SoftwarePkg interface {
 
 	FindSoftwarePkgBasicInfo(pid string) (domain.SoftwarePkgBasicInfo, int, error)
 
-	FindSoftwarePkg(pid string) (domain.SoftwarePkg, int, error)
-
 	FindSoftwarePkgs(OptToFindSoftwarePkgs) (r []domain.SoftwarePkgBasicInfo, total int, err error)
 
 	AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error
+
+	FindSoftwarePkgReviewComments(pid string) ([]domain.SoftwarePkgReviewComment, error)
 }

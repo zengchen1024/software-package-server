@@ -19,7 +19,8 @@ type Config struct {
 }
 
 type Table struct {
-	SoftwarePkg string `json:"software_pkg" required:"true"`
+	SoftwarePkg       string `json:"software_pkg"        required:"true"`
+	SoftwarePkgReview string `json:"software_pkg_review" required:"true"`
 }
 
 func (p *Config) SetDefault() {

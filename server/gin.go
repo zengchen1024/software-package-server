@@ -54,8 +54,12 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
+	pkgreview := repositoryimpl.NewSoftwarePkgReview(
+		postgresql.NewDBTable(cfg.Postgresql.Table.SoftwarePkgReview),
+	)
 	v := repositoryimpl.NewSoftwarePkg(
 		postgresql.NewDBTable(cfg.Postgresql.Table.SoftwarePkg),
+		pkgreview,
 	)
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(v),

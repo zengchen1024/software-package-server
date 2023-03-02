@@ -28,12 +28,8 @@ type SoftwarePkgDO struct {
 	RejectUser      pq.StringArray `gorm:"column:reject_user;type:text[];default:'{}'"`
 	ApproveUser     pq.StringArray `gorm:"column:approve_user;type:text[];default:'{}'"`
 	Version         int            `gorm:"column:version"`
-	ApplyTime       int64          `gorm:"column:apply_time"`
-	UpdateTime      int64          `gorm:"column:update_time"`
-}
-
-func (SoftwarePkgDO) TableName() string {
-	return "software_pkg"
+	AppliedAt       int64          `gorm:"column:apply_time"`
+	UpdatedAt       int64          `gorm:"column:update_time"`
 }
 
 func (s softwarePkgImpl) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo) *SoftwarePkgDO {
@@ -48,8 +44,8 @@ func (s softwarePkgImpl) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo) *Soft
 		PackageReason:   pkg.Application.ReasonToImportPkg.ReasonToImportPkg(),
 		PackageLicense:  pkg.Application.SourceCode.License.License(),
 		PackagePlatform: pkg.Application.PackagePlatform.PackagePlatform(),
-		ApplyTime:       pkg.AppliedAt,
-		UpdateTime:      pkg.AppliedAt,
+		AppliedAt:       pkg.AppliedAt,
+		UpdatedAt:       pkg.AppliedAt,
 	}
 
 	return softwareDO
@@ -76,7 +72,7 @@ func (s SoftwarePkgDO) toSoftwarePkgSummary() (info domain.SoftwarePkgBasicInfo,
 		return
 	}
 
-	info.AppliedAt = s.ApplyTime
+	info.AppliedAt = s.AppliedAt
 
 	if err = s.toSoftwarePkgApplication(&info.Application); err != nil {
 		return
