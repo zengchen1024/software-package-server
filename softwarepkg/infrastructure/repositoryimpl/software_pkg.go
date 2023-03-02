@@ -46,20 +46,25 @@ func (s softwarePkgImpl) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs)
 		return
 	}
 
-	var sort = []postgresql.SortByColumn{
-		{Column: applyTime, Ascend: false},
-	}
-
-	var p = postgresql.Pagination{PageNum: pkgs.PageNum, CountPerPage: pkgs.CountPerPage}
-
 	var result []SoftwarePkgDO
-	if err = s.cli.GetTableRecords(&filter, &result, p, sort); err != nil {
+
+	err = s.cli.GetTableRecords(
+		&filter, &result,
+		postgresql.Pagination{
+			PageNum:      pkgs.PageNum,
+			CountPerPage: pkgs.CountPerPage,
+		},
+		[]postgresql.SortByColumn{
+			{Column: applyTime, Ascend: false},
+		},
+	)
+	if err != nil || len(result) == 0 {
 		return
 	}
 
 	r = make([]domain.SoftwarePkgBasicInfo, len(result))
-	for i, v := range result {
-		if r[i], err = v.toSoftwarePkgSummary(); err != nil {
+	for i := range result {
+		if r[i], err = result[i].toSoftwarePkgSummary(); err != nil {
 			return
 		}
 	}

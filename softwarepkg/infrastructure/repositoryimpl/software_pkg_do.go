@@ -78,58 +78,61 @@ func (s SoftwarePkgDO) toSoftwarePkgSummary() (info domain.SoftwarePkgBasicInfo,
 
 	info.AppliedAt = s.ApplyTime
 
-	var pkg domain.SoftwarePkgApplication
-	if pkg, err = s.toSoftwarePkgApplication(); err != nil {
+	if err = s.toSoftwarePkgApplication(&info.Application); err != nil {
 		return
-	} else {
-		info.Application = pkg
 	}
 
-	for _, v := range s.ApproveUser {
-		var approve dp.Account
-		if approve, err = dp.NewAccount(v); err != nil {
-			return
-		}
-		info.ApprovedBy = append(info.ApprovedBy, approve)
+	if info.ApprovedBy, err = s.toAccounts(s.ApproveUser); err != nil {
+		return
 	}
 
-	for _, v := range s.RejectUser {
-		var reject dp.Account
-		if reject, err = dp.NewAccount(v); err != nil {
+	info.RejectedBy, err = s.toAccounts(s.RejectUser)
+
+	return
+}
+
+func (s SoftwarePkgDO) toAccounts(v []string) (r []dp.Account, err error) {
+	n := len(v)
+	if n == 0 {
+		return nil, nil
+	}
+
+	r = make([]dp.Account, n)
+	for i := range v {
+		if r[i], err = dp.NewAccount(v[i]); err != nil {
 			return
 		}
-		info.RejectedBy = append(info.RejectedBy, reject)
 	}
 
 	return
 }
 
-func (s SoftwarePkgDO) toSoftwarePkgApplication() (pkg domain.SoftwarePkgApplication, err error) {
-	if pkg.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason); err != nil {
+func (s SoftwarePkgDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
+	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason); err != nil {
 		return
 	}
 
-	if pkg.PackageName, err = dp.NewPackageName(s.PackageName); err != nil {
+	if app.PackageName, err = dp.NewPackageName(s.PackageName); err != nil {
 		return
 	}
 
-	if pkg.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc); err != nil {
+	if app.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc); err != nil {
 		return
 	}
 
-	if pkg.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform); err != nil {
+	if app.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform); err != nil {
 		return
 	}
 
-	if pkg.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig); err != nil {
+	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig); err != nil {
 		return
 	}
 
-	if pkg.SourceCode.License, err = dp.NewLicense(s.PackageLicense); err != nil {
+	if app.SourceCode.License, err = dp.NewLicense(s.PackageLicense); err != nil {
 		return
 	}
 
-	pkg.SourceCode.Address, err = dp.NewURL(s.SourceCode)
+	app.SourceCode.Address, err = dp.NewURL(s.SourceCode)
 
 	return
 }
