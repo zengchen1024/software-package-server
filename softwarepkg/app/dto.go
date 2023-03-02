@@ -78,10 +78,19 @@ func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgAp
 
 // SoftwarePkgReviewCommentDTO
 type SoftwarePkgReviewCommentDTO struct {
+	Id        string `json:"id"`
+	Author    string `json:"author"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
 }
 
 func toSoftwarePkgReviewCommentDTO(v *domain.SoftwarePkgReviewComment) SoftwarePkgReviewCommentDTO {
-	return SoftwarePkgReviewCommentDTO{}
+	return SoftwarePkgReviewCommentDTO{
+		Id:        v.Id,
+		Author:    v.Author.Account(),
+		Content:   v.Content.ReviewComment(),
+		CreatedAt: utils.ToDateTime(v.CreatedAt),
+	}
 }
 
 func toSoftwarePkgReviewCommentDTOs(v []domain.SoftwarePkgReviewComment) (r []SoftwarePkgReviewCommentDTO) {

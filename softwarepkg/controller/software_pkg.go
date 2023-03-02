@@ -20,6 +20,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 
 	r.POST("/v1/softwarepkg", ctl.ApplyNewPkg)
 	r.GET("/v1/softwarepkg", ctl.ListPkgs)
+	r.GET("/v1/softwarepkg/:id", ctl.Get)
 }
 
 // ApplyNewPkg
@@ -58,10 +59,10 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 // @Description list software packages
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param    importer         path	string  true    "importer of the softwarePkg"
-// @Param    phase            path	string  true    "phase of the softwarePkg"
-// @Param    count_per_page   path	int     true    "count per page"
-// @Param    page_num         path	int     true    "page num which starts from 1"
+// @Param    importer         query	 string   false    "importer of the softwarePkg"
+// @Param    phase            query	 string   false    "phase of the softwarePkg"
+// @Param    count_per_page   query	 int      false    "count per page"
+// @Param    page_num         query	 int      false    "page num which starts from 1"
 // @Success 200 {object} app.SoftwarePkgsDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg [get]
@@ -81,6 +82,23 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 	}
 
 	if v, err := ctl.service.ListPkgs(&cmd); err != nil {
+		ctl.SendBadRequest(ctx, "", err)
+	} else {
+		ctl.SendRespOfGet(ctx, v)
+	}
+}
+
+// Get
+// @Summary get software package
+// @Description get software package
+// @Tags  SoftwarePkg
+// @Accept json
+// @Param    id         path	string  true    "id of software package"
+// @Success 200 {object} app.SoftwarePkgReviewDTO
+// @Failure 400 {object} ResponseData
+// @Router /v1/softwarepkg/{id} [get]
+func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
+	if v, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
 		ctl.SendBadRequest(ctx, "", err)
 	} else {
 		ctl.SendRespOfGet(ctx, v)

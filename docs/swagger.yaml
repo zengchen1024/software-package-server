@@ -1,4 +1,21 @@
 definitions:
+  app.SoftwarePkgApplicationDTO:
+    properties:
+      desc:
+        type: string
+      license:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      reason:
+        type: string
+      sig:
+        type: string
+      source_code:
+        type: string
+    type: object
   app.SoftwarePkgBasicInfoDTO:
     properties:
       applied_at:
@@ -11,6 +28,46 @@ definitions:
         type: string
       pkg_name:
         type: string
+      repo_link:
+        type: string
+    type: object
+  app.SoftwarePkgReviewCommentDTO:
+    properties:
+      author:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+    type: object
+  app.SoftwarePkgReviewDTO:
+    properties:
+      application:
+        $ref: '#/definitions/app.SoftwarePkgApplicationDTO'
+      applied_at:
+        type: string
+      approved_by:
+        items:
+          type: string
+        type: array
+      comments:
+        items:
+          $ref: '#/definitions/app.SoftwarePkgReviewCommentDTO'
+        type: array
+      id:
+        type: string
+      importer:
+        type: string
+      phase:
+        type: string
+      pkg_name:
+        type: string
+      rejected_by:
+        items:
+          type: string
+        type: array
       repo_link:
         type: string
     type: object
@@ -114,6 +171,29 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: apply a new software package
+      tags:
+      - SoftwarePkg
+  /v1/softwarepkg/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.SoftwarePkgReviewDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: get software package
       tags:
       - SoftwarePkg
 swagger: "2.0"

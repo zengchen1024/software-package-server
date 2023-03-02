@@ -102,9 +102,70 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/softwarepkg/{id}": {
+            "get": {
+                "description": "get software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "get software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.SoftwarePkgReviewDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "app.SoftwarePkgApplicationDTO": {
+            "type": "object",
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "sig": {
+                    "type": "string"
+                },
+                "source_code": {
+                    "type": "string"
+                }
+            }
+        },
         "app.SoftwarePkgBasicInfoDTO": {
             "type": "object",
             "properties": {
@@ -122,6 +183,67 @@ const docTemplate = `{
                 },
                 "pkg_name": {
                     "type": "string"
+                },
+                "repo_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgReviewCommentDTO": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgReviewDTO": {
+            "type": "object",
+            "properties": {
+                "application": {
+                    "$ref": "#/definitions/app.SoftwarePkgApplicationDTO"
+                },
+                "applied_at": {
+                    "type": "string"
+                },
+                "approved_by": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "importer": {
+                    "type": "string"
+                },
+                "phase": {
+                    "type": "string"
+                },
+                "pkg_name": {
+                    "type": "string"
+                },
+                "rejected_by": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "repo_link": {
                     "type": "string"
