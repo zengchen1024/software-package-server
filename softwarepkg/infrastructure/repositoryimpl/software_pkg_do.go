@@ -92,12 +92,11 @@ func (s SoftwarePkgDO) toSoftwarePkgSummary() (info domain.SoftwarePkgBasicInfo,
 }
 
 func (s SoftwarePkgDO) toAccounts(v []string) (r []dp.Account, err error) {
-	n := len(v)
-	if n == 0 {
-		return nil, nil
+	if len(v) == 0 {
+		return
 	}
 
-	r = make([]dp.Account, n)
+	r = make([]dp.Account, len(v))
 	for i := range v {
 		if r[i], err = dp.NewAccount(v[i]); err != nil {
 			return

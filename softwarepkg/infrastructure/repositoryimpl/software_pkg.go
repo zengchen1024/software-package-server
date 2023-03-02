@@ -55,7 +55,7 @@ func (s softwarePkgImpl) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs)
 			CountPerPage: pkgs.CountPerPage,
 		},
 		[]postgresql.SortByColumn{
-			{Column: applyTime, Ascend: false},
+			{Column: applyTime},
 		},
 	)
 	if err != nil || len(result) == 0 {
