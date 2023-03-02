@@ -45,6 +45,7 @@ type SoftwarePkgBasicInfo struct {
 	Importer     dp.Account
 	RepoLink     dp.URL
 	Phase        dp.PackagePhase
+	Frozen       bool
 	ReviewResult dp.PackageReviewResult
 	AppliedAt    int64
 	Application  SoftwarePkgApplication
@@ -165,6 +166,7 @@ func NewSoftwarePkg(user dp.Account, name dp.PackageName, app *SoftwarePkgApplic
 		PkgName:     name,
 		Importer:    user,
 		Phase:       dp.PackagePhaseReviewing,
+		Frozen:      true,
 		Application: *app,
 		AppliedAt:   utils.Now(),
 	}

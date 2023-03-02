@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
@@ -20,38 +21,44 @@ type softwarePkgRequest struct {
 	PackageReason     string `json:"reason"          binding:"required"`
 }
 
-func (s softwarePkgRequest) toCmd() (pkg app.CmdToApplyNewSoftwarePkg, err error) {
-	pkg.SourceCode.Address, err = dp.NewURL(s.SourceCodeUrl)
+func (s softwarePkgRequest) toCmd(importer *domain.SoftwarePkgImporter) (
+	cmd app.CmdToApplyNewSoftwarePkg, err error,
+) {
+	cmd.Importer = *importer
+
+	cmd.PkgName, err = dp.NewPackageName(s.PackageName)
 	if err != nil {
 		return
 	}
 
-	pkg.SourceCode.License, err = dp.NewLicense(s.SourceCodeLicense)
+	application := &cmd.Application
+
+	application.SourceCode.Address, err = dp.NewURL(s.SourceCodeUrl)
 	if err != nil {
 		return
 	}
 
-	pkg.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig)
+	application.SourceCode.License, err = dp.NewLicense(s.SourceCodeLicense)
 	if err != nil {
 		return
 	}
 
-	pkg.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason)
+	application.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig)
 	if err != nil {
 		return
 	}
 
-	pkg.PkgName, err = dp.NewPackageName(s.PackageName)
+	application.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason)
 	if err != nil {
 		return
 	}
 
-	pkg.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc)
+	application.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc)
 	if err != nil {
 		return
 	}
 
-	pkg.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform)
+	application.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform)
 
 	return
 }

@@ -8,9 +8,9 @@ import (
 )
 
 type CmdToApplyNewSoftwarePkg struct {
-	PkgName dp.PackageName
-
-	domain.SoftwarePkgApplication
+	PkgName     dp.PackageName
+	Importer    domain.SoftwarePkgImporter
+	Application domain.SoftwarePkgApplication
 }
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs

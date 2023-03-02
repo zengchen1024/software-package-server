@@ -3,14 +3,15 @@ package app
 import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
+	"github.com/sirupsen/logrus"
 )
 
 type SoftwarePkgService interface {
-	ApplyNewPkg(dp.Account, *CmdToApplyNewSoftwarePkg) (string, error)
+	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 }
@@ -25,20 +26,30 @@ func NewSoftwarePkgService(repo repository.SoftwarePkg) *softwarePkgService {
 
 type softwarePkgService struct {
 	repo         repository.SoftwarePkg
+	message      message.SoftwarePkgMessage
 	maintainer   maintainer.Maintainer
 	reviewServie service.SoftwarePkgReviewService
 }
 
-func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoftwarePkg) (
+func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	code string, err error,
 ) {
-	v := domain.NewSoftwarePkg(
-		user, cmd.PkgName,
-		(*domain.SoftwarePkgApplication)(&cmd.SoftwarePkgApplication),
-	)
+	v := domain.NewSoftwarePkg(cmd.Importer.Account, cmd.PkgName, &cmd.Application)
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
+		}
+	} else {
+		e := domain.NewSoftwarePkgAppliedEvent(&cmd.Importer, &v)
+		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
+			logrus.Errorf(
+				"failed to notify a new applying pkg:%s, err:%s",
+				v.Id, err.Error(),
+			)
+		} else {
+			logrus.Debugf(
+				"successfully to notify a new applying pkg:%s", v.Id,
+			)
 		}
 	}
 
