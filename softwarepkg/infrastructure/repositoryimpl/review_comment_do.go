@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	createdAt     = "create_at"
-	softwarePkgId = "software_pkg_id"
+	fieldCreatedAt     = "create_at"
+	fieldSoftwarePkgId = "software_pkg_id"
 )
 
 type SoftwarePkgReviewCommentDO struct {

@@ -9,8 +9,25 @@ import (
 )
 
 const (
-	applyTime = "apply_time"
+	fieldAppliedAt = "applied_at"
 )
+
+func (s softwarePkgTable) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgDO) {
+	*do = SoftwarePkgDO{
+		UUID:            uuid.New(),
+		Phase:           pkg.Phase.PackagePhase(),
+		SourceCode:      pkg.Application.SourceCode.Address.URL(),
+		ImportUser:      "ceshi", // TODO pkg.Importer.Account() is nil
+		PackageSig:      pkg.Application.ImportingPkgSig.ImportingPkgSig(),
+		PackageName:     pkg.Application.PackageName.PackageName(),
+		PackageDesc:     pkg.Application.PackageDesc.PackageDesc(),
+		PackageReason:   pkg.Application.ReasonToImportPkg.ReasonToImportPkg(),
+		PackageLicense:  pkg.Application.SourceCode.License.License(),
+		PackagePlatform: pkg.Application.PackagePlatform.PackagePlatform(),
+		AppliedAt:       pkg.AppliedAt,
+		UpdatedAt:       pkg.AppliedAt,
+	}
+}
 
 type SoftwarePkgDO struct {
 	UUID            uuid.UUID      `gorm:"column:uuid;type:uuid"`
@@ -28,25 +45,8 @@ type SoftwarePkgDO struct {
 	RejectUser      pq.StringArray `gorm:"column:reject_user;type:text[];default:'{}'"`
 	ApproveUser     pq.StringArray `gorm:"column:approve_user;type:text[];default:'{}'"`
 	Version         int            `gorm:"column:version"`
-	AppliedAt       int64          `gorm:"column:apply_time"`
-	UpdatedAt       int64          `gorm:"column:update_time"`
-}
-
-func (s softwarePkgTable) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgDO) {
-	*do = SoftwarePkgDO{
-		UUID:            uuid.New(),
-		Phase:           pkg.Phase.PackagePhase(),
-		SourceCode:      pkg.Application.SourceCode.Address.URL(),
-		ImportUser:      "ceshi", // TODO pkg.Importer.Account() is nil
-		PackageSig:      pkg.Application.ImportingPkgSig.ImportingPkgSig(),
-		PackageName:     pkg.Application.PackageName.PackageName(),
-		PackageDesc:     pkg.Application.PackageDesc.PackageDesc(),
-		PackageReason:   pkg.Application.ReasonToImportPkg.ReasonToImportPkg(),
-		PackageLicense:  pkg.Application.SourceCode.License.License(),
-		PackagePlatform: pkg.Application.PackagePlatform.PackagePlatform(),
-		AppliedAt:       pkg.AppliedAt,
-		UpdatedAt:       pkg.AppliedAt,
-	}
+	AppliedAt       int64          `gorm:"column:applied_at"`
+	UpdatedAt       int64          `gorm:"column:update_at"`
 }
 
 func (s SoftwarePkgDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {

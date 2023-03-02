@@ -6,20 +6,25 @@ import (
 )
 
 type reviewCommentTable struct {
-	cli dbClient
+	commentCli dbClient
 }
 
-func (s reviewCommentTable) findSoftwarePkgReviews(pid string) (
+func (t reviewCommentTable) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {
+	//TODO implement me
+	return nil
+}
+
+func (t reviewCommentTable) findSoftwarePkgReviews(pid string) (
 	[]domain.SoftwarePkgReviewComment, error,
 ) {
 	var dos []SoftwarePkgReviewCommentDO
 
-	err := s.cli.GetRecords(
+	err := t.commentCli.GetRecords(
 		&SoftwarePkgReviewCommentDO{PkgId: pid},
 		&dos,
 		postgresql.Pagination{},
 		[]postgresql.SortByColumn{
-			{Column: createdAt, Ascend: true},
+			{Column: fieldCreatedAt, Ascend: true},
 		},
 	)
 	if err != nil || len(dos) == 0 {
