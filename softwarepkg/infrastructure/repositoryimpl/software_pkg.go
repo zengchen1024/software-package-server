@@ -2,6 +2,7 @@ package repositoryimpl
 
 import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
+	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
@@ -32,8 +33,38 @@ func (s softwarePkgImpl) FindSoftwarePkg(pid string) (domain.SoftwarePkg, int, e
 func (s softwarePkgImpl) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
 	r []domain.SoftwarePkgBasicInfo, total int, err error,
 ) {
-	//TODO implement me
-	return nil, 0, err
+	var filter SoftwarePkgDO
+	if pkgs.Importer != nil {
+		filter.ImportUser = pkgs.Importer.Account()
+	}
+
+	if pkgs.Phase != nil {
+		filter.Phase = pkgs.Phase.PackagePhase()
+	}
+
+	if total, err = s.cli.Counts(&filter); err != nil || total == 0 {
+		return
+	}
+
+	var sort = []postgresql.SortByColumn{
+		{Column: applyTime, Ascend: false},
+	}
+
+	var p = postgresql.Pagination{PageNum: pkgs.PageNum, CountPerPage: pkgs.CountPerPage}
+
+	var result []SoftwarePkgDO
+	if err = s.cli.GetTableRecords(&filter, &result, p, sort); err != nil {
+		return
+	}
+
+	r = make([]domain.SoftwarePkgBasicInfo, len(result))
+	for i, v := range result {
+		if r[i], err = v.toSoftwarePkgSummary(); err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (s softwarePkgImpl) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {

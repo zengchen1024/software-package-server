@@ -39,14 +39,14 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	pkg, err := req.toCmd()
+	cmd, err := req.toCmd()
 	if err != nil {
 		ctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
-	if code, err := ctl.service.ApplyNewPkg(nil, &pkg); err != nil {
+	if code, err := ctl.service.ApplyNewPkg(nil, &cmd); err != nil {
 		ctl.SendBadRequest(ctx, code, err)
 	} else {
 		ctl.SendCreateSuccess(ctx)
@@ -73,14 +73,14 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 		return
 	}
 
-	pkg, err := req.toCmd()
+	cmd, err := req.toCmd()
 	if err != nil {
 		ctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
-	if v, err := ctl.service.ListPkgs(&pkg); err != nil {
+	if v, err := ctl.service.ListPkgs(&cmd); err != nil {
 		ctl.SendBadRequest(ctx, "", err)
 	} else {
 		ctl.SendRespOfGet(ctx, v)
