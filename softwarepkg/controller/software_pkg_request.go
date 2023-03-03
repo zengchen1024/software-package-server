@@ -11,13 +11,13 @@ const (
 )
 
 type softwarePkgRequest struct {
-	SourceCodeUrl     string `json:"source_code_url"     binding:"required"`
-	SourceCodeLicense string `json:"source_code_license" binding:"required"`
-	PackageName       string `json:"package_name"        binding:"required"`
-	PackageDesc       string `json:"package_desc"        binding:"required"`
-	PackagePlatform   string `json:"package_platform"    binding:"required"`
-	PackageSig        string `json:"package_sig"         binding:"required"`
-	PackageReason     string `json:"package_reason"      binding:"required"`
+	SourceCodeUrl     string `json:"source_code"     binding:"required"`
+	SourceCodeLicense string `json:"license"         binding:"required"`
+	PackageName       string `json:"pkg_name"        binding:"required"`
+	PackageDesc       string `json:"desc"            binding:"required"`
+	PackagePlatform   string `json:"platform"        binding:"required"`
+	PackageSig        string `json:"sig"             binding:"required"`
+	PackageReason     string `json:"reason"          binding:"required"`
 }
 
 func (s softwarePkgRequest) toCmd() (pkg app.CmdToApplyNewSoftwarePkg, err error) {

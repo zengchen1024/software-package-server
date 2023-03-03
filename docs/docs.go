@@ -149,9 +149,6 @@ const docTemplate = `{
                 "license": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                },
                 "platform": {
                     "type": "string"
                 },
@@ -279,34 +276,34 @@ const docTemplate = `{
         "controller.softwarePkgRequest": {
             "type": "object",
             "required": [
-                "package_desc",
-                "package_name",
-                "package_platform",
-                "package_reason",
-                "package_sig",
-                "source_code_license",
-                "source_code_url"
+                "desc",
+                "license",
+                "pkg_name",
+                "platform",
+                "reason",
+                "sig",
+                "source_code"
             ],
             "properties": {
-                "package_desc": {
+                "desc": {
                     "type": "string"
                 },
-                "package_name": {
+                "license": {
                     "type": "string"
                 },
-                "package_platform": {
+                "pkg_name": {
                     "type": "string"
                 },
-                "package_reason": {
+                "platform": {
                     "type": "string"
                 },
-                "package_sig": {
+                "reason": {
                     "type": "string"
                 },
-                "source_code_license": {
+                "sig": {
                     "type": "string"
                 },
-                "source_code_url": {
+                "source_code": {
                     "type": "string"
                 }
             }
