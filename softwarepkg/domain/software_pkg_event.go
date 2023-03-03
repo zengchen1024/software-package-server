@@ -12,9 +12,17 @@ type SoftwarePkgApprovedEvent struct {
 	Application SoftwarePkgApplication
 }
 
+func (e *SoftwarePkgApprovedEvent) ToMessage() ([]byte, error) {
+	return nil, nil
+}
+
 type SoftwarePkgRejectedEvent struct {
 	PkgId    string
 	Importer dp.Account
+}
+
+func (e *SoftwarePkgRejectedEvent) ToMessage() ([]byte, error) {
+	return nil, nil
 }
 
 type SoftwarePkgAppliedEvent struct {

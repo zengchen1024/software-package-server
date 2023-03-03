@@ -12,6 +12,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/server"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 )
 
 type options struct {
@@ -39,6 +40,7 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 
 func main() {
 	logrusutil.ComponentInit("software-package")
+	log := logrus.NewEntry(logrus.StandardLogger())
 
 	o := gatherOptions(
 		flag.NewFlagSet(os.Args[0], flag.ExitOnError),
@@ -53,15 +55,25 @@ func main() {
 		logrus.Debug("debug enabled.")
 	}
 
+	// Config
 	cfg, err := config.LoadConfig(o.service.ConfigFile)
 	if err != nil {
 		logrus.Fatalf("load config, err:%s", err.Error())
 	}
 
+	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Fatalf("init db, err:%s", err.Error())
 	}
 
+	// MQ
+	if err = messageimpl.Init(&cfg.MQ, log); err != nil {
+		logrus.Fatalf("init mq, err:%s", err.Error())
+	}
+
+	defer messageimpl.Exit(log)
+
+	// Domain
 	dp.Init(&cfg.SoftwarePkg)
 
 	// run
