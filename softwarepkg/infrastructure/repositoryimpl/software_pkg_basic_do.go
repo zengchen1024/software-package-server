@@ -12,8 +12,8 @@ const (
 	fieldAppliedAt = "applied_at"
 )
 
-func (s softwarePkgTable) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgDO) {
-	*do = SoftwarePkgDO{
+func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) {
+	*do = SoftwarePkgBasicDO{
 		UUID:            uuid.New(),
 		Phase:           pkg.Phase.PackagePhase(),
 		SourceCode:      pkg.Application.SourceCode.Address.URL(),
@@ -29,7 +29,7 @@ func (s softwarePkgTable) toSoftwarePkgDO(pkg *domain.SoftwarePkgBasicInfo, do *
 	}
 }
 
-type SoftwarePkgDO struct {
+type SoftwarePkgBasicDO struct {
 	UUID            uuid.UUID      `gorm:"column:uuid;type:uuid"`
 	Phase           string         `gorm:"column:phase"`
 	Review          string         `gorm:"column:review"`
@@ -49,7 +49,7 @@ type SoftwarePkgDO struct {
 	UpdatedAt       int64          `gorm:"column:update_at"`
 }
 
-func (s SoftwarePkgDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
+func (s SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
 	info.Id = s.UUID.String()
 
 	if info.PkgName, err = dp.NewPackageName(s.PackageName); err != nil {
@@ -85,7 +85,7 @@ func (s SoftwarePkgDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInf
 	return
 }
 
-func (s SoftwarePkgDO) toAccounts(v []string) (r []dp.Account, err error) {
+func (s SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
 	if len(v) == 0 {
 		return
 	}
@@ -100,7 +100,7 @@ func (s SoftwarePkgDO) toAccounts(v []string) (r []dp.Account, err error) {
 	return
 }
 
-func (s SoftwarePkgDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
+func (s SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
 	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason); err != nil {
 		return
 	}

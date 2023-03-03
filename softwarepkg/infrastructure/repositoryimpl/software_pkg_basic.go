@@ -9,17 +9,17 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
-// softwarePkgTable
-type softwarePkgTable struct {
+// softwarePkgBasic
+type softwarePkgBasic struct {
 	cli dbClient
 }
 
-func (t softwarePkgTable) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error {
+func (t softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error {
 	//TODO implement me
 	return nil
 }
 
-func (t softwarePkgTable) FindSoftwarePkgBasicInfo(pid string) (
+func (t softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
 	info domain.SoftwarePkgBasicInfo, version int, err error,
 ) {
 	v, err := uuid.Parse(pid)
@@ -27,9 +27,9 @@ func (t softwarePkgTable) FindSoftwarePkgBasicInfo(pid string) (
 		return
 	}
 
-	var do SoftwarePkgDO
+	var do SoftwarePkgBasicDO
 
-	if err = t.cli.GetRecord(&SoftwarePkgDO{UUID: v}, &do); err != nil {
+	if err = t.cli.GetRecord(&SoftwarePkgBasicDO{UUID: v}, &do); err != nil {
 		if t.cli.IsRowNotFound(err) {
 			err = commonrepo.NewErrorResourceNotExists(err)
 		}
@@ -42,10 +42,10 @@ func (t softwarePkgTable) FindSoftwarePkgBasicInfo(pid string) (
 	return
 }
 
-func (t softwarePkgTable) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
+func (t softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
 	r []domain.SoftwarePkgBasicInfo, total int, err error,
 ) {
-	var filter SoftwarePkgDO
+	var filter SoftwarePkgBasicDO
 	if pkgs.Importer != nil {
 		filter.ImportUser = pkgs.Importer.Account()
 	}
@@ -58,7 +58,7 @@ func (t softwarePkgTable) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 		return
 	}
 
-	var result []SoftwarePkgDO
+	var result []SoftwarePkgBasicDO
 
 	err = t.cli.GetRecords(
 		&filter, &result,
@@ -84,12 +84,12 @@ func (t softwarePkgTable) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 	return
 }
 
-func (t softwarePkgTable) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
-	var do SoftwarePkgDO
-	t.toSoftwarePkgDO(pkg, &do)
+func (t softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
+	var do SoftwarePkgBasicDO
+	t.toSoftwarePkgBasicDO(pkg, &do)
 
 	err := t.cli.Insert(
-		&SoftwarePkgDO{PackageName: pkg.PkgName.PackageName()},
+		&SoftwarePkgBasicDO{PackageName: pkg.PkgName.PackageName()},
 		&do,
 	)
 	if err != nil && t.cli.IsRowExists(err) {

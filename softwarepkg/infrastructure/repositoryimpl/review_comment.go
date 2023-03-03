@@ -5,16 +5,16 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 )
 
-type reviewCommentTable struct {
+type reviewComment struct {
 	commentCli dbClient
 }
 
-func (t reviewCommentTable) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {
+func (t reviewComment) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {
 	//TODO implement me
 	return nil
 }
 
-func (t reviewCommentTable) findSoftwarePkgReviews(pid string) (
+func (t reviewComment) findSoftwarePkgReviews(pid string) (
 	[]domain.SoftwarePkgReviewComment, error,
 ) {
 	var dos []SoftwarePkgReviewCommentDO
