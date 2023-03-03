@@ -11,7 +11,7 @@ import (
 
 // softwarePkgBasic
 type softwarePkgBasic struct {
-	cli dbClient
+	basicDBCli dbClient
 }
 
 func (t softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error {
@@ -29,8 +29,8 @@ func (t softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
 
 	var do SoftwarePkgBasicDO
 
-	if err = t.cli.GetRecord(&SoftwarePkgBasicDO{UUID: v}, &do); err != nil {
-		if t.cli.IsRowNotFound(err) {
+	if err = t.basicDBCli.GetRecord(&SoftwarePkgBasicDO{Id: v}, &do); err != nil {
+		if t.basicDBCli.IsRowNotFound(err) {
 			err = commonrepo.NewErrorResourceNotExists(err)
 		}
 	} else {
@@ -47,20 +47,20 @@ func (t softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 ) {
 	var filter SoftwarePkgBasicDO
 	if pkgs.Importer != nil {
-		filter.ImportUser = pkgs.Importer.Account()
+		filter.Importer = pkgs.Importer.Account()
 	}
 
 	if pkgs.Phase != nil {
 		filter.Phase = pkgs.Phase.PackagePhase()
 	}
 
-	if total, err = t.cli.Count(&filter); err != nil || total == 0 {
+	if total, err = t.basicDBCli.Count(&filter); err != nil || total == 0 {
 		return
 	}
 
 	var result []SoftwarePkgBasicDO
 
-	err = t.cli.GetRecords(
+	err = t.basicDBCli.GetRecords(
 		&filter, &result,
 		postgresql.Pagination{
 			PageNum:      pkgs.PageNum,
@@ -88,11 +88,11 @@ func (t softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error
 	var do SoftwarePkgBasicDO
 	t.toSoftwarePkgBasicDO(pkg, &do)
 
-	err := t.cli.Insert(
+	err := t.basicDBCli.Insert(
 		&SoftwarePkgBasicDO{PackageName: pkg.PkgName.PackageName()},
 		&do,
 	)
-	if err != nil && t.cli.IsRowExists(err) {
+	if err != nil && t.basicDBCli.IsRowExists(err) {
 		err = commonrepo.NewErrorDuplicateCreating(err)
 	}
 

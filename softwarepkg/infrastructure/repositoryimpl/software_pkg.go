@@ -15,7 +15,7 @@ type softwarePkgImpl struct {
 func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
 	return softwarePkgImpl{
 		softwarePkgBasic: softwarePkgBasic{
-			postgresql.NewDBTable(cfg.Table.SoftwarePkg),
+			postgresql.NewDBTable(cfg.Table.SoftwarePkgBasic),
 		},
 		reviewComment: reviewComment{
 			postgresql.NewDBTable(cfg.Table.ReviewComment),

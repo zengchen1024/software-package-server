@@ -13,79 +13,81 @@ const (
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) {
+	app := &pkg.Application
+
 	*do = SoftwarePkgBasicDO{
-		UUID:            uuid.New(),
+		Id:              uuid.New(),
+		Importer:        "ceshi", // TODO pkg.Importer.Account() is nil
 		Phase:           pkg.Phase.PackagePhase(),
-		SourceCode:      pkg.Application.SourceCode.Address.URL(),
-		ImportUser:      "ceshi", // TODO pkg.Importer.Account() is nil
-		PackageSig:      pkg.Application.ImportingPkgSig.ImportingPkgSig(),
-		PackageName:     pkg.Application.PackageName.PackageName(),
-		PackageDesc:     pkg.Application.PackageDesc.PackageDesc(),
-		PackageReason:   pkg.Application.ReasonToImportPkg.ReasonToImportPkg(),
-		PackageLicense:  pkg.Application.SourceCode.License.License(),
-		PackagePlatform: pkg.Application.PackagePlatform.PackagePlatform(),
+		SourceCode:      app.SourceCode.Address.URL(),
+		License:         app.SourceCode.License.License(),
+		PackageName:     app.PackageName.PackageName(),
+		PackageDesc:     app.PackageDesc.PackageDesc(),
+		PackagePlatform: app.PackagePlatform.PackagePlatform(),
+		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
+		ReasonToImport:  app.ReasonToImportPkg.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
 	}
 }
 
 type SoftwarePkgBasicDO struct {
-	UUID            uuid.UUID      `gorm:"column:uuid;type:uuid"`
+	Id              uuid.UUID      `gorm:"column:id;type:uuid"`
+	Importer        string         `gorm:"column:importer"`
+	RepoLink        string         `gorm:"column:repo_link"`
 	Phase           string         `gorm:"column:phase"`
-	Review          string         `gorm:"column:review"`
+	ReviewResult    string         `gorm:"column:review_result"`
 	SourceCode      string         `gorm:"column:source_code"`
-	PackageSig      string         `gorm:"column:package_sig"`
-	ImportUser      string         `gorm:"column:import_user"`
+	License         string         `gorm:"column:license"`
 	PackageName     string         `gorm:"column:package_name"`
 	PackageDesc     string         `gorm:"column:package_desc"`
-	PackageReason   string         `gorm:"column:package_reason"`
-	PackageLicense  string         `gorm:"column:package_license"`
 	PackagePlatform string         `gorm:"column:package_platform"`
-	PackageRepoLink string         `gorm:"column:package_repo_link"`
-	RejectUser      pq.StringArray `gorm:"column:reject_user;type:text[];default:'{}'"`
-	ApproveUser     pq.StringArray `gorm:"column:approve_user;type:text[];default:'{}'"`
-	Version         int            `gorm:"column:version"`
+	Sig             string         `gorm:"column:sig"`
+	ReasonToImport  string         `gorm:"column:reason"`
+	ApprovedBy      pq.StringArray `gorm:"column:approvedby;type:text[];default:'{}'"`
+	RejectedBy      pq.StringArray `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64          `gorm:"column:applied_at"`
-	UpdatedAt       int64          `gorm:"column:update_at"`
+	UpdatedAt       int64          `gorm:"column:updated_at"`
+	Version         int            `gorm:"column:version"`
 }
 
-func (s SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
-	info.Id = s.UUID.String()
+func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
+	info.Id = do.Id.String()
 
-	if info.PkgName, err = dp.NewPackageName(s.PackageName); err != nil {
+	if info.PkgName, err = dp.NewPackageName(do.PackageName); err != nil {
 		return
 	}
 
-	if s.PackageRepoLink != "" {
-		if info.RepoLink, err = dp.NewURL(s.PackageRepoLink); err != nil {
+	if do.RepoLink != "" {
+		if info.RepoLink, err = dp.NewURL(do.RepoLink); err != nil {
 			return
 		}
 	}
 
-	if info.Importer, err = dp.NewAccount(s.ImportUser); err != nil {
+	if info.Importer, err = dp.NewAccount(do.Importer); err != nil {
 		return
 	}
 
-	if info.Phase, err = dp.NewPackagePhase(s.Phase); err != nil {
+	if info.Phase, err = dp.NewPackagePhase(do.Phase); err != nil {
 		return
 	}
 
-	info.AppliedAt = s.AppliedAt
+	info.AppliedAt = do.AppliedAt
 
-	if err = s.toSoftwarePkgApplication(&info.Application); err != nil {
+	if err = do.toSoftwarePkgApplication(&info.Application); err != nil {
 		return
 	}
 
-	if info.ApprovedBy, err = s.toAccounts(s.ApproveUser); err != nil {
+	if info.ApprovedBy, err = do.toAccounts(do.ApprovedBy); err != nil {
 		return
 	}
 
-	info.RejectedBy, err = s.toAccounts(s.RejectUser)
+	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	return
 }
 
-func (s SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
+func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
 	if len(v) == 0 {
 		return
 	}
@@ -100,32 +102,32 @@ func (s SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
 	return
 }
 
-func (s SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
-	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason); err != nil {
+func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
+	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(do.ReasonToImport); err != nil {
 		return
 	}
 
-	if app.PackageName, err = dp.NewPackageName(s.PackageName); err != nil {
+	if app.PackageName, err = dp.NewPackageName(do.PackageName); err != nil {
 		return
 	}
 
-	if app.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc); err != nil {
+	if app.PackageDesc, err = dp.NewPackageDesc(do.PackageDesc); err != nil {
 		return
 	}
 
-	if app.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform); err != nil {
+	if app.PackagePlatform, err = dp.NewPackagePlatform(do.PackagePlatform); err != nil {
 		return
 	}
 
-	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig); err != nil {
+	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
 		return
 	}
 
-	if app.SourceCode.License, err = dp.NewLicense(s.PackageLicense); err != nil {
+	if app.SourceCode.License, err = dp.NewLicense(do.License); err != nil {
 		return
 	}
 
-	app.SourceCode.Address, err = dp.NewURL(s.SourceCode)
+	app.SourceCode.Address, err = dp.NewURL(do.SourceCode)
 
 	return
 }

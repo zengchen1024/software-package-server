@@ -5,6 +5,6 @@ type Config struct {
 }
 
 type Table struct {
-	SoftwarePkg   string `json:"software_pkg"    required:"true"`
-	ReviewComment string `json:"review_comment"  required:"true"`
+	SoftwarePkgBasic string `json:"software_pkg_basic"    required:"true"`
+	ReviewComment    string `json:"review_comment"        required:"true"`
 }

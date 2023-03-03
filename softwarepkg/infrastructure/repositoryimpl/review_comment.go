@@ -6,7 +6,7 @@ import (
 )
 
 type reviewComment struct {
-	commentCli dbClient
+	commentDBCli dbClient
 }
 
 func (t reviewComment) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {
@@ -19,7 +19,7 @@ func (t reviewComment) findSoftwarePkgReviews(pid string) (
 ) {
 	var dos []SoftwarePkgReviewCommentDO
 
-	err := t.commentCli.GetRecords(
+	err := t.commentDBCli.GetRecords(
 		&SoftwarePkgReviewCommentDO{PkgId: pid},
 		&dos,
 		postgresql.Pagination{},
@@ -32,8 +32,8 @@ func (t reviewComment) findSoftwarePkgReviews(pid string) (
 	}
 
 	v := make([]domain.SoftwarePkgReviewComment, len(dos))
-	for i, do := range dos {
-		if v[i], err = do.toSoftwarePkgReviewComment(); err != nil {
+	for i := range dos {
+		if v[i], err = dos[i].toSoftwarePkgReviewComment(); err != nil {
 			return nil, err
 		}
 	}
