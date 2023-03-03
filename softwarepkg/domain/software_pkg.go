@@ -7,6 +7,13 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
+type User struct {
+	Id      string
+	Account dp.Account
+	Email   dp.Email
+}
+
+// SoftwarePkgReviewComment
 type SoftwarePkgReviewComment struct {
 	Id        string
 	CreatedAt int64

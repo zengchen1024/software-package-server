@@ -38,13 +38,8 @@ func (e *SoftwarePkgAppliedEvent) ToMessage() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-type SoftwarePkgImporter struct {
-	Account dp.Account
-	Email   dp.Email
-}
-
 func NewSoftwarePkgAppliedEvent(
-	importer *SoftwarePkgImporter,
+	importer *User,
 	pkg *SoftwarePkgBasicInfo,
 ) SoftwarePkgAppliedEvent {
 	app := &pkg.Application

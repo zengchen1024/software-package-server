@@ -9,7 +9,7 @@ import (
 
 type CmdToApplyNewSoftwarePkg struct {
 	PkgName     dp.PackageName
-	Importer    domain.SoftwarePkgImporter
+	Importer    domain.User
 	Application domain.SoftwarePkgApplication
 }
 

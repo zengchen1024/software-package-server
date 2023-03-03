@@ -42,7 +42,7 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 	}
 
 	// TODO fetch importer
-	cmd, err := req.toCmd(&domain.SoftwarePkgImporter{})
+	cmd, err := req.toCmd(&domain.User{})
 	if err != nil {
 		ctl.SendBadRequestParam(ctx, err)
 

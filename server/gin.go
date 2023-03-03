@@ -60,7 +60,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
-			repo, messageimpl.GetProducer(),
+			repo, messageimpl.Producer(),
 		),
 	)
 }

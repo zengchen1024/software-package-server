@@ -9,7 +9,7 @@ import (
 
 var producerInstance *producer
 
-func GetProducer() *producer {
+func Producer() *producer {
 	return producerInstance
 }
 

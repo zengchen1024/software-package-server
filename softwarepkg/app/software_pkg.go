@@ -48,7 +48,7 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
 			logrus.Errorf(
 				"failed to notify a new applying pkg:%s, err:%s",
-				v.Id, err.Error(),
+				v.Id, err1.Error(),
 			)
 		} else {
 			logrus.Debugf(

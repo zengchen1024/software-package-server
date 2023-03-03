@@ -21,7 +21,7 @@ type softwarePkgRequest struct {
 	PackageReason     string `json:"reason"          binding:"required"`
 }
 
-func (s softwarePkgRequest) toCmd(importer *domain.SoftwarePkgImporter) (
+func (s softwarePkgRequest) toCmd(importer *domain.User) (
 	cmd app.CmdToApplyNewSoftwarePkg, err error,
 ) {
 	cmd.Importer = *importer
