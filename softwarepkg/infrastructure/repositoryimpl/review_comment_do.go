@@ -13,7 +13,8 @@ const (
 )
 
 type SoftwarePkgReviewCommentDO struct {
-	Id        uuid.UUID `gorm:"column:id;type:uuid"`
+	// must set "uuid" as the name of column
+	Id        uuid.UUID `gorm:"column:uuid;type:uuid"`
 	PkgId     string    `gorm:"column:software_pkg_id;type:uuid"`
 	Content   string    `gorm:"column:content"`
 	Author    string    `gorm:"column:author"`

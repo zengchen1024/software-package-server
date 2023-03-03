@@ -32,7 +32,8 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 }
 
 type SoftwarePkgBasicDO struct {
-	Id              uuid.UUID      `gorm:"column:id;type:uuid"`
+	// must set "uuid" as the name of column
+	Id              uuid.UUID      `gorm:"column:uuid;type:uuid"`
 	PackageName     string         `gorm:"column:package_name"`
 	Importer        string         `gorm:"column:importer"`
 	RepoLink        string         `gorm:"column:repo_link"`
