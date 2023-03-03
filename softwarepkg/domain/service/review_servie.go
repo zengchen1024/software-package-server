@@ -7,18 +7,16 @@ import (
 )
 
 type SoftwarePkgReviewService interface {
-	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account) bool
+	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) bool
 
-	RejectPkg(pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account) bool
+	RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) bool
 }
 
 type reviewService struct {
 	message message.SoftwarePkgMessage
 }
 
-func (s *reviewService) ApprovePkg(
-	pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account,
-) bool {
+func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) bool {
 	changed, approved := pkg.ApproveBy(user)
 	if approved {
 		_ = s.message.NotifyPkgApproved(&domain.SoftwarePkgApprovedEvent{})
@@ -29,9 +27,7 @@ func (s *reviewService) ApprovePkg(
 	return changed
 }
 
-func (s *reviewService) RejectPkg(
-	pkg *domain.SoftwarePkgBasicInfo, version int, user dp.Account,
-) bool {
+func (s *reviewService) RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) bool {
 	changed, rejected := pkg.RejectBy(user)
 	if rejected {
 		s.message.NotifyPkgRejected(&domain.SoftwarePkgRejectedEvent{})
