@@ -31,6 +31,7 @@ func (s *softwarePkgService) NewReviewComment(
 		return
 	}
 
+	// TODO: there is a critical case that the comment can't be added now
 	comment := domain.NewSoftwarePkgReviewComment(cmd.Author, cmd.Content)
 	err = s.repo.AddReviewComment(pid, &comment)
 
@@ -47,7 +48,7 @@ func (s *softwarePkgService) Approve(pid string, user dp.Account) (code string, 
 		return
 	}
 
-	if s.reviewServie.ApprovePkg(&pkg, version, user) {
+	if s.reviewServie.ApprovePkg(&pkg, user) {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -64,7 +65,7 @@ func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, e
 		return
 	}
 
-	if s.reviewServie.RejectPkg(&pkg, version, user) {
+	if s.reviewServie.RejectPkg(&pkg, user) {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
