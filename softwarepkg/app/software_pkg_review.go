@@ -19,7 +19,7 @@ func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDT
 func (s *softwarePkgService) NewReviewComment(
 	pid string, cmd *CmdToWriteSoftwarePkgReviewComment,
 ) (code string, err error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, _, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return
 	}
@@ -31,27 +31,40 @@ func (s *softwarePkgService) NewReviewComment(
 		return
 	}
 
-	isCmd, isApprove := cmd.Content.ParseReviewComment()
-
-	if isCmd {
-		if code, err = s.checkPermission(&pkg, cmd.Author); err != nil {
-			return
-		}
-	}
-
 	comment := domain.NewSoftwarePkgReviewComment(cmd.Author, cmd.Content)
-	if err = s.repo.AddReviewComment(pid, &comment); err != nil || !isCmd {
+	err = s.repo.AddReviewComment(pid, &comment)
+
+	return
+}
+
+func (s *softwarePkgService) Approve(pid string, user dp.Account) (code string, err error) {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	if err != nil {
 		return
 	}
 
-	var success bool
-	if isApprove {
-		success = s.reviewServie.ApprovePkg(&pkg, version, cmd.Author)
-	} else {
-		success = s.reviewServie.RejectPkg(&pkg, version, cmd.Author)
+	if code, err = s.checkPermission(&pkg, user); err != nil {
+		return
 	}
 
-	if success {
+	if s.reviewServie.ApprovePkg(&pkg, version, user) {
+		err = s.repo.SaveSoftwarePkg(&pkg, version)
+	}
+
+	return
+}
+
+func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, err error) {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	if err != nil {
+		return
+	}
+
+	if code, err = s.checkPermission(&pkg, user); err != nil {
+		return
+	}
+
+	if s.reviewServie.RejectPkg(&pkg, version, user) {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
