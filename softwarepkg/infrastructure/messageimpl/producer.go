@@ -22,11 +22,11 @@ func (p *producer) NotifyPkgApplied(e *domain.SoftwarePkgAppliedEvent) error {
 }
 
 func (p *producer) NotifyPkgApproved(e *domain.SoftwarePkgApprovedEvent) error {
-	return send(p.topics.SoftwarePkgApproved, e)
+	return send(p.topics.ApprovedSoftwarePkg, e)
 }
 
 func (p *producer) NotifyPkgRejected(e *domain.SoftwarePkgRejectedEvent) error {
-	return send(p.topics.SoftwarePkgRejected, e)
+	return send(p.topics.RejectedSoftwarePkg, e)
 }
 
 // send

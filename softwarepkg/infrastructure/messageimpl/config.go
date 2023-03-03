@@ -43,6 +43,6 @@ func (cfg *Config) ParseAddress() []string {
 
 type Topics struct {
 	ApplyingSoftwarePkg string `json:"applying_software_pkg"  required:"true"`
-	SoftwarePkgApproved string `json:"software_pkg_approved"  required:"true"`
-	SoftwarePkgRejected string `json:"software_pkg_rejected"  required:"true"`
+	ApprovedSoftwarePkg string `json:"approved_software_pkg"  required:"true"`
+	RejectedSoftwarePkg string `json:"rejected_software_pkg"  required:"true"`
 }
