@@ -32,7 +32,10 @@ type softwarePkgService struct {
 func (s *softwarePkgService) ApplyNewPkg(user dp.Account, cmd *CmdToApplyNewSoftwarePkg) (
 	code string, err error,
 ) {
-	v := domain.NewSoftwarePkg(user, (*domain.SoftwarePkgApplication)(cmd))
+	v := domain.NewSoftwarePkg(
+		user, cmd.PkgName,
+		(*domain.SoftwarePkgApplication)(&cmd.SoftwarePkgApplication),
+	)
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists

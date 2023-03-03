@@ -9,13 +9,13 @@ func NewErrorDuplicateCreating(err error) ErrorDuplicateCreating {
 	return ErrorDuplicateCreating{err}
 }
 
-// ErrorResourceNotExists
-type ErrorResourceNotExists struct {
+// ErrorResourceNotFound
+type ErrorResourceNotFound struct {
 	error
 }
 
-func NewErrorResourceNotExists(err error) ErrorResourceNotExists {
-	return ErrorResourceNotExists{err}
+func NewErrorResourceNotFound(err error) ErrorResourceNotFound {
+	return ErrorResourceNotFound{err}
 }
 
 // ErrorConcurrentUpdating
@@ -29,8 +29,8 @@ func NewErrorConcurrentUpdating(err error) ErrorConcurrentUpdating {
 
 // helper
 
-func IsErrorResourceNotExists(err error) bool {
-	_, ok := err.(ErrorResourceNotExists)
+func IsErrorResourceNotFound(err error) bool {
+	_, ok := err.(ErrorResourceNotFound)
 
 	return ok
 }

@@ -31,7 +31,7 @@ func (t softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
 
 	if err = t.basicDBCli.GetRecord(&SoftwarePkgBasicDO{Id: v}, &do); err != nil {
 		if t.basicDBCli.IsRowNotFound(err) {
-			err = commonrepo.NewErrorResourceNotExists(err)
+			err = commonrepo.NewErrorResourceNotFound(err)
 		}
 	} else {
 		version = do.Version
@@ -58,10 +58,10 @@ func (t softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 		return
 	}
 
-	var result []SoftwarePkgBasicDO
+	var dos []SoftwarePkgBasicDO
 
 	err = t.basicDBCli.GetRecords(
-		&filter, &result,
+		&filter, &dos,
 		postgresql.Pagination{
 			PageNum:      pkgs.PageNum,
 			CountPerPage: pkgs.CountPerPage,
@@ -70,13 +70,13 @@ func (t softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 			{Column: fieldAppliedAt},
 		},
 	)
-	if err != nil || len(result) == 0 {
+	if err != nil || len(dos) == 0 {
 		return
 	}
 
-	r = make([]domain.SoftwarePkgBasicInfo, len(result))
-	for i := range result {
-		if r[i], err = result[i].toSoftwarePkgBasicInfo(); err != nil {
+	r = make([]domain.SoftwarePkgBasicInfo, len(dos))
+	for i := range dos {
+		if r[i], err = dos[i].toSoftwarePkgBasicInfo(); err != nil {
 			return
 		}
 	}
@@ -89,7 +89,9 @@ func (t softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error
 	t.toSoftwarePkgBasicDO(pkg, &do)
 
 	err := t.basicDBCli.Insert(
-		&SoftwarePkgBasicDO{PackageName: pkg.PkgName.PackageName()},
+		&SoftwarePkgBasicDO{
+			PackageName: pkg.PkgName.PackageName(),
+		},
 		&do,
 	)
 	if err != nil && t.basicDBCli.IsRowExists(err) {

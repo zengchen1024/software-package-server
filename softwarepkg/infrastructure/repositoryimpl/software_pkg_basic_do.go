@@ -17,11 +17,11 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 
 	*do = SoftwarePkgBasicDO{
 		Id:              uuid.New(),
+		PackageName:     pkg.PkgName.PackageName(),
 		Importer:        "ceshi", // TODO pkg.Importer.Account() is nil
 		Phase:           pkg.Phase.PackagePhase(),
 		SourceCode:      app.SourceCode.Address.URL(),
 		License:         app.SourceCode.License.License(),
-		PackageName:     app.PackageName.PackageName(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
 		PackagePlatform: app.PackagePlatform.PackagePlatform(),
 		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
@@ -33,17 +33,17 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 
 type SoftwarePkgBasicDO struct {
 	Id              uuid.UUID      `gorm:"column:id;type:uuid"`
+	PackageName     string         `gorm:"column:package_name"`
 	Importer        string         `gorm:"column:importer"`
 	RepoLink        string         `gorm:"column:repo_link"`
 	Phase           string         `gorm:"column:phase"`
 	ReviewResult    string         `gorm:"column:review_result"`
 	SourceCode      string         `gorm:"column:source_code"`
 	License         string         `gorm:"column:license"`
-	PackageName     string         `gorm:"column:package_name"`
 	PackageDesc     string         `gorm:"column:package_desc"`
 	PackagePlatform string         `gorm:"column:package_platform"`
 	Sig             string         `gorm:"column:sig"`
-	ReasonToImport  string         `gorm:"column:reason"`
+	ReasonToImport  string         `gorm:"column:reason_to_import"`
 	ApprovedBy      pq.StringArray `gorm:"column:approvedby;type:text[];default:'{}'"`
 	RejectedBy      pq.StringArray `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64          `gorm:"column:applied_at"`
@@ -104,10 +104,6 @@ func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error)
 
 func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
 	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(do.ReasonToImport); err != nil {
-		return
-	}
-
-	if app.PackageName, err = dp.NewPackageName(do.PackageName); err != nil {
 		return
 	}
 

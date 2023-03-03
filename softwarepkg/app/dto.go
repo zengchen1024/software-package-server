@@ -7,7 +7,11 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-type CmdToApplyNewSoftwarePkg = domain.SoftwarePkgApplication
+type CmdToApplyNewSoftwarePkg struct {
+	PkgName dp.PackageName
+
+	domain.SoftwarePkgApplication
+}
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs
 
@@ -55,7 +59,6 @@ func toSoftwarePkgBasicInfoDTOs(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePk
 
 // SoftwarePkgApplicationDTO
 type SoftwarePkgApplicationDTO struct {
-	PackageName       string `json:"name"`
 	PackageDesc       string `json:"desc"`
 	SourceCodeLink    string `json:"source_code"`
 	PackagePlatform   string `json:"platform"`
@@ -66,7 +69,6 @@ type SoftwarePkgApplicationDTO struct {
 
 func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgApplicationDTO {
 	return SoftwarePkgApplicationDTO{
-		PackageName:       v.PackageName.PackageName(),
 		PackageDesc:       v.PackageDesc.PackageDesc(),
 		SourceCodeLink:    v.SourceCode.Address.URL(),
 		PackagePlatform:   v.PackagePlatform.PackagePlatform(),
