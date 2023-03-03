@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	errRowExists    = errors.New("row exists")
-	errRowNotExists = errors.New("row doesn't exist")
+	errRowExists   = errors.New("row exists")
+	errRowNotFound = errors.New("row not found")
 )
 
 type SortByColumn struct {
@@ -32,10 +32,9 @@ type Pagination struct {
 
 func (p Pagination) pagination() (limit, offset int) {
 	limit = p.CountPerPage
-	if limit > 0 {
-		if p.PageNum > 0 {
-			offset = (p.PageNum - 1) * limit
-		}
+
+	if limit > 0 && p.PageNum > 0 {
+		offset = (p.PageNum - 1) * limit
 	}
 
 	return
@@ -63,7 +62,7 @@ func (t dbTable) Insert(filter, result interface{}) error {
 	return nil
 }
 
-func (t dbTable) GetTableRecords(
+func (t dbTable) GetRecords(
 	filter, result interface{}, p Pagination,
 	sort []SortByColumn,
 ) (err error) {
@@ -87,24 +86,24 @@ func (t dbTable) GetTableRecords(
 	return
 }
 
-func (t dbTable) Counts(filter interface{}) (int, error) {
+func (t dbTable) Count(filter interface{}) (int, error) {
 	var total int64
 	err := db.Table(t.name).Where(filter).Count(&total).Error
 
 	return int(total), err
 }
 
-func (t dbTable) GetTableRecord(filter, result interface{}) error {
+func (t dbTable) GetRecord(filter, result interface{}) error {
 	err := db.Table(t.name).Where(filter).First(result).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errRowNotExists
+		return errRowNotFound
 	}
 
 	return err
 }
 
-func (t dbTable) IsRowNotExists(err error) bool {
-	return errors.Is(err, errRowNotExists)
+func (t dbTable) IsRowNotFound(err error) bool {
+	return errors.Is(err, errRowNotFound)
 }
 
 func (t dbTable) IsRowExists(err error) bool {

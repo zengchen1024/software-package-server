@@ -27,7 +27,6 @@ func NewSoftwarePkgReviewComment(
 // SoftwarePkgApplication
 type SoftwarePkgApplication struct {
 	SourceCode        SoftwarePkgSourceCode
-	PackageName       dp.PackageName
 	PackageDesc       dp.PackageDesc
 	PackagePlatform   dp.PackagePlatform
 	ImportingPkgSig   dp.ImportingPkgSig
@@ -42,7 +41,7 @@ type SoftwarePkgSourceCode struct {
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id           string
-	PkgName      dp.PackageName // can't change
+	PkgName      dp.PackageName
 	Importer     dp.Account
 	RepoLink     dp.URL
 	Phase        dp.PackagePhase
@@ -161,10 +160,10 @@ type SoftwarePkg struct {
 	Comments []SoftwarePkgReviewComment
 }
 
-func NewSoftwarePkg(user dp.Account, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
+func NewSoftwarePkg(user dp.Account, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
 	return SoftwarePkgBasicInfo{
+		PkgName:     name,
 		Importer:    user,
-		PkgName:     app.PackageName,
 		Phase:       dp.PackagePhaseReviewing,
 		Application: *app,
 		AppliedAt:   utils.Now(),

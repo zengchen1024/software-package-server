@@ -58,7 +58,7 @@ func main() {
 		logrus.Fatalf("load config, err:%s", err.Error())
 	}
 
-	if err = postgresql.Init(&cfg.Postgresql); err != nil {
+	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Fatalf("init db, err:%s", err.Error())
 	}
 

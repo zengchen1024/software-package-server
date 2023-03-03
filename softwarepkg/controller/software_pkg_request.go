@@ -41,7 +41,7 @@ func (s softwarePkgRequest) toCmd() (pkg app.CmdToApplyNewSoftwarePkg, err error
 		return
 	}
 
-	pkg.PackageName, err = dp.NewPackageName(s.PackageName)
+	pkg.PkgName, err = dp.NewPackageName(s.PackageName)
 	if err != nil {
 		return
 	}

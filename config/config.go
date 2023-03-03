@@ -5,6 +5,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
 
 func LoadConfig(path string) (*Config, error) {
@@ -29,14 +30,21 @@ type configSetDefault interface {
 	SetDefault()
 }
 
+type PostgresqlConfig struct {
+	DB postgresql.Config `json:"db" required:"true"`
+
+	repositoryimpl.Config
+}
+
 type Config struct {
-	Postgresql  postgresql.Config `json:"postgresql" required:"true"`
-	SoftwarePkg dp.Config         `json:"software_pkg" required:"true"`
+	Postgresql  PostgresqlConfig `json:"postgresql" required:"true"`
+	SoftwarePkg dp.Config        `json:"software_pkg" required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
-		&cfg.Postgresql,
+		&cfg.Postgresql.DB,
+		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg,
 	}
 }

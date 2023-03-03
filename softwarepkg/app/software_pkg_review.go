@@ -8,17 +8,12 @@ import (
 )
 
 func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDTO, error) {
-	v, _, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	v, _, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		return SoftwarePkgReviewDTO{}, err
 	}
 
-	comments, err := s.repo.FindSoftwarePkgReviewComments(pid)
-	if err != nil {
-		return SoftwarePkgReviewDTO{}, err
-	}
-
-	return toSoftwarePkgReviewDTO(&v, comments), nil
+	return toSoftwarePkgReviewDTO(&v), nil
 }
 
 func (s *softwarePkgService) NewReviewComment(

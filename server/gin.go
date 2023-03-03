@@ -11,7 +11,6 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
@@ -54,15 +53,12 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
-	pkgreview := repositoryimpl.NewSoftwarePkgReview(
-		postgresql.NewDBTable(cfg.Postgresql.Table.SoftwarePkgReview),
+	repo := repositoryimpl.NewSoftwarePkg(
+		&cfg.Postgresql.Config,
 	)
-	v := repositoryimpl.NewSoftwarePkg(
-		postgresql.NewDBTable(cfg.Postgresql.Table.SoftwarePkg),
-		pkgreview,
-	)
+
 	controller.AddRouteForSoftwarePkgController(
-		v1, softwarepkgapp.NewSoftwarePkgService(v),
+		v1, softwarepkgapp.NewSoftwarePkgService(repo),
 	)
 }
 
