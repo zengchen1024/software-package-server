@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+// softwarePkgApprovedEvent
 type softwarePkgApprovedEvent struct {
 	PkgId      string `json:"pkg_id"`
 	PkgName    string `json:"pkg_name"`
@@ -29,6 +30,7 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprov
 	return
 }
 
+// softwarePkgRejectedEvent
 type softwarePkgRejectedEvent struct {
 	RelevantPR string `json:"pr"`
 }
@@ -49,6 +51,7 @@ func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgReject
 
 var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
 
+// softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
 	Importer          string `json:"importer"`
 	ImporterEmail     string `json:"importer_email"`
