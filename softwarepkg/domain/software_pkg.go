@@ -9,8 +9,8 @@ import (
 
 type User struct {
 	Id      string
-	Account dp.Account
 	Email   dp.Email
+	Account dp.Account
 }
 
 // SoftwarePkgReviewComment
@@ -106,7 +106,7 @@ func (entity *SoftwarePkgBasicInfo) IsImporter(user dp.Account) bool {
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approved bool) {
-	if !entity.Phase.IsReviewing() {
+	if !entity.Phase.IsReviewing() || entity.Frozen {
 		return
 	}
 
@@ -128,6 +128,10 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approve
 			entity.ReviewResult = dp.PkgReviewResultApproved
 			approved = true
 		}
+	}
+
+	if approved {
+		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
 
 	return
