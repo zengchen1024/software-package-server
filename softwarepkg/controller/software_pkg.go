@@ -6,6 +6,7 @@ import (
 
 	commonctl "github.com/opensourceways/software-package-server/common/controller"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 )
 
 type SoftwarePkgController struct {
@@ -40,14 +41,15 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	cmd, err := req.toCmd()
+	// TODO fetch importer
+	cmd, err := req.toCmd(&domain.User{})
 	if err != nil {
 		ctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
-	if code, err := ctl.service.ApplyNewPkg(nil, &cmd); err != nil {
+	if code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
 		ctl.SendBadRequest(ctx, code, err)
 	} else {
 		ctl.SendCreateSuccess(ctx)

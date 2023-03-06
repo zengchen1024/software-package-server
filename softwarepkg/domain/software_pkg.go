@@ -7,6 +7,13 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
+type User struct {
+	Id      string
+	Email   dp.Email
+	Account dp.Account
+}
+
+// SoftwarePkgReviewComment
 type SoftwarePkgReviewComment struct {
 	Id        string
 	CreatedAt int64
@@ -45,6 +52,7 @@ type SoftwarePkgBasicInfo struct {
 	Importer     dp.Account
 	RepoLink     dp.URL
 	Phase        dp.PackagePhase
+	Frozen       bool
 	ReviewResult dp.PackageReviewResult
 	AppliedAt    int64
 	Application  SoftwarePkgApplication
@@ -98,7 +106,7 @@ func (entity *SoftwarePkgBasicInfo) IsImporter(user dp.Account) bool {
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approved bool) {
-	if !entity.Phase.IsReviewing() {
+	if !entity.Phase.IsReviewing() || entity.Frozen {
 		return
 	}
 
@@ -120,6 +128,10 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approve
 			entity.ReviewResult = dp.PkgReviewResultApproved
 			approved = true
 		}
+	}
+
+	if approved {
+		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
 
 	return
@@ -165,6 +177,7 @@ func NewSoftwarePkg(user dp.Account, name dp.PackageName, app *SoftwarePkgApplic
 		PkgName:     name,
 		Importer:    user,
 		Phase:       dp.PackagePhaseReviewing,
+		Frozen:      true,
 		Application: *app,
 		AppliedAt:   utils.Now(),
 	}

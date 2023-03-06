@@ -5,6 +5,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
 
@@ -37,12 +38,14 @@ type PostgresqlConfig struct {
 }
 
 type Config struct {
-	Postgresql  PostgresqlConfig `json:"postgresql" required:"true"`
-	SoftwarePkg dp.Config        `json:"software_pkg" required:"true"`
+	MQ          messageimpl.Config `json:"mq"             required:"true"`
+	Postgresql  PostgresqlConfig   `json:"postgresql"     required:"true"`
+	SoftwarePkg dp.Config          `json:"software_pkg"   required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
+		&cfg.MQ,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg,

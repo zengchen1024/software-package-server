@@ -5,6 +5,7 @@ import (
 )
 
 type SoftwarePkgMessage interface {
+	NotifyPkgApplied(*domain.SoftwarePkgAppliedEvent) error
 	NotifyPkgApproved(*domain.SoftwarePkgApprovedEvent) error
 	NotifyPkgRejected(*domain.SoftwarePkgRejectedEvent) error
 }

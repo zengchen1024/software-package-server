@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
 
@@ -58,7 +59,9 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 	)
 
 	controller.AddRouteForSoftwarePkgController(
-		v1, softwarepkgapp.NewSoftwarePkgService(repo),
+		v1, softwarepkgapp.NewSoftwarePkgService(
+			repo, messageimpl.Producer(),
+		),
 	)
 }
 

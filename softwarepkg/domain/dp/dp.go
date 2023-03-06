@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/url"
 	"regexp"
+
+	libutil "github.com/opensourceways/community-robot-lib/utils"
 )
 
 var (
@@ -54,4 +56,23 @@ type dpURL string
 
 func (v dpURL) URL() string {
 	return string(v)
+}
+
+// Email
+type Email interface {
+	Email() string
+}
+
+func NewEmail(v string) (Email, error) {
+	if v == "" || !libutil.IsValidEmail(v) {
+		return nil, errors.New("invalid email")
+	}
+
+	return dpEmail(v), nil
+}
+
+type dpEmail string
+
+func (r dpEmail) Email() string {
+	return string(r)
 }
