@@ -1,11 +1,12 @@
 package message
 
-import (
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-)
+type EventMessage interface {
+	ToMessage() ([]byte, error)
+}
 
 type SoftwarePkgMessage interface {
-	NotifyPkgApplied(*domain.SoftwarePkgAppliedEvent) error
-	NotifyPkgApproved(*domain.SoftwarePkgApprovedEvent) error
-	NotifyPkgRejected(*domain.SoftwarePkgRejectedEvent) error
+	NotifyPkgApplied(EventMessage) error
+	NotifyPkgApproved(EventMessage) error
+	NotifyPkgRejected(EventMessage) error
+	NotifyPkgAbandoned(EventMessage) error
 }

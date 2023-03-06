@@ -58,106 +58,60 @@ type SoftwarePkgBasicInfo struct {
 	Application  SoftwarePkgApplication
 	ApprovedBy   []dp.Account
 	RejectedBy   []dp.Account
+	RelevantPR   dp.URL
 }
 
 func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing() || entity.Phase.IsCreatingRepo()
 }
 
-func (entity *SoftwarePkgBasicInfo) removeFromRejected(u dp.Account) bool {
-	i := -1
-	v := entity.RejectedBy
-	for j := range v {
-		if dp.IsSameAccount(v[j], u) {
-			i = j
-
-			break
-		}
-	}
-
-	if i < 0 {
-		return false
-	}
-
-	n := len(v) - 1
-	if i == 0 {
-		if n == 0 {
-			v = nil
-		} else {
-			v = v[1:]
-		}
-	} else {
-		if i != n {
-			v[i] = v[n]
-		}
-		v = v[:n]
-	}
-
-	entity.RejectedBy = v
-
-	return true
-}
-
-func (entity *SoftwarePkgBasicInfo) IsImporter(user dp.Account) bool {
-	return dp.IsSameAccount(user, entity.Importer)
-}
-
 // change the status of "creating repo"
 // send out the event
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (changed, approved bool) {
-	if !entity.Phase.IsReviewing() || entity.Frozen {
-		return
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
+	if !entity.Phase.IsReviewing() || entity.Frozen || entity.RelevantPR == nil {
+		return false, errors.New("not ready")
 	}
 
 	entity.ApprovedBy = append(entity.ApprovedBy, user)
-	changed = true
 
-	if len(entity.RejectedBy) > 0 {
-		if !entity.removeFromRejected(user) || len(entity.RejectedBy) != 0 {
-			return
-		}
-
-		if len(entity.ApprovedBy) >= 2 {
-			entity.ReviewResult = dp.PkgReviewResultApproved
-			approved = true
-		}
-	} else {
-		// only set the result once to avoid duplicate case.
-		if len(entity.ApprovedBy) == 2 {
-			entity.ReviewResult = dp.PkgReviewResultApproved
-			approved = true
-		}
-	}
-
-	if approved {
+	approved := false
+	// only set the result once to avoid duplicate case.
+	if len(entity.ApprovedBy) == 2 {
+		entity.ReviewResult = dp.PkgReviewResultApproved
 		entity.Phase = dp.PackagePhaseCreatingRepo
+		approved = true
 	}
 
-	return
+	return approved, nil
 }
 
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (changed, rejected bool) {
+func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (bool, error) {
 	if !entity.Phase.IsReviewing() {
-		return
+		return false, errors.New("can't do this")
 	}
 
 	entity.RejectedBy = append(entity.RejectedBy, user)
-	changed = true
 
+	rejected := false
 	// only set the result once to avoid duplicate case.
 	if len(entity.RejectedBy) == 1 {
 		entity.ReviewResult = dp.PkgReviewResultRejected
+		entity.Phase = dp.PackagePhaseClosed
 		rejected = true
 	}
 
-	return
+	return rejected, nil
 }
 
-func (entity *SoftwarePkgBasicInfo) Close() error {
+func (entity *SoftwarePkgBasicInfo) Abandon(user dp.Account) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
+	}
+
+	if !dp.IsSameAccount(user, entity.Importer) {
+		return errors.New("not the importer")
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
