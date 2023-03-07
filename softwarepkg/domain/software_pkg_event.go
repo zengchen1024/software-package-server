@@ -2,30 +2,57 @@ package domain
 
 import (
 	"encoding/json"
-
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"errors"
 )
 
-type SoftwarePkgApprovedEvent struct {
-	PkgId       string
-	Importer    dp.Account
-	Application SoftwarePkgApplication
+// softwarePkgApprovedEvent
+type softwarePkgApprovedEvent struct {
+	PkgId      string `json:"pkg_id"`
+	PkgName    string `json:"pkg_name"`
+	RelevantPR string `json:"pr"`
 }
 
-func (e *SoftwarePkgApprovedEvent) ToMessage() ([]byte, error) {
-	return nil, nil
+func (e *softwarePkgApprovedEvent) ToMessage() ([]byte, error) {
+	return json.Marshal(e)
 }
 
-type SoftwarePkgRejectedEvent struct {
-	PkgId    string
-	Importer dp.Account
+func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprovedEvent, err error) {
+	if pkg.RelevantPR != nil {
+		e = softwarePkgApprovedEvent{
+			PkgId:      pkg.Id,
+			PkgName:    pkg.PkgName.PackageName(),
+			RelevantPR: pkg.RelevantPR.URL(),
+		}
+	} else {
+		err = errors.New("missing pr")
+	}
+
+	return
 }
 
-func (e *SoftwarePkgRejectedEvent) ToMessage() ([]byte, error) {
-	return nil, nil
+// softwarePkgRejectedEvent
+type softwarePkgRejectedEvent struct {
+	RelevantPR string `json:"pr"`
 }
 
-type SoftwarePkgAppliedEvent struct {
+func (e *softwarePkgRejectedEvent) ToMessage() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
+	if pkg.RelevantPR != nil {
+		e.RelevantPR = pkg.RelevantPR.URL()
+	} else {
+		err = errors.New("missing pr")
+	}
+
+	return
+}
+
+var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
+
+// softwarePkgAppliedEvent
+type softwarePkgAppliedEvent struct {
 	Importer          string `json:"importer"`
 	ImporterEmail     string `json:"importer_email"`
 	PkgId             string `json:"pkg_id"`
@@ -37,17 +64,17 @@ type SoftwarePkgAppliedEvent struct {
 	ReasonToImportPkg string `json:"reason_to_import"`
 }
 
-func (e *SoftwarePkgAppliedEvent) ToMessage() ([]byte, error) {
+func (e *softwarePkgAppliedEvent) ToMessage() ([]byte, error) {
 	return json.Marshal(e)
 }
 
 func NewSoftwarePkgAppliedEvent(
 	importer *User,
 	pkg *SoftwarePkgBasicInfo,
-) SoftwarePkgAppliedEvent {
+) softwarePkgAppliedEvent {
 	app := &pkg.Application
 
-	return SoftwarePkgAppliedEvent{
+	return softwarePkgAppliedEvent{
 		Importer:          importer.Account.Account(),
 		ImporterEmail:     importer.Email.Email(),
 		PkgId:             pkg.Id,

@@ -4,7 +4,7 @@ import (
 	"github.com/opensourceways/community-robot-lib/kafka"
 	"github.com/opensourceways/community-robot-lib/mq"
 
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 )
 
 var producerInstance *producer
@@ -17,24 +17,23 @@ type producer struct {
 	topics Topics
 }
 
-func (p *producer) NotifyPkgApplied(e *domain.SoftwarePkgAppliedEvent) error {
+func (p *producer) NotifyPkgApplied(e message.EventMessage) error {
 	return send(p.topics.ApplyingSoftwarePkg, e)
 }
 
-func (p *producer) NotifyPkgApproved(e *domain.SoftwarePkgApprovedEvent) error {
+func (p *producer) NotifyPkgApproved(e message.EventMessage) error {
 	return send(p.topics.ApprovedSoftwarePkg, e)
 }
 
-func (p *producer) NotifyPkgRejected(e *domain.SoftwarePkgRejectedEvent) error {
+func (p *producer) NotifyPkgRejected(e message.EventMessage) error {
 	return send(p.topics.RejectedSoftwarePkg, e)
 }
 
-// send
-type event interface {
-	ToMessage() ([]byte, error)
+func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
+	return send(p.topics.AbandonedSoftwarePkg, e)
 }
 
-func send(topic string, v event) error {
+func send(topic string, v message.EventMessage) error {
 	body, err := v.ToMessage()
 	if err != nil {
 		return err

@@ -1,13 +1,14 @@
 package app
 
 import (
+	"github.com/sirupsen/logrus"
+
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
-	"github.com/sirupsen/logrus"
 )
 
 type SoftwarePkgService interface {

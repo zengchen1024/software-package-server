@@ -48,7 +48,7 @@ func (s *softwarePkgService) Approve(pid string, user dp.Account) (code string, 
 		return
 	}
 
-	if s.reviewServie.ApprovePkg(&pkg, user) {
+	if err = s.reviewServie.ApprovePkg(&pkg, user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -65,26 +65,20 @@ func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, e
 		return
 	}
 
-	if s.reviewServie.RejectPkg(&pkg, user) {
+	if err = s.reviewServie.RejectPkg(&pkg, user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
 	return
 }
 
-func (s *softwarePkgService) Close(pid string, user dp.Account) (code string, err error) {
+func (s *softwarePkgService) Abandon(pid string, user dp.Account) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return
 	}
 
-	if !pkg.IsImporter(user) {
-		if code, err = s.checkPermission(&pkg, user); err != nil {
-			return
-		}
-	}
-
-	if err = pkg.Close(); err == nil {
+	if err = s.reviewServie.AbandonPkg(&pkg, user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
