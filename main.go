@@ -72,7 +72,7 @@ func main() {
 		logrus.Fatalf("init mq, err:%s", err.Error())
 	}
 
-	defer messageimpl.Exit(log)
+	defer messageimpl.Exit()
 
 	// Domain
 	dp.Init(&cfg.SoftwarePkg)
