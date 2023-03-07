@@ -22,18 +22,16 @@ type reviewService struct {
 
 func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
 	approved, err := pkg.ApproveBy(user)
-	if err != nil {
+	if !approved {
 		return err
 	}
 
-	if approved {
-		op := "approved"
-		if e, err := domain.NewSoftwarePkgApprovedEvent(pkg); err != nil {
-			s.log(pkg, op, err)
-		} else {
-			err := s.message.NotifyPkgApproved(&e)
-			s.log(pkg, op, err)
-		}
+	op := "approved"
+	if e, err := domain.NewSoftwarePkgApprovedEvent(pkg); err != nil {
+		s.log(pkg, op, err)
+	} else {
+		err := s.message.NotifyPkgApproved(&e)
+		s.log(pkg, op, err)
 	}
 
 	return nil
@@ -41,18 +39,16 @@ func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Acc
 
 func (s *reviewService) RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
 	rejected, err := pkg.RejectBy(user)
-	if err != nil {
+	if !rejected {
 		return err
 	}
 
-	if rejected {
-		op := "rejected"
-		if e, err := domain.NewSoftwarePkgRejectedEvent(pkg); err != nil {
-			s.log(pkg, op, err)
-		} else {
-			err := s.message.NotifyPkgRejected(&e)
-			s.log(pkg, op, err)
-		}
+	op := "rejected"
+	if e, err := domain.NewSoftwarePkgRejectedEvent(pkg); err != nil {
+		s.log(pkg, op, err)
+	} else {
+		err := s.message.NotifyPkgRejected(&e)
+		s.log(pkg, op, err)
 	}
 
 	return nil
