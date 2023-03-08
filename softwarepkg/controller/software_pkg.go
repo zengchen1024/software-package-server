@@ -18,7 +18,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 		service: pkgService,
 	}
 
-	r.POST("/v1/softwarepkg", middleware.CheckUser, ctl.ApplyNewPkg)
+	r.POST("/v1/softwarepkg", middleware.UserChecking().CheckUser, ctl.ApplyNewPkg)
 	r.GET("/v1/softwarepkg", ctl.ListPkgs)
 	r.GET("/v1/softwarepkg/:id", ctl.Get)
 }
@@ -40,14 +40,14 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	user, err := middleware.GetUser(ctx)
+	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
 		commonctl.SendBadRequest(ctx, "", err)
 
 		return
 	}
 
-	cmd, err := req.toCmd(user)
+	cmd, err := req.toCmd(&user)
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 
