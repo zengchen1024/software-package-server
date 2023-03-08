@@ -47,7 +47,7 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	cmd, err := req.toCmd(user)
+	cmd, err := req.toCmd(&user)
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 
