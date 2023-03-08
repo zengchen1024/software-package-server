@@ -27,10 +27,12 @@ var _ SoftwarePkgService = (*softwarePkgService)(nil)
 func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	message message.SoftwarePkgMessage,
+	maintainer maintainer.Maintainer,
 ) *softwarePkgService {
 	return &softwarePkgService{
 		repo:         repo,
 		message:      message,
+		maintainer:   maintainer,
 		reviewServie: service.NewReviewService(message),
 	}
 }

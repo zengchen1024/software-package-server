@@ -6,6 +6,7 @@ import (
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
@@ -39,10 +40,11 @@ type PostgresqlConfig struct {
 }
 
 type Config struct {
-	MQ          messageimpl.Config `json:"mq"             required:"true"`
-	Middleware  middleware.Config  `json:"middleware"     required:"true"`
-	Postgresql  PostgresqlConfig   `json:"postgresql"     required:"true"`
-	SoftwarePkg dp.Config          `json:"software_pkg"   required:"true"`
+	MQ          messageimpl.Config    `json:"mq"             required:"true"`
+	Middleware  middleware.Config     `json:"middleware"     required:"true"`
+	Postgresql  PostgresqlConfig      `json:"postgresql"     required:"true"`
+	Maintainer  maintainerimpl.Config `json:"maintainer"     required:"true"`
+	SoftwarePkg dp.Config             `json:"software_pkg"   required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
@@ -52,6 +54,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg,
+		&cfg.Maintainer,
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
@@ -58,9 +59,11 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 		&cfg.Postgresql.Config,
 	)
 
+	maintainer := maintainerimpl.NewMaintainerImpl(&cfg.Maintainer)
+
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
-			repo, messageimpl.Producer(),
+			repo, messageimpl.Producer(), maintainer,
 		),
 	)
 }
