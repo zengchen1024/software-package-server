@@ -5,12 +5,11 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	commonctl "github.com/opensourceways/software-package-server/common/controller"
+	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 )
 
 type SoftwarePkgController struct {
-	commonctl.BaseController
 	service app.SoftwarePkgService
 }
 
@@ -19,7 +18,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 		service: pkgService,
 	}
 
-	r.POST("/v1/softwarepkg", ctl.ApplyNewPkg)
+	r.POST("/v1/softwarepkg", middleware.CheckUser, ctl.ApplyNewPkg)
 	r.GET("/v1/softwarepkg", ctl.ListPkgs)
 	r.GET("/v1/softwarepkg/:id", ctl.Get)
 }
@@ -36,23 +35,29 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 	var req softwarePkgRequest
 	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
-		ctl.SendBadRequestBody(ctx, err)
+		commonctl.SendBadRequestBody(ctx, err)
 
 		return
 	}
 
-	// TODO fetch importer
-	cmd, err := req.toCmd(&domain.User{})
+	user, err := middleware.GetUser(ctx)
 	if err != nil {
-		ctl.SendBadRequestParam(ctx, err)
+		commonctl.SendBadRequest(ctx, "", err)
+
+		return
+	}
+
+	cmd, err := req.toCmd(user)
+	if err != nil {
+		commonctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
 	if code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
-		ctl.SendBadRequest(ctx, code, err)
+		commonctl.SendBadRequest(ctx, code, err)
 	} else {
-		ctl.SendCreateSuccess(ctx)
+		commonctl.SendCreateSuccess(ctx)
 	}
 }
 
@@ -71,22 +76,22 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 	var req softwarePkgListQuery
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctl.SendBadRequestParam(ctx, err)
+		commonctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
 	cmd, err := req.toCmd()
 	if err != nil {
-		ctl.SendBadRequestParam(ctx, err)
+		commonctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
 	if v, err := ctl.service.ListPkgs(&cmd); err != nil {
-		ctl.SendBadRequest(ctx, "", err)
+		commonctl.SendBadRequest(ctx, "", err)
 	} else {
-		ctl.SendRespOfGet(ctx, v)
+		commonctl.SendRespOfGet(ctx, v)
 	}
 }
 
@@ -101,8 +106,8 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 // @Router /v1/softwarepkg/{id} [get]
 func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 	if v, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
-		ctl.SendBadRequest(ctx, "", err)
+		commonctl.SendBadRequest(ctx, "", err)
 	} else {
-		ctl.SendRespOfGet(ctx, v)
+		commonctl.SendRespOfGet(ctx, v)
 	}
 }

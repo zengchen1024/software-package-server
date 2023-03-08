@@ -18,7 +18,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	*do = SoftwarePkgBasicDO{
 		Id:              uuid.New(),
 		PackageName:     pkg.PkgName.PackageName(),
-		Importer:        "ceshi", // TODO pkg.Importer.Account() is nil
+		Importer:        pkg.Importer.Account(),
 		Phase:           pkg.Phase.PackagePhase(),
 		SourceCode:      app.SourceCode.Address.URL(),
 		License:         app.SourceCode.License.License(),
