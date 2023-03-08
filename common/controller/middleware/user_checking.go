@@ -12,8 +12,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-var instance *userCheckingMiddleware
-
 const (
 	keyCookie                  = "_Y_G_"
 	keyUserInfo                = "user_info"
@@ -22,6 +20,8 @@ const (
 	errorBadRequestNoCookie    = "bad_request_no_cookie"
 	errorBadRequestHaventLogin = "bad_request_havent_login"
 )
+
+var instance *userCheckingMiddleware
 
 type Config struct {
 	UserInfoURL string `json:"user_info_url" required:"true"`
