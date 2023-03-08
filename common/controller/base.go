@@ -7,25 +7,35 @@ import (
 )
 
 func SendBadRequestBody(ctx *gin.Context, err error) {
-	ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(errorBadRequestBody, err.Error()))
+	SendFailedResp(ctx, errorBadRequestBody, err)
 }
 
 func SendBadRequestParam(ctx *gin.Context, err error) {
-	ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(errorBadRequestParam, err.Error()))
+	SendFailedResp(ctx, errorBadRequestParam, err)
 }
 
-func SendCreateSuccess(ctx *gin.Context) {
+func SendRespOfCreate(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, newResponseCodeMsg("", "success"))
 }
 
-func SendBadRequest(ctx *gin.Context, code string, err error) {
-	if code == "" {
-		code = errorBadRequest
-	}
-
-	ctx.JSON(http.StatusBadRequest, newResponseCodeMsg(code, err.Error()))
+func SendRespOfPut(ctx *gin.Context) {
+	ctx.JSON(http.StatusAccepted, newResponseCodeMsg("", "success"))
 }
 
 func SendRespOfGet(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusOK, newResponseData(data))
+}
+
+func SendFailedResp(ctx *gin.Context, code string, err error) {
+	if code == "" {
+		ctx.JSON(
+			http.StatusInternalServerError,
+			newResponseCodeMsg(errorSystemError, err.Error()),
+		)
+	} else {
+		ctx.JSON(
+			http.StatusBadRequest,
+			newResponseCodeMsg(code, err.Error()),
+		)
+	}
 }

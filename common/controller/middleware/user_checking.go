@@ -55,7 +55,7 @@ func (m *userCheckingMiddleware) FetchUser(ctx *gin.Context) (domain.User, error
 
 func (m *userCheckingMiddleware) CheckUser(ctx *gin.Context) {
 	if code, err := m.doCheck(ctx); err != nil {
-		commonstl.SendBadRequest(ctx, code, err)
+		commonstl.SendFailedResp(ctx, code, err)
 
 		ctx.Abort()
 	} else {
