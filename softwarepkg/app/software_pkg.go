@@ -5,6 +5,7 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
@@ -15,6 +16,10 @@ type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
+
+	Approve(string, dp.Account) (string, error)
+	Reject(string, dp.Account) (string, error)
+	Abandon(string, dp.Account) (string, error)
 }
 
 var _ SoftwarePkgService = (*softwarePkgService)(nil)
@@ -24,8 +29,9 @@ func NewSoftwarePkgService(
 	message message.SoftwarePkgMessage,
 ) *softwarePkgService {
 	return &softwarePkgService{
-		repo:    repo,
-		message: message,
+		repo:         repo,
+		message:      message,
+		reviewServie: service.NewReviewService(message),
 	}
 }
 

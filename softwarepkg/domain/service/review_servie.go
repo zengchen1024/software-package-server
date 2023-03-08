@@ -16,6 +16,10 @@ type SoftwarePkgReviewService interface {
 	AbandonPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error
 }
 
+func NewReviewService(m message.SoftwarePkgMessage) SoftwarePkgReviewService {
+	return &reviewService{message: m}
+}
+
 type reviewService struct {
 	message message.SoftwarePkgMessage
 }
