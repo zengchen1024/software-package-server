@@ -42,7 +42,7 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendBadRequest(ctx, "", err)
+		commonctl.SendFailedResp(ctx, "", err)
 
 		return
 	}
@@ -55,9 +55,9 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 	}
 
 	if code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
-		commonctl.SendBadRequest(ctx, code, err)
+		commonctl.SendFailedResp(ctx, code, err)
 	} else {
-		commonctl.SendCreateSuccess(ctx)
+		commonctl.SendRespOfCreate(ctx)
 	}
 }
 
@@ -89,7 +89,7 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 	}
 
 	if v, err := ctl.service.ListPkgs(&cmd); err != nil {
-		commonctl.SendBadRequest(ctx, "", err)
+		commonctl.SendFailedResp(ctx, "", err)
 	} else {
 		commonctl.SendRespOfGet(ctx, v)
 	}
@@ -106,7 +106,7 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 // @Router /v1/softwarepkg/{id} [get]
 func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 	if v, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
-		commonctl.SendBadRequest(ctx, "", err)
+		commonctl.SendFailedResp(ctx, "", err)
 	} else {
 		commonctl.SendRespOfGet(ctx, v)
 	}
