@@ -130,6 +130,21 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user dp.Account) error {
 	return nil
 }
 
+func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) error {
+	if !entity.Phase.IsReviewing() {
+		return errors.New("can't do this")
+	}
+
+	if success {
+		entity.Frozen = false
+		entity.RelevantPR = pr
+	} else {
+		//entity.Phase
+	}
+
+	return nil
+}
+
 // SoftwarePkg
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
