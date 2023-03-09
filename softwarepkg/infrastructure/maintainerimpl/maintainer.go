@@ -22,37 +22,45 @@ type sigPermission struct {
 }
 
 func (s sigPermission) hasPermission(sig string) bool {
-	for _, v := range s.Data {
-		if strings.EqualFold(sig, v.Sig) {
-			for _, t := range v.Type {
-				if t == maintainers {
-					return true
-				}
+	isMaintainer := func(v []string) bool {
+		for _, t := range v {
+			if t == maintainers {
+				return true
 			}
+		}
+
+		return false
+	}
+
+	sig = strings.ToLower(sig)
+
+	data := s.Data
+	for i := range data {
+		if sig == strings.ToLower(data[i].Sig) {
+			return isMaintainer(data[i].Type)
 		}
 	}
 
 	return false
 }
 
-func NewMaintainerImpl(cfg *Config) maintainerImpl {
-	cfg.PermissionURL = cfg.PermissionURL + "&user="
-	return maintainerImpl{
-		cfg: *cfg,
-		cli: utils.NewHttpClient(3),
+func NewMaintainerImpl(cfg *Config) *maintainerImpl {
+	return &maintainerImpl{
+		cli:           utils.NewHttpClient(3),
+		permissionURL: cfg.PermissionURL + "&user=",
 	}
 }
 
 type maintainerImpl struct {
-	cfg Config
-	cli utils.HttpClient
+	cli           utils.HttpClient
+	permissionURL string
 }
 
-func (impl maintainerImpl) baseUrl(user string) string {
-	return impl.cfg.PermissionURL + user
+func (impl *maintainerImpl) baseUrl(user string) string {
+	return impl.permissionURL + user
 }
 
-func (impl maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user dp.Account) (
+func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user dp.Account) (
 	bool, error,
 ) {
 	req, err := http.NewRequest(http.MethodGet, impl.baseUrl(user.Account()), nil)
@@ -65,5 +73,7 @@ func (impl maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user
 		return false, err
 	}
 
-	return res.hasPermission(info.Application.ImportingPkgSig.ImportingPkgSig()), nil
+	return res.hasPermission(
+		info.Application.ImportingPkgSig.ImportingPkgSig(),
+	), nil
 }
