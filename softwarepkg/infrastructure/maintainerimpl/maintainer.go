@@ -22,7 +22,7 @@ type sigPermission struct {
 }
 
 func (s sigPermission) hasPermission(sig string) bool {
-	has := func(v []string) bool {
+	isMaintainer := func(v []string) bool {
 		for _, t := range v {
 			if t == maintainers {
 				return true
@@ -37,7 +37,7 @@ func (s sigPermission) hasPermission(sig string) bool {
 	data := s.Data
 	for i := range data {
 		if sig == strings.ToLower(data[i].Sig) {
-			return has(data[i].Type)
+			return isMaintainer(data[i].Type)
 		}
 	}
 
