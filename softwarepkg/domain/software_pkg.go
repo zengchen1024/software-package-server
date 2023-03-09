@@ -7,6 +7,8 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
+const minNumOfApprover = 2
+
 type User struct {
 	Id      string
 	Email   dp.Email
@@ -47,18 +49,29 @@ type SoftwarePkgSourceCode struct {
 
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
-	Id           string
-	PkgName      dp.PackageName
-	Importer     dp.Account
-	RepoLink     dp.URL
-	Phase        dp.PackagePhase
-	Frozen       bool
-	ReviewResult dp.PackageReviewResult
-	AppliedAt    int64
-	Application  SoftwarePkgApplication
-	ApprovedBy   []dp.Account
-	RejectedBy   []dp.Account
-	RelevantPR   dp.URL
+	Id          string
+	PkgName     dp.PackageName
+	Importer    dp.Account
+	RepoLink    dp.URL
+	Phase       dp.PackagePhase
+	Frozen      bool
+	AppliedAt   int64
+	Application SoftwarePkgApplication
+	ApprovedBy  []dp.Account
+	RejectedBy  []dp.Account
+	RelevantPR  dp.URL
+}
+
+func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
+	if len(entity.RejectedBy) > 0 {
+		return dp.PkgReviewResultRejected
+	}
+
+	if len(entity.ApprovedBy) >= minNumOfApprover {
+		return dp.PkgReviewResultApproved
+	}
+
+	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
@@ -77,8 +90,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
 
 	approved := false
 	// only set the result once to avoid duplicate case.
-	if len(entity.ApprovedBy) == 2 {
-		entity.ReviewResult = dp.PkgReviewResultApproved
+	if len(entity.ApprovedBy) == minNumOfApprover {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 		approved = true
 	}
@@ -97,7 +109,6 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (bool, error) {
 	rejected := false
 	// only set the result once to avoid duplicate case.
 	if len(entity.RejectedBy) == 1 {
-		entity.ReviewResult = dp.PkgReviewResultRejected
 		entity.Phase = dp.PackagePhaseClosed
 		rejected = true
 	}
