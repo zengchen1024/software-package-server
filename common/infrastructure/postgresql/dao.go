@@ -102,6 +102,19 @@ func (t dbTable) GetRecord(filter, result interface{}) error {
 	return err
 }
 
+func (t dbTable) UpdateRecord(filter, update interface{}) (err error) {
+	query := db.Table(t.name).Where(filter).Updates(update)
+	if err = query.Error; err != nil {
+		return
+	}
+
+	if query.RowsAffected == 0 {
+		err = errRowNotFound
+	}
+
+	return
+}
+
 func (t dbTable) IsRowNotFound(err error) bool {
 	return errors.Is(err, errRowNotFound)
 }

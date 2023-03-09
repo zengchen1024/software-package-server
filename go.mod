@@ -73,5 +73,6 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/plugin/optimisticlock v1.1.0 // indirect
 	k8s.io/apimachinery v0.24.0 // indirect
 )
