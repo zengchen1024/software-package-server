@@ -26,6 +26,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 	r.PUT("/v1/softwarepkg/:id/review/approve", m, ctl.Approve)
 	r.PUT("/v1/softwarepkg/:id/review/reject", m, ctl.Reject)
 	r.PUT("/v1/softwarepkg/:id/review/abandon", m, ctl.Abandon)
+	r.POST("/v1/softwarepkg/:id/review/comment", m, ctl.NewReviewComment)
 }
 
 // ApplyNewPkg
@@ -186,5 +187,44 @@ func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
 		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
+	}
+}
+
+// NewReviewComment
+// @Summary create a new software package review comment
+// @Description create a new software package review comment
+// @Tags  SoftwarePkg
+// @Accept json
+// @Param	param  body	 reviewCommentRequest	 true	"body of creating a new software package review comment"
+// @Param	id     path	 string	                 true	"id of software package"
+// @Success 201 {object} ResponseData
+// @Failure 400 {object} ResponseData
+// @Router /v1/softwarepkg/{id}/review/comment [post]
+func (ctl SoftwarePkgController) NewReviewComment(ctx *gin.Context) {
+	user, err := middleware.UserChecking().FetchUser(ctx)
+	if err != nil {
+		commonctl.SendFailedResp(ctx, "", err)
+
+		return
+	}
+
+	var req reviewCommentRequest
+	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+		commonctl.SendBadRequestBody(ctx, err)
+
+		return
+	}
+
+	cmd, err := req.toCmd(&user)
+	if err != nil {
+		commonctl.SendBadRequestParam(ctx, err)
+
+		return
+	}
+
+	if code, err := ctl.service.NewReviewComment(ctx.Param("id"), &cmd); err != nil {
+		commonctl.SendFailedResp(ctx, code, err)
+	} else {
+		commonctl.SendRespOfCreate(ctx)
 	}
 }

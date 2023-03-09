@@ -37,3 +37,16 @@ func (do *SoftwarePkgReviewCommentDO) toSoftwarePkgReviewComment() (
 
 	return
 }
+
+func (t reviewComment) toSoftwarePkgReviewCommentDO(
+	pid string, comment *domain.SoftwarePkgReviewComment, do *SoftwarePkgReviewCommentDO,
+) {
+	*do = SoftwarePkgReviewCommentDO{
+		Id:        uuid.New(),
+		PkgId:     pid,
+		Content:   comment.Content.ReviewComment(),
+		Author:    comment.Author.Account(),
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.CreatedAt,
+	}
+}

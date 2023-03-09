@@ -10,8 +10,12 @@ type reviewComment struct {
 }
 
 func (t reviewComment) AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error {
-	//TODO implement me
-	return nil
+	var do SoftwarePkgReviewCommentDO
+	t.toSoftwarePkgReviewCommentDO(pid, comment, &do)
+
+	filter := SoftwarePkgReviewCommentDO{Id: do.Id}
+
+	return t.commentDBCli.Insert(&filter, &do)
 }
 
 func (t reviewComment) findSoftwarePkgReviews(pid string) (

@@ -20,6 +20,7 @@ type SoftwarePkgService interface {
 	Approve(string, dp.Account) (string, error)
 	Reject(string, dp.Account) (string, error)
 	Abandon(string, dp.Account) (string, error)
+	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
 }
 
 var _ SoftwarePkgService = (*softwarePkgService)(nil)

@@ -86,6 +86,13 @@ definitions:
       msg:
         type: string
     type: object
+  controller.reviewCommentRequest:
+    properties:
+      comment:
+        type: string
+    required:
+    - comment
+    type: object
   controller.softwarePkgRequest:
     properties:
       desc:
@@ -238,6 +245,35 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: approve software package
+      tags:
+      - SoftwarePkg
+  /v1/softwarepkg/{id}/review/comment:
+    post:
+      consumes:
+      - application/json
+      description: create a new software package review comment
+      parameters:
+      - description: body of creating a new software package review comment
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/controller.reviewCommentRequest'
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: create a new software package review comment
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/reject:

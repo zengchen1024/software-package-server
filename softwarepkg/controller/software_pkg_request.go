@@ -97,3 +97,15 @@ func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
 
 	return
 }
+
+type reviewCommentRequest struct {
+	Comment string `json:"comment" binding:"required"`
+}
+
+func (r reviewCommentRequest) toCmd(user *domain.User) (rc app.CmdToWriteSoftwarePkgReviewComment, err error) {
+	rc.Author = user.Account
+	
+	rc.Content, err = dp.NewReviewComment(r.Comment)
+
+	return
+}
