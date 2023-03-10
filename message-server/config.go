@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type Topics struct {
-	SoftwarePkgCIPassed string `json:"software_pkg_ci_passed"   required:"true"`
+	SoftwarePkgCIChecking string `json:"software_pkg_ci_checking"   required:"true"`
 }
 
 func loadConfig(path string) (*Config, error) {

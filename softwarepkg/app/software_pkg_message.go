@@ -3,13 +3,12 @@ package app
 import (
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
-	"github.com/sirupsen/logrus"
 )
 
 type SoftwarePkgMessageService interface {
@@ -17,10 +16,8 @@ type SoftwarePkgMessageService interface {
 }
 
 type softwarePkgMessageService struct {
-	repo         repository.SoftwarePkg
-	message      message.SoftwarePkgMessage
-	maintainer   maintainer.Maintainer
-	reviewServie service.SoftwarePkgReviewService
+	repo    repository.SoftwarePkg
+	message message.SoftwarePkgMessage
 }
 
 func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) error {
@@ -29,31 +26,19 @@ func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) e
 		return err
 	}
 
-	closedByFailedCI, err := pkg.HandleCI(cmd.isSuccess(), cmd.RelevantPR)
+	alreadyClosed, err := pkg.HandleCI(cmd.isSuccess(), cmd.RelevantPR)
 	if err != nil {
 		return err
 	}
 
 	if pkg.Phase.IsClosed() {
-		e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.RelevantPR)
-		if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
-			logrus.Errorf(
-				"failed to notify the pkg is already closed when handling ci checking, err:%s",
-				err.Error(),
-			)
-		}
+		if alreadyClosed {
+			s.notifyPkgAlreadyClosed(&cmd)
 
-		if !closedByFailedCI {
 			return nil
 		}
 
-		comment := s.genCommentOfFailedCI(&cmd)
-		if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
-			logrus.Errorf(
-				"failed to add a comment when handling ci checking, err:%s",
-				err.Error(),
-			)
-		}
+		s.addCommentForFailedCI(&cmd)
 	}
 
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
@@ -66,7 +51,21 @@ func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) e
 	return nil
 }
 
-func (s softwarePkgMessageService) genCommentOfFailedCI(cmd *CmdToHandleCIChecking) domain.SoftwarePkgReviewComment {
+func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandleCIChecking) {
+	if !cmd.isSuccess() {
+		return
+	}
+
+	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.RelevantPR)
+	if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
+		logrus.Errorf(
+			"failed to notify the pkg is already closed when handling ci checking, err:%s",
+			err.Error(),
+		)
+	}
+}
+
+func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandleCIChecking) {
 	author, _ := dp.NewAccount("software-pkg-robot")
 
 	str := fmt.Sprintf(
@@ -75,5 +74,12 @@ func (s softwarePkgMessageService) genCommentOfFailedCI(cmd *CmdToHandleCIChecki
 	)
 	content, _ := dp.NewReviewComment(str)
 
-	return domain.NewSoftwarePkgReviewComment(author, content)
+	comment := domain.NewSoftwarePkgReviewComment(author, content)
+
+	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when handling ci checking, err:%s",
+			err.Error(),
+		)
+	}
 }

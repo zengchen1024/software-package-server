@@ -1,7 +1,7 @@
 package message
 
 type EventMessage interface {
-	ToMessage() ([]byte, error)
+	Message() ([]byte, error)
 }
 
 type SoftwarePkgMessage interface {

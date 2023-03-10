@@ -136,7 +136,8 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 	}
 
 	if entity.Phase.IsClosed() {
-		return false, nil
+		// already closed
+		return true, nil
 	}
 
 	if !entity.Phase.IsReviewing() {
@@ -147,14 +148,11 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 
 	if success {
 		entity.Frozen = false
-
-		return false, nil
+	} else {
+		entity.Phase = dp.PackagePhaseClosed
 	}
 
-	entity.Phase = dp.PackagePhaseClosed
-
-	// closed by failed CI
-	return true, nil
+	return false, nil
 }
 
 // SoftwarePkg

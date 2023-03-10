@@ -110,7 +110,7 @@ func run(topics *Topics) {
 	// start
 	s := server{}
 	h := map[string]kafka.Handler{
-		topics.SoftwarePkgCIPassed: s.HandleCIChecking,
+		topics.SoftwarePkgCIChecking: s.HandleCIChecking,
 	}
 
 	if err := kafka.Subscribe(ctx, h); err != nil {
