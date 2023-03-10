@@ -25,6 +25,7 @@ var (
 
 type PackagePhase interface {
 	PackagePhase() string
+	IsClosed() bool
 	IsReviewing() bool
 	IsCreatingRepo() bool
 }
@@ -41,6 +42,10 @@ type packagePhase string
 
 func (v packagePhase) PackagePhase() string {
 	return string(v)
+}
+
+func (v packagePhase) IsClosed() bool {
+	return string(v) == packagePhaseClosed
 }
 
 func (v packagePhase) IsReviewing() bool {

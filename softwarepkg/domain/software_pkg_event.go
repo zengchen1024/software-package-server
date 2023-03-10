@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 // softwarePkgApprovedEvent
@@ -50,6 +52,10 @@ func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgReject
 }
 
 var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
+
+func NewSoftwarePkgAlreadyClosedEvent(pr dp.URL) softwarePkgRejectedEvent {
+	return softwarePkgRejectedEvent{pr.URL()}
+}
 
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {

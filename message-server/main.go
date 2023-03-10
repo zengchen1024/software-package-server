@@ -13,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
-	"github.com/opensourceways/software-package-server/softwarepkg/message"
 )
 
 type options struct {
@@ -109,9 +108,9 @@ func run(topics *Topics) {
 	}(ctx)
 
 	// start
-	s := message.Internal{}
+	s := server{}
 	h := map[string]kafka.Handler{
-		topics.SoftwarePkgCIPassed: s.HandleCIPassed,
+		topics.SoftwarePkgCIPassed: s.HandleCIChecking,
 	}
 
 	if err := kafka.Subscribe(ctx, h); err != nil {
