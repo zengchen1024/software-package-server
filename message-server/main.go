@@ -8,8 +8,8 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/opensourceways/community-robot-lib/logrusutil"
-	liboptions "github.com/opensourceways/community-robot-lib/options"
+	"github.com/opensourceways/server-common-lib/logrusutil"
+	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
@@ -67,11 +67,28 @@ func main() {
 
 	defer kafka.Exit()
 
+	s := &server{}
+	if err := subscribe(s, cfg); err != nil {
+		logrus.Errorf("subscribe failed, err:%v", err)
+
+		return
+	}
+
 	// run
-	run(&cfg.Topics)
+	run()
 }
 
-func run(topics *Topics) {
+func subscribe(s *server, cfg *Config) error {
+	topics := &cfg.Topics
+
+	h := map[string]kafka.Handler{
+		topics.SoftwarePkgCIChecking: s.handleCIChecking,
+	}
+
+	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
+}
+
+func run() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
@@ -107,13 +124,5 @@ func run(topics *Topics) {
 		}
 	}(ctx)
 
-	// start
-	s := server{}
-	h := map[string]kafka.Handler{
-		topics.SoftwarePkgCIChecking: s.HandleCIChecking,
-	}
-
-	if err := kafka.Subscribe(ctx, h); err != nil {
-		logrus.Errorf("subscribe failed, err:%v", err)
-	}
+	<-ctx.Done()
 }

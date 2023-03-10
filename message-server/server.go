@@ -10,7 +10,7 @@ type server struct {
 	service app.SoftwarePkgMessageService
 }
 
-func (s *server) HandleCIChecking(data []byte) error {
+func (s *server) handleCIChecking(data []byte) error {
 	msg := new(msgToHandleCIChecking)
 
 	if err := json.Unmarshal(data, msg); err != nil {

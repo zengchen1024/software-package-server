@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"regexp"
 
-	libutil "github.com/opensourceways/community-robot-lib/utils"
+	libutil "github.com/opensourceways/server-common-lib/utils"
 )
 
 var (

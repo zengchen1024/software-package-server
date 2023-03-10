@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/opensourceways/community-robot-lib/utils"
+	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 )
@@ -9,7 +9,8 @@ import (
 type Config struct {
 	kafka.Config
 
-	Topics Topics `json:"topics"  required:"true"`
+	Topics    Topics `json:"topics"      required:"true"`
+	GroupName string `json:"group_name"  required:"true"`
 }
 
 func (cfg *Config) validate() error {
