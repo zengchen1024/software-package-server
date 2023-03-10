@@ -15,24 +15,6 @@ type User struct {
 	Account dp.Account
 }
 
-// SoftwarePkgReviewComment
-type SoftwarePkgReviewComment struct {
-	Id        string
-	CreatedAt int64
-	Author    dp.Account
-	Content   dp.ReviewComment
-}
-
-func NewSoftwarePkgReviewComment(
-	author dp.Account, content dp.ReviewComment,
-) SoftwarePkgReviewComment {
-	return SoftwarePkgReviewComment{
-		CreatedAt: utils.Now(),
-		Author:    author,
-		Content:   content,
-	}
-}
-
 // SoftwarePkgApplication
 type SoftwarePkgApplication struct {
 	SourceCode        SoftwarePkgSourceCode
