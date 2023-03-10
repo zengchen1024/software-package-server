@@ -1,9 +1,7 @@
 package messageimpl
 
 import (
-	"github.com/opensourceways/community-robot-lib/kafka"
-	"github.com/opensourceways/community-robot-lib/mq"
-
+	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 )
 
@@ -33,13 +31,15 @@ func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
 	return send(p.topics.AbandonedSoftwarePkg, e)
 }
 
+func (p *producer) NotifyPkgAlreadyClosed(e message.EventMessage) error {
+	return send(p.topics.AbandonedSoftwarePkg, e)
+}
+
 func send(topic string, v message.EventMessage) error {
-	body, err := v.ToMessage()
+	body, err := v.Message()
 	if err != nil {
 		return err
 	}
 
-	return kafka.Publish(topic, &mq.Message{
-		Body: body,
-	})
+	return kafka.Publish(topic, body)
 }

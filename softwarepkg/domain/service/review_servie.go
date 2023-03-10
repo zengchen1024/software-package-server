@@ -25,35 +25,29 @@ type reviewService struct {
 }
 
 func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
-	approved, err := pkg.ApproveBy(user)
-	if !approved {
+	if approved, err := pkg.ApproveBy(user); !approved {
 		return err
 	}
 
-	op := "approved"
-	if e, err := domain.NewSoftwarePkgApprovedEvent(pkg); err != nil {
-		s.log(pkg, op, err)
-	} else {
-		err := s.message.NotifyPkgApproved(&e)
-		s.log(pkg, op, err)
+	e, err := domain.NewSoftwarePkgApprovedEvent(pkg)
+	if err == nil {
+		err = s.message.NotifyPkgApproved(&e)
 	}
+	s.log(pkg, "approved", err)
 
 	return nil
 }
 
 func (s *reviewService) RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
-	rejected, err := pkg.RejectBy(user)
-	if !rejected {
+	if rejected, err := pkg.RejectBy(user); !rejected {
 		return err
 	}
 
-	op := "rejected"
-	if e, err := domain.NewSoftwarePkgRejectedEvent(pkg); err != nil {
-		s.log(pkg, op, err)
-	} else {
-		err := s.message.NotifyPkgRejected(&e)
-		s.log(pkg, op, err)
+	e, err := domain.NewSoftwarePkgRejectedEvent(pkg)
+	if err == nil {
+		err = s.message.NotifyPkgRejected(&e)
 	}
+	s.log(pkg, "rejected", err)
 
 	return nil
 }
@@ -63,13 +57,11 @@ func (s *reviewService) AbandonPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Acc
 		return err
 	}
 
-	op := "abandoned"
-	if e, err := domain.NewSoftwarePkgAbandonedEvent(pkg); err != nil {
-		s.log(pkg, op, err)
-	} else {
-		err := s.message.NotifyPkgAbandoned(&e)
-		s.log(pkg, op, err)
+	e, err := domain.NewSoftwarePkgAbandonedEvent(pkg)
+	if err == nil {
+		err = s.message.NotifyPkgAbandoned(&e)
 	}
+	s.log(pkg, "abandoned", err)
 
 	return nil
 }

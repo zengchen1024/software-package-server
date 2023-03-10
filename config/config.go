@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/opensourceways/community-robot-lib/utils"
+	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"

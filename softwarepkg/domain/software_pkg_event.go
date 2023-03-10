@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 // softwarePkgApprovedEvent
@@ -12,7 +14,7 @@ type softwarePkgApprovedEvent struct {
 	RelevantPR string `json:"pr"`
 }
 
-func (e *softwarePkgApprovedEvent) ToMessage() ([]byte, error) {
+func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
@@ -32,16 +34,18 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprov
 
 // softwarePkgRejectedEvent
 type softwarePkgRejectedEvent struct {
+	PkgId      string `json:"pkg_id"`
 	RelevantPR string `json:"pr"`
 }
 
-func (e *softwarePkgRejectedEvent) ToMessage() ([]byte, error) {
+func (e *softwarePkgRejectedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
 func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
 	if pkg.RelevantPR != nil {
 		e.RelevantPR = pkg.RelevantPR.URL()
+		e.PkgId = pkg.Id
 	} else {
 		err = errors.New("missing pr")
 	}
@@ -50,6 +54,13 @@ func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgReject
 }
 
 var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
+
+func NewSoftwarePkgAlreadyClosedEvent(pkgId string, pr dp.URL) softwarePkgRejectedEvent {
+	return softwarePkgRejectedEvent{
+		PkgId:      pkgId,
+		RelevantPR: pr.URL(),
+	}
+}
 
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
@@ -64,7 +75,7 @@ type softwarePkgAppliedEvent struct {
 	ReasonToImportPkg string `json:"reason_to_import"`
 }
 
-func (e *softwarePkgAppliedEvent) ToMessage() ([]byte, error) {
+func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 

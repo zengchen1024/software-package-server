@@ -1,7 +1,7 @@
 package message
 
 type EventMessage interface {
-	ToMessage() ([]byte, error)
+	Message() ([]byte, error)
 }
 
 type SoftwarePkgMessage interface {
@@ -9,4 +9,5 @@ type SoftwarePkgMessage interface {
 	NotifyPkgApproved(EventMessage) error
 	NotifyPkgRejected(EventMessage) error
 	NotifyPkgAbandoned(EventMessage) error
+	NotifyPkgAlreadyClosed(EventMessage) error
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/opensourceways/community-robot-lib/utils"
+	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"

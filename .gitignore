@@ -6,6 +6,7 @@
 *.dylib
 *.swp
 software-package-server
+message-server/message-server
 test
 
 # Test binary, built with `go test -c`
