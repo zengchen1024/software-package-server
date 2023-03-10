@@ -62,7 +62,7 @@ func main() {
 
 	// mq
 	if err := kafka.Init(&cfg.Config, log); err != nil {
-		log.Fatalf("initialize mq failed, err:%v", err)
+		logrus.Fatalf("initialize mq failed, err:%v", err)
 	}
 
 	defer kafka.Exit()

@@ -43,8 +43,8 @@ func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) e
 
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
-			"save pkg failed when handling ci checking, err:%s",
-			err.Error(),
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
 		)
 	}
 
@@ -59,8 +59,8 @@ func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandleCIChec
 	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.RelevantPR)
 	if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
 		logrus.Errorf(
-			"failed to notify the pkg is already closed when handling ci checking, err:%s",
-			err.Error(),
+			"failed to notify the pkg is already closed when %s, err:%s",
+			cmd.logString(), err.Error(),
 		)
 	}
 }
@@ -78,8 +78,8 @@ func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandleCICheck
 
 	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(
-			"failed to add a comment when handling ci checking, err:%s",
-			err.Error(),
+			"failed to add a comment when %s, err:%s",
+			cmd.logString(), err.Error(),
 		)
 	}
 }

@@ -12,6 +12,14 @@ type Config struct {
 	Topics Topics `json:"topics"  required:"true"`
 }
 
+func (cfg *Config) validate() error {
+	if _, err := utils.BuildRequestBody(cfg, ""); err != nil {
+		return err
+	}
+
+	return cfg.Config.Validate()
+}
+
 type Topics struct {
 	SoftwarePkgCIChecking string `json:"software_pkg_ci_checking"   required:"true"`
 }
@@ -22,7 +30,7 @@ func loadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	if err := cfg.Validate(); err != nil {
+	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
 
