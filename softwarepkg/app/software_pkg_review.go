@@ -40,7 +40,7 @@ func (s *softwarePkgService) NewReviewComment(
 }
 
 func (s *softwarePkgService) TranslateReviewComment(
-	cmd *CmdToGetTranslatedReviewComment,
+	cmd *CmdToTranslateReviewComment,
 ) (dto TranslatedReveiwCommentDTO, code string, err error) {
 	v, err := s.repo.FindTranslatedReviewComment(cmd)
 	if err == nil {

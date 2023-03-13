@@ -23,7 +23,7 @@ type SoftwarePkgService interface {
 	Abandon(string, dp.Account) (string, error)
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
 
-	TranslateReviewComment(*CmdToGetTranslatedReviewComment) (
+	TranslateReviewComment(*CmdToTranslateReviewComment) (
 		dto TranslatedReveiwCommentDTO, code string, err error,
 	)
 }
