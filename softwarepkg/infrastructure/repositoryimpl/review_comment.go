@@ -3,6 +3,7 @@ package repositoryimpl
 import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
 type reviewComment struct {
@@ -43,4 +44,23 @@ func (t reviewComment) findSoftwarePkgReviews(pid string) (
 	}
 
 	return v, nil
+}
+
+func (t reviewComment) FindReviewComment(pid, commentId string) (
+	r domain.SoftwarePkgReviewComment, err error,
+) {
+	return
+}
+
+func (t reviewComment) AddTranslatedReviewComment(
+	pid string,
+	comment *domain.SoftwarePkgTranslatedReviewComment,
+) error {
+	return nil
+}
+
+func (t reviewComment) FindTranslatedReviewComment(index *repository.TranslatedReviewCommentIndex) (
+	r *domain.SoftwarePkgTranslatedReviewComment, err error,
+) {
+	return
 }

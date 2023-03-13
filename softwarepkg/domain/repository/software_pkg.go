@@ -13,6 +13,12 @@ type OptToFindSoftwarePkgs struct {
 	CountPerPage int
 }
 
+type TranslatedReviewCommentIndex struct {
+	PkgId     string
+	CommentId string
+	Language  dp.Language
+}
+
 type SoftwarePkg interface {
 	// AddSoftwarePkg adds a new pkg
 	AddSoftwarePkg(*domain.SoftwarePkgBasicInfo) error
@@ -26,4 +32,8 @@ type SoftwarePkg interface {
 	FindSoftwarePkgs(OptToFindSoftwarePkgs) (r []domain.SoftwarePkgBasicInfo, total int, err error)
 
 	AddReviewComment(pid string, comment *domain.SoftwarePkgReviewComment) error
+	FindReviewComment(pid, commentId string) (domain.SoftwarePkgReviewComment, error)
+
+	AddTranslatedReviewComment(pid string, comment *domain.SoftwarePkgTranslatedReviewComment) error
+	FindTranslatedReviewComment(*TranslatedReviewCommentIndex) (*domain.SoftwarePkgTranslatedReviewComment, error)
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"errors"
 
+	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
@@ -34,6 +35,48 @@ func (s *softwarePkgService) NewReviewComment(
 	// TODO: there is a critical case that the comment can't be added now
 	comment := domain.NewSoftwarePkgReviewComment(cmd.Author, cmd.Content)
 	err = s.repo.AddReviewComment(pid, &comment)
+
+	return
+}
+
+func (s *softwarePkgService) TranslateReviewComment(
+	cmd *CmdToTranslateReviewComment,
+) (dto TranslatedReveiwCommentDTO, code string, err error) {
+	v, err := s.repo.FindTranslatedReviewComment(cmd)
+	if err == nil {
+		dto.Content = v.Content
+
+		return
+	}
+
+	if !commonrepo.IsErrorResourceNotFound(err) {
+		return
+	}
+
+	// translate it
+	comment, err := s.repo.FindReviewComment(cmd.PkgId, cmd.CommentId)
+	if err != nil {
+		if commonrepo.IsErrorResourceNotFound(err) {
+			code = errorSoftwarePkgCommentNotFound
+		}
+
+		return
+	}
+
+	content, err := s.translating.Translate(
+		comment.Content.ReviewComment(), cmd.Language,
+	)
+	if err != nil {
+		return
+	}
+
+	dto.Content = content
+
+	// save the translated one
+	translated := domain.NewSoftwarePkgTranslatedReviewComment(
+		&comment, content, cmd.Language,
+	)
+	_ = s.repo.AddTranslatedReviewComment(cmd.PkgId, &translated)
 
 	return
 }
