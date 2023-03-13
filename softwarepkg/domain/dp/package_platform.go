@@ -19,3 +19,7 @@ type packagePlatform string
 func (v packagePlatform) PackagePlatform() string {
 	return string(v)
 }
+
+func IsSamePlatform(a, b PackagePlatform) bool {
+	return a != nil && b != nil && a.PackagePlatform() == b.PackagePlatform()
+}
