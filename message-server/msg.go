@@ -21,3 +21,25 @@ func (msg *msgToHandleCIChecking) toCmd() (cmd app.CmdToHandleCIChecking, err er
 
 	return
 }
+
+type msgToHandleRepoCreated struct {
+	PkgId        string `json:"pkg_id"`
+	Platform     string `json:"platform"`
+	RepoLink     string `json:"repo_link"`
+	FailedReason string `json:"failed_reason"`
+}
+
+func (msg *msgToHandleRepoCreated) toCmd() (cmd app.CmdToHandleRepoCreated, err error) {
+	cmd.PkgId = msg.PkgId
+	cmd.FiledReason = msg.FailedReason
+
+	if cmd.Platform, err = dp.NewPackagePlatform(msg.Platform); err != nil {
+		return
+	}
+
+	if msg.RepoLink != "" {
+		cmd.RepoLink, err = dp.NewURL(msg.RepoLink)
+	}
+
+	return
+}

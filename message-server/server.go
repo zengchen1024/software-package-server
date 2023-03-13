@@ -24,3 +24,18 @@ func (s *server) handleCIChecking(data []byte) error {
 
 	return s.service.HandleCIChecking(cmd)
 }
+
+func (s *server) handleRepoCreated(data []byte) error {
+	msg := new(msgToHandleRepoCreated)
+
+	if err := json.Unmarshal(data, msg); err != nil {
+		return err
+	}
+
+	cmd, err := msg.toCmd()
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandleRepoCreated(cmd)
+}
