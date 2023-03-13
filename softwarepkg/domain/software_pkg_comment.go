@@ -11,7 +11,6 @@ type SoftwarePkgReviewComment struct {
 	CreatedAt int64
 	Author    dp.Account
 	Content   dp.ReviewComment
-	Language  string
 }
 
 func NewSoftwarePkgReviewComment(
@@ -27,6 +26,16 @@ func NewSoftwarePkgReviewComment(
 type SoftwarePkgTranslatedReviewComment struct {
 	Id        string
 	CommentId string
-	Language  string
-	Content   dp.ReviewComment
+	Content   string
+	Language  dp.Language
+}
+
+func NewSoftwarePkgTranslatedReviewComment(
+	comment *SoftwarePkgReviewComment, content string, lang dp.Language,
+) SoftwarePkgTranslatedReviewComment {
+	return SoftwarePkgTranslatedReviewComment{
+		Content:   content,
+		Language:  lang,
+		CommentId: comment.Id,
+	}
 }

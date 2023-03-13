@@ -149,3 +149,10 @@ func toSoftwarePkgsDTO(v []domain.SoftwarePkgBasicInfo, total int) SoftwarePkgsD
 		Total: total,
 	}
 }
+
+// CmdToGetTranslatedReviewComment
+type CmdToGetTranslatedReviewComment = repository.TranslatedReviewCommentIndex
+
+type TranslatedReveiwCommentDTO struct {
+	Content string `json:"content"`
+}

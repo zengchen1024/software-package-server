@@ -10,6 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/translating"
 )
 
 type SoftwarePkgService interface {
@@ -21,6 +22,10 @@ type SoftwarePkgService interface {
 	Reject(string, dp.Account) (string, error)
 	Abandon(string, dp.Account) (string, error)
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
+
+	TranslateReviewComment(*CmdToGetTranslatedReviewComment) (
+		dto TranslatedReveiwCommentDTO, code string, err error,
+	)
 }
 
 var _ SoftwarePkgService = (*softwarePkgService)(nil)
@@ -42,6 +47,7 @@ type softwarePkgService struct {
 	repo         repository.SoftwarePkg
 	message      message.SoftwarePkgMessage
 	maintainer   maintainer.Maintainer
+	translating  translating.Translating
 	reviewServie service.SoftwarePkgReviewService
 }
 
