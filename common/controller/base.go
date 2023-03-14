@@ -26,6 +26,10 @@ func SendRespOfGet(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusOK, newResponseData(data))
 }
 
+func SendRespOfPost(ctx *gin.Context, data interface{}) {
+	ctx.JSON(http.StatusCreated, newResponseData(data))
+}
+
 func SendFailedResp(ctx *gin.Context, code string, err error) {
 	if code == "" {
 		ctx.JSON(

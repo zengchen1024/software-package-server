@@ -12,10 +12,12 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-func NewTranslationService(cfg *Config, languages []string) (*service, error) {
+var instance *service
+
+func Init(cfg *Config, languages []string) error {
 	sl, err := getSupportedLanguage(languages)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	auth := basic.NewCredentialsBuilder().
@@ -29,10 +31,16 @@ func NewTranslationService(cfg *Config, languages []string) (*service, error) {
 		WithRegion(region.NewRegion(cfg.Region, cfg.AuthEndpoint)).
 		Build())
 
-	return &service{
+	instance = &service{
 		cli:                client,
 		supportedLanguages: sl,
-	}, nil
+	}
+
+	return nil
+}
+
+func Translation() *service {
+	return instance
 }
 
 type service struct {

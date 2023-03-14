@@ -252,6 +252,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/softwarepkg/{id}/review/comment/{cid}/translate": {
+            "post": {
+                "description": "translate review comment",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "translate review comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cid of review comment",
+                        "name": "cid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "body of translate review comment",
+                        "name": "parm",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.translationCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/app.TranslatedReveiwCommentDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/softwarepkg/{id}/review/reject": {
             "put": {
                 "description": "reject software package",
@@ -410,6 +461,14 @@ const docTemplate = `{
                 }
             }
         },
+        "app.TranslatedReveiwCommentDTO": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.ResponseData": {
             "type": "object",
             "properties": {
@@ -464,6 +523,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "source_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.translationCommentRequest": {
+            "type": "object",
+            "properties": {
+                "language": {
                     "type": "string"
                 }
             }

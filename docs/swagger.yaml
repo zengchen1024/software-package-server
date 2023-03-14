@@ -78,6 +78,11 @@ definitions:
       total:
         type: integer
     type: object
+  app.TranslatedReveiwCommentDTO:
+    properties:
+      content:
+        type: string
+    type: object
   controller.ResponseData:
     properties:
       code:
@@ -117,6 +122,11 @@ definitions:
     - reason
     - sig
     - source_code
+    type: object
+  controller.translationCommentRequest:
+    properties:
+      language:
+        type: string
     type: object
 info:
   contact: {}
@@ -274,6 +284,40 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: create a new software package review comment
+      tags:
+      - SoftwarePkg
+  /v1/softwarepkg/{id}/review/comment/{cid}/translate:
+    post:
+      consumes:
+      - application/json
+      description: translate review comment
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: cid of review comment
+        in: path
+        name: cid
+        required: true
+        type: string
+      - description: body of translate review comment
+        in: body
+        name: parm
+        required: true
+        schema:
+          $ref: '#/definitions/controller.translationCommentRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/app.TranslatedReveiwCommentDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: translate review comment
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/reject:

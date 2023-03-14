@@ -34,11 +34,13 @@ func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	message message.SoftwarePkgMessage,
 	maintainer maintainer.Maintainer,
+	translation translation.Translation,
 ) *softwarePkgService {
 	return &softwarePkgService{
 		repo:         repo,
 		message:      message,
 		maintainer:   maintainer,
+		translation:  translation,
 		reviewServie: service.NewReviewService(message),
 	}
 }

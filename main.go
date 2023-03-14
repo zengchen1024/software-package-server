@@ -14,6 +14,7 @@ import (
 	"github.com/opensourceways/software-package-server/server"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
 type options struct {
@@ -65,6 +66,12 @@ func main() {
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Fatalf("init db, err:%s", err.Error())
+	}
+
+	// Translation
+	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
+	if err != nil {
+		logrus.Fatalf("init translation err:%v", err)
 	}
 
 	// MQ
