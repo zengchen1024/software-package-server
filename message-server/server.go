@@ -11,7 +11,7 @@ type server struct {
 }
 
 func (s *server) handlePkgPRCIChecked(data []byte) error {
-	msg := new(msgToHandlePkgCIChecked)
+	msg := new(msgToHandlePkgPRCIChecked)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
@@ -22,7 +22,7 @@ func (s *server) handlePkgPRCIChecked(data []byte) error {
 		return err
 	}
 
-	return s.service.HandlePkgCIChecked(cmd)
+	return s.service.HandlePkgPRCIChecked(cmd)
 }
 
 func (s *server) handleRepoCreated(data []byte) error {

@@ -5,14 +5,14 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// msgToHandlePkgCIChecked
-type msgToHandlePkgCIChecked struct {
+// msgToHandlePkgPRCIChecked
+type msgToHandlePkgPRCIChecked struct {
 	PkgId        string `json:"pkg_id"`
 	RelevantPR   string `json:"relevant_pr"`
 	FailedReason string `json:"failed_reason"`
 }
 
-func (msg *msgToHandlePkgCIChecked) toCmd() (cmd app.CmdToHandlePkgCIChecked, err error) {
+func (msg *msgToHandlePkgPRCIChecked) toCmd() (cmd app.CmdToHandlePkgPRCIChecked, err error) {
 	if cmd.RelevantPR, err = dp.NewURL(msg.RelevantPR); err != nil {
 		return
 	}

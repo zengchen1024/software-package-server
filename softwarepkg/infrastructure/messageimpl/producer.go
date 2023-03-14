@@ -35,8 +35,8 @@ func (p *producer) NotifyPkgAlreadyClosed(e message.EventMessage) error {
 	return send(p.topics.AbandonedSoftwarePkg, e)
 }
 
-func (p *producer) NotifyPkgPRMerged(e message.EventMessage) error {
-	return send(p.topics.PRMergedSoftwarePkg, e)
+func (p *producer) NotifyPkgIndirectlyApproved(e message.EventMessage) error {
+	return send(p.topics.IndirectlyApprovedSoftwarePkg, e)
 }
 
 func send(topic string, v message.EventMessage) error {

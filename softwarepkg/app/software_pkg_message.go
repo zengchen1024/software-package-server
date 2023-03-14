@@ -195,9 +195,9 @@ func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged)
 func (s softwarePkgMessageService) notifyPkgPRMerged(
 	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgPRMerged,
 ) {
-	e := domain.NewSoftwarePkgPRMergedEvent(pkg)
+	e := domain.NewSoftwarePkgIndirectlyApprovedEvent(pkg)
 
-	if err := s.message.NotifyPkgPRMerged(&e); err != nil {
+	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
 		logrus.Errorf(
 			"failed to notify the pkg's pr is merged when %s, err:%s",
 			cmd.logString(), err.Error(),
