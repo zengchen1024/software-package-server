@@ -13,10 +13,10 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
-	HandlePkgPRCIChecked(CmdToHandlePkgPRCIChecked) error
 	HandlePkgPRClosed(CmdToHandlePkgPRClosed) error
 	HandlePkgPRMerged(CmdToHandlePkgPRMerged) error
+	HandlePkgPRCIChecked(CmdToHandlePkgPRCIChecked) error
+	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
 }
 
 type softwarePkgMessageService struct {
@@ -25,6 +25,7 @@ type softwarePkgMessageService struct {
 	maintainer maintainer.Maintainer
 }
 
+// HandlePkgPRCIChecked
 func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCIChecked) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
@@ -122,6 +123,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 	return nil
 }
 
+// HandlePkgPRClosed
 func (s softwarePkgMessageService) HandlePkgPRClosed(cmd CmdToHandlePkgPRClosed) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
@@ -152,6 +154,7 @@ func (s softwarePkgMessageService) HandlePkgPRClosed(cmd CmdToHandlePkgPRClosed)
 	return nil
 }
 
+// HandlePkgPRMerged
 func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
@@ -179,7 +182,7 @@ func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged)
 	}
 
 	if dp.IsPkgReviewResultApproved(pkg.ReviewResult()) {
-		// send event
+		s.notifyPkgIndirectlyApproved(&pkg, &cmd)
 	}
 
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
@@ -192,14 +195,14 @@ func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged)
 	return nil
 }
 
-func (s softwarePkgMessageService) notifyPkgPRMerged(
+func (s softwarePkgMessageService) notifyPkgIndirectlyApproved(
 	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgPRMerged,
 ) {
 	e := domain.NewSoftwarePkgIndirectlyApprovedEvent(pkg)
 
 	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
 		logrus.Errorf(
-			"failed to notify the pkg's pr is merged when %s, err:%s",
+			"failed to notify the pkg was approved indirectly when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
 	}

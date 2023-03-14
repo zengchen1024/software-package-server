@@ -25,7 +25,7 @@ func (s *server) handlePkgPRCIChecked(data []byte) error {
 	return s.service.HandlePkgPRCIChecked(cmd)
 }
 
-func (s *server) handleRepoCreated(data []byte) error {
+func (s *server) handlePkgRepoCreated(data []byte) error {
 	msg := new(msgToHandlePkgRepoCreated)
 
 	if err := json.Unmarshal(data, msg); err != nil {

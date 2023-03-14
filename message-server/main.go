@@ -85,7 +85,7 @@ func subscribe(s *server, cfg *Config) error {
 		topics.SoftwarePkgPRMerged:    s.handlePkgPRMerged,
 		topics.SoftwarePkgPRClosed:    s.handlePkgPRClosed,
 		topics.SoftwarePkgPRCIChecked: s.handlePkgPRCIChecked,
-		topics.SoftwarePkgRepoCreated: s.handleRepoCreated,
+		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
 	}
 
 	return kafka.Subscriber().Subscribe(cfg.GroupName, h)

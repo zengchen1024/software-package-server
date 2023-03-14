@@ -22,10 +22,10 @@ func (cfg *Config) validate() error {
 }
 
 type Topics struct {
-	SoftwarePkgPRCIChecked string `json:"software_pkg_pr_ci_checked"  required:"true"`
-	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"   required:"true"`
 	SoftwarePkgPRClosed    string `json:"software_pkg_pr_closed"      required:"true"`
 	SoftwarePkgPRMerged    string `json:"software_pkg_pr_merged"      required:"true"`
+	SoftwarePkgPRCIChecked string `json:"software_pkg_pr_ci_checked"  required:"true"`
+	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"   required:"true"`
 }
 
 func loadConfig(path string) (*Config, error) {
