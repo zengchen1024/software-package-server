@@ -15,12 +15,13 @@ import (
 type SoftwarePkgMessageService interface {
 	HandleCIChecking(CmdToHandleCIChecking) error
 	HandleRepoCreated(CmdToHandleRepoCreated) error
+	HandlePkgRejected(CmdToHandlePkgRejected) error
 }
 
 type softwarePkgMessageService struct {
 	repo       repository.SoftwarePkg
-	maintainer maintainer.Maintainer
 	message    message.SoftwarePkgMessage
+	maintainer maintainer.Maintainer
 }
 
 func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) error {
@@ -117,7 +118,7 @@ func (s softwarePkgMessageService) HandleRepoCreated(cmd CmdToHandleRepoCreated)
 	return nil
 }
 
-func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandleRepoRejected) error {
+func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err

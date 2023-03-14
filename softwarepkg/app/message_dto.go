@@ -48,8 +48,8 @@ func (cmd *CmdToHandleRepoCreated) logString() string {
 	)
 }
 
-// CmdToHandleRepoRejected
-type CmdToHandleRepoRejected struct {
+// CmdToHandlePkgRejected
+type CmdToHandlePkgRejected struct {
 	PkgId      string
 	Reason     string
 	RejectedBy string

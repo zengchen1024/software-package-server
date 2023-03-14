@@ -1,6 +1,7 @@
 package maintainerimpl
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -76,4 +77,8 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, use
 	return res.hasPermission(
 		info.Application.ImportingPkgSig.ImportingPkgSig(),
 	), nil
+}
+
+func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
+	return nil, errors.New("unimplemented")
 }
