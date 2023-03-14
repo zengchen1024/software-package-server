@@ -12,7 +12,8 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandleCIChecking(cmd CmdToHandleCIChecking) error
+	HandleCIChecking(CmdToHandleCIChecking) error
+	HandleRepoCreated(CmdToHandleRepoCreated) error
 }
 
 type softwarePkgMessageService struct {
