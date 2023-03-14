@@ -54,3 +54,10 @@ type CmdToHandlePkgRejected struct {
 	Reason     string
 	RejectedBy string
 }
+
+func (cmd *CmdToHandlePkgRejected) logString() string {
+	return fmt.Sprintf(
+		"handling pkg created, pkgid:%s, reason:%s, rejected by:%s",
+		cmd.PkgId, cmd.Reason, cmd.RejectedBy,
+	)
+}

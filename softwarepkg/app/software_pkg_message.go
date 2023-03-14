@@ -133,8 +133,12 @@ func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected)
 		return err
 	}
 
-	if b, err := s.maintainer.HasPermission(&pkg, user); err != nil || !b {
+	has, err := s.maintainer.HasPermission(&pkg, user)
+	if err != nil {
 		return err
+	}
+	if !has {
+		return fmt.Errorf("no permission when %s", cmd.logString())
 	}
 
 	if _, err := pkg.RejectBy(user); err != nil {
@@ -142,7 +146,10 @@ func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected)
 	}
 
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		// log
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
 	}
 
 	return nil
