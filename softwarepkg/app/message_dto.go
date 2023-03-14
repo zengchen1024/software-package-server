@@ -7,18 +7,18 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// CmdToHandlePkgCIChecked
-type CmdToHandlePkgCIChecked struct {
+// CmdToHandlePkgPRCIChecked
+type CmdToHandlePkgPRCIChecked struct {
 	PkgId       string
 	RelevantPR  dp.URL
 	FiledReason string
 }
 
-func (cmd *CmdToHandlePkgCIChecked) isSuccess() bool {
+func (cmd *CmdToHandlePkgPRCIChecked) isSuccess() bool {
 	return cmd.FiledReason == ""
 }
 
-func (cmd *CmdToHandlePkgCIChecked) logString() string {
+func (cmd *CmdToHandlePkgPRCIChecked) logString() string {
 	return fmt.Sprintf(
 		"handling pkg ci checked, pkgid:%s, pr:%s",
 		cmd.PkgId, cmd.RelevantPR.URL(),

@@ -13,8 +13,8 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandlePkgCIChecked(CmdToHandlePkgCIChecked) error
 	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
+	HandlePkgPRCIChecked(CmdToHandlePkgPRCIChecked) error
 	HandlePkgPRClosed(CmdToHandlePkgPRClosed) error
 	HandlePkgPRMerged(CmdToHandlePkgPRMerged) error
 }
@@ -25,7 +25,7 @@ type softwarePkgMessageService struct {
 	maintainer maintainer.Maintainer
 }
 
-func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error {
+func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCIChecked) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 	return nil
 }
 
-func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgCIChecked) {
+func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgPRCIChecked) {
 	if !cmd.isSuccess() {
 		return
 	}
@@ -73,7 +73,7 @@ func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgCIC
 	}
 }
 
-func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgCIChecked) {
+func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgPRCIChecked) {
 	author, _ := dp.NewAccount("software-pkg-robot")
 
 	str := fmt.Sprintf(
