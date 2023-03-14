@@ -12,7 +12,8 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandleCIChecking(cmd CmdToHandleCIChecking) error
+	HandleCIChecking(CmdToHandleCIChecking) error
+	HandleRepoCreated(CmdToHandleRepoCreated) error
 }
 
 type softwarePkgMessageService struct {
@@ -82,4 +83,34 @@ func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandleCICheck
 			cmd.logString(), err.Error(),
 		)
 	}
+}
+
+// HandleRepoCreated
+func (s softwarePkgMessageService) HandleRepoCreated(cmd CmdToHandleRepoCreated) error {
+	if !cmd.isSuccess() {
+		logrus.Errorf(
+			"failed to create repo on platform:%s for pkg:%s, err:%s",
+			cmd.Platform.PackagePlatform(), cmd.PkgId, cmd.FiledReason,
+		)
+
+		return nil
+	}
+
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if err := pkg.HandleRepoCreated(cmd.RepoCreatedInfo); err != nil {
+		return err
+	}
+
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+
+	return nil
 }

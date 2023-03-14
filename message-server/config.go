@@ -22,7 +22,8 @@ func (cfg *Config) validate() error {
 }
 
 type Topics struct {
-	SoftwarePkgCIChecking string `json:"software_pkg_ci_checking"   required:"true"`
+	SoftwarePkgCIChecking  string `json:"software_pkg_ci_checking"    required:"true"`
+	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"   required:"true"`
 }
 
 func loadConfig(path string) (*Config, error) {

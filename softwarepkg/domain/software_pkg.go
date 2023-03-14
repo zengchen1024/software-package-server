@@ -137,6 +137,30 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 	return false, nil
 }
 
+type RepoCreatedInfo struct {
+	Platform dp.PackagePlatform
+	RepoLink dp.URL
+}
+
+func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) error {
+	if entity.RepoLink != nil {
+		return errors.New("only do once")
+	}
+
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
+	}
+
+	if !dp.IsSamePlatform(entity.Application.PackagePlatform, info.Platform) {
+		return errors.New("ignore unmached platform")
+	}
+
+	entity.RepoLink = info.RepoLink
+	entity.Phase = dp.PackagePhaseImported
+
+	return nil
+}
+
 // SoftwarePkg
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
