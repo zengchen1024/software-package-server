@@ -47,3 +47,10 @@ func (cmd *CmdToHandleRepoCreated) logString() string {
 		cmd.PkgId, cmd.Platform.PackagePlatform(), cmd.RepoLink.URL(),
 	)
 }
+
+// CmdToHandleRepoRejected
+type CmdToHandleRepoRejected struct {
+	PkgId      string
+	Reason     string
+	RejectedBy string
+}
