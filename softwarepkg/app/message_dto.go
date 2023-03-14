@@ -57,7 +57,7 @@ type CmdToHandlePkgRejected struct {
 
 func (cmd *CmdToHandlePkgRejected) logString() string {
 	return fmt.Sprintf(
-		"handling pkg created, pkgid:%s, reason:%s, rejected by:%s",
+		"handling pkg rejected, pkgid:%s, reason:%s, rejected by:%s",
 		cmd.PkgId, cmd.Reason, cmd.RejectedBy,
 	)
 }
