@@ -13,9 +13,10 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandleCIChecking(CmdToHandleCIChecking) error
-	HandleRepoCreated(CmdToHandleRepoCreated) error
-	HandlePkgRejected(CmdToHandlePkgRejected) error
+	HandlePkgCIChecked(CmdToHandlePkgCIChecked) error
+	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
+	HandlePkgPRClosed(CmdToHandlePkgPRClosed) error
+	HandlePkgPRMerged(CmdToHandlePkgPRMerged) error
 }
 
 type softwarePkgMessageService struct {
@@ -24,7 +25,7 @@ type softwarePkgMessageService struct {
 	maintainer maintainer.Maintainer
 }
 
-func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) error {
+func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
@@ -35,13 +36,15 @@ func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) e
 		return err
 	}
 
-	if pkg.Phase.IsClosed() {
-		if alreadyClosed {
+	if alreadyClosed {
+		if cmd.isSuccess() {
 			s.notifyPkgAlreadyClosed(&cmd)
-
-			return nil
 		}
 
+		return nil
+	}
+
+	if !cmd.isSuccess() {
 		s.addCommentForFailedCI(&cmd)
 	}
 
@@ -55,12 +58,13 @@ func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) e
 	return nil
 }
 
-func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandleCIChecking) {
+func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgCIChecked) {
 	if !cmd.isSuccess() {
 		return
 	}
 
 	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.RelevantPR)
+
 	if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
 		logrus.Errorf(
 			"failed to notify the pkg is already closed when %s, err:%s",
@@ -69,7 +73,7 @@ func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandleCIChec
 	}
 }
 
-func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandleCIChecking) {
+func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgCIChecked) {
 	author, _ := dp.NewAccount("software-pkg-robot")
 
 	str := fmt.Sprintf(
@@ -88,8 +92,8 @@ func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandleCICheck
 	}
 }
 
-// HandleRepoCreated
-func (s softwarePkgMessageService) HandleRepoCreated(cmd CmdToHandleRepoCreated) error {
+// HandlePkgRepoCreated
+func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCreated) error {
 	if !cmd.isSuccess() {
 		logrus.Errorf(
 			"failed to create repo on platform:%s for pkg:%s, err:%s",
@@ -118,30 +122,23 @@ func (s softwarePkgMessageService) HandleRepoCreated(cmd CmdToHandleRepoCreated)
 	return nil
 }
 
-func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected) error {
+func (s softwarePkgMessageService) HandlePkgPRClosed(cmd CmdToHandlePkgPRClosed) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
 	}
 
-	if pkg.Phase.IsClosed() {
-		return nil
-	}
-
-	user, err := s.maintainer.FindUser(cmd.RejectedBy)
+	user, err := s.validateUser(&pkg, cmd.RejectedBy)
 	if err != nil {
+		logrus.Errorf(
+			"validate user failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+
 		return err
 	}
 
-	has, err := s.maintainer.HasPermission(&pkg, user)
-	if err != nil {
-		return err
-	}
-	if !has {
-		return fmt.Errorf("no permission when %s", cmd.logString())
-	}
-
-	if _, err := pkg.RejectBy(user); err != nil {
+	if b, err := pkg.HandleRejectedBy(user); err != nil || b {
 		return err
 	}
 
@@ -153,4 +150,77 @@ func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected)
 	}
 
 	return nil
+}
+
+func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged) error {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	users := make([]dp.Account, len(cmd.ApprovedBy))
+
+	for i, item := range cmd.ApprovedBy {
+		user, err := s.validateUser(&pkg, item)
+		if err != nil {
+			logrus.Errorf(
+				"validate user failed when %s, err:%s",
+				cmd.logString(), err.Error(),
+			)
+
+			return err
+		}
+
+		users[i] = user
+	}
+
+	if b, err := pkg.HandleApprovedBy(users); err != nil || b {
+		return err
+	}
+
+	if dp.IsPkgReviewResultApproved(pkg.ReviewResult()) {
+		// send event
+	}
+
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+
+	return nil
+}
+
+func (s softwarePkgMessageService) notifyPkgPRMerged(
+	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgPRMerged,
+) {
+	e := domain.NewSoftwarePkgPRMergedEvent(pkg)
+
+	if err := s.message.NotifyPkgPRMerged(&e); err != nil {
+		logrus.Errorf(
+			"failed to notify the pkg's pr is merged when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+}
+
+func (s softwarePkgMessageService) validateUser(pkg *domain.SoftwarePkgBasicInfo, v string) (
+	dp.Account, error,
+) {
+	user, err := s.maintainer.FindUser(v)
+	if err != nil {
+		return nil, err
+	}
+
+	has, err := s.maintainer.HasPermission(pkg, user)
+	if err != nil {
+		return nil, err
+	}
+
+	if !has {
+		return nil, fmt.Errorf("no permission")
+	}
+
+	return user, nil
 }

@@ -97,3 +97,20 @@ func NewSoftwarePkgAppliedEvent(
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
 	}
 }
+
+// softwarePkgPRMergedEvent
+type softwarePkgPRMergedEvent struct {
+	PkgId   string `json:"pkg_id"`
+	PkgName string `json:"pkg_name"`
+}
+
+func (e *softwarePkgPRMergedEvent) Message() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgPRMergedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgPRMergedEvent {
+	return softwarePkgPRMergedEvent{
+		PkgId:   pkg.Id,
+		PkgName: pkg.PkgName.PackageName(),
+	}
+}

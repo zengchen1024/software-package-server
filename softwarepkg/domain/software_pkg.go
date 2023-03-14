@@ -161,6 +161,32 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	return nil
 }
 
+func (entity *SoftwarePkgBasicInfo) HandleRejectedBy(user dp.Account) (bool, error) {
+	if dp.IsPkgReviewResultRejected(entity.ReviewResult()) {
+		// already rejected
+		return true, nil
+	}
+
+	_, err := entity.RejectBy(user)
+
+	return false, err
+}
+
+func (entity *SoftwarePkgBasicInfo) HandleApprovedBy(users []dp.Account) (bool, error) {
+	if dp.IsPkgReviewResultApproved(entity.ReviewResult()) {
+		// already approved
+		return true, nil
+	}
+
+	for i := range users {
+		if b, err := entity.ApproveBy(users[i]); err != nil || b {
+			return false, err
+		}
+	}
+
+	return false, nil
+}
+
 // SoftwarePkg
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo

@@ -6,6 +6,7 @@ type EventMessage interface {
 
 type SoftwarePkgMessage interface {
 	NotifyPkgApplied(EventMessage) error
+	NotifyPkgPRMerged(EventMessage) error
 	NotifyPkgApproved(EventMessage) error
 	NotifyPkgRejected(EventMessage) error
 	NotifyPkgAbandoned(EventMessage) error
