@@ -5,6 +5,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+// msgToHandleCIChecking
 type msgToHandleCIChecking struct {
 	PkgId        string `json:"pkg_id"`
 	RelevantPR   string `json:"relevant_pr"`
@@ -22,6 +23,7 @@ func (msg *msgToHandleCIChecking) toCmd() (cmd app.CmdToHandleCIChecking, err er
 	return
 }
 
+// msgToHandleRepoCreated
 type msgToHandleRepoCreated struct {
 	PkgId        string `json:"pkg_id"`
 	Platform     string `json:"platform"`
@@ -42,4 +44,19 @@ func (msg *msgToHandleRepoCreated) toCmd() (cmd app.CmdToHandleRepoCreated, err 
 	}
 
 	return
+}
+
+// msgToHandlePkgRejected
+type msgToHandlePkgRejected struct {
+	PkgId      string `json:"pkg_id"`
+	Reason     string `json:"reason"`
+	RejectedBy string `json:"rejected_by"`
+}
+
+func (msg *msgToHandlePkgRejected) toCmd() app.CmdToHandlePkgRejected {
+	return app.CmdToHandlePkgRejected{
+		PkgId:      msg.PkgId,
+		Reason:     msg.Reason,
+		RejectedBy: msg.RejectedBy,
+	}
 }

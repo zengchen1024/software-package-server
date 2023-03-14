@@ -7,6 +7,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
@@ -14,11 +15,13 @@ import (
 type SoftwarePkgMessageService interface {
 	HandleCIChecking(CmdToHandleCIChecking) error
 	HandleRepoCreated(CmdToHandleRepoCreated) error
+	HandlePkgRejected(CmdToHandlePkgRejected) error
 }
 
 type softwarePkgMessageService struct {
-	repo    repository.SoftwarePkg
-	message message.SoftwarePkgMessage
+	repo       repository.SoftwarePkg
+	message    message.SoftwarePkgMessage
+	maintainer maintainer.Maintainer
 }
 
 func (s softwarePkgMessageService) HandleCIChecking(cmd CmdToHandleCIChecking) error {
@@ -102,6 +105,43 @@ func (s softwarePkgMessageService) HandleRepoCreated(cmd CmdToHandleRepoCreated)
 	}
 
 	if err := pkg.HandleRepoCreated(cmd.RepoCreatedInfo); err != nil {
+		return err
+	}
+
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+
+	return nil
+}
+
+func (s softwarePkgMessageService) HandlePkgRejected(cmd CmdToHandlePkgRejected) error {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if pkg.Phase.IsClosed() {
+		return nil
+	}
+
+	user, err := s.maintainer.FindUser(cmd.RejectedBy)
+	if err != nil {
+		return err
+	}
+
+	has, err := s.maintainer.HasPermission(&pkg, user)
+	if err != nil {
+		return err
+	}
+	if !has {
+		return fmt.Errorf("no permission when %s", cmd.logString())
+	}
+
+	if _, err := pkg.RejectBy(user); err != nil {
 		return err
 	}
 
