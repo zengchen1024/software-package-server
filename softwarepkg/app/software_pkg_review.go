@@ -63,7 +63,7 @@ func (s *softwarePkgService) TranslateReviewComment(
 		return
 	}
 
-	content, err := s.translating.Translate(
+	content, err := s.translation.Translate(
 		comment.Content.ReviewComment(), cmd.Language,
 	)
 	if err != nil {

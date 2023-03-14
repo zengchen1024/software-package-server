@@ -10,7 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/translating"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/translation"
 )
 
 type SoftwarePkgService interface {
@@ -47,7 +47,7 @@ type softwarePkgService struct {
 	repo         repository.SoftwarePkg
 	message      message.SoftwarePkgMessage
 	maintainer   maintainer.Maintainer
-	translating  translating.Translating
+	translation  translation.Translation
 	reviewServie service.SoftwarePkgReviewService
 }
 
