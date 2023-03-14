@@ -12,7 +12,12 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-func NewTranslationService(cfg *Config, languages []string) service {
+func NewTranslationService(cfg *Config, languages []string) (*service, error) {
+	sl, err := getSupportedLanguage(languages)
+	if err != nil {
+		return nil, err
+	}
+
 	auth := basic.NewCredentialsBuilder().
 		WithAk(cfg.AccessKey).
 		WithSk(cfg.SecretKey).
@@ -24,40 +29,32 @@ func NewTranslationService(cfg *Config, languages []string) service {
 		WithRegion(region.NewRegion(cfg.Region, cfg.AuthEndpoint)).
 		Build())
 
-	initMap(languages)
-
-	return service{
-		cli: client,
-		to:  model.GetTextTranslationReqToEnum(),
-	}
+	return &service{
+		cli:                client,
+		supportedLanguages: sl,
+	}, nil
 }
 
 type service struct {
-	cli *v2.NlpClient
-	to  model.TextTranslationReqToEnum
+	cli                *v2.NlpClient
+	supportedLanguages map[string]model.TextTranslationReqTo
 }
 
-func (s service) reqTo(l dp.Language) (t model.TextTranslationReqTo, ok bool) {
-	t, ok = textTranslationTo[l.Language()]
-
-	return
-}
-
-func (s service) Translate(content string, l dp.Language) (string, error) {
-	to, ok := s.reqTo(l)
+func (s *service) Translate(content string, l dp.Language) (string, error) {
+	to, ok := s.supportedLanguages[l.Language()]
 	if !ok {
-		return "", errors.New("no textTranslationReqTo")
+		return "", errors.New("unsupported language")
 	}
 
-	t := model.TextTranslationReq{
+	req := model.TextTranslationReq{
 		Text: content,
 		From: model.GetTextTranslationReqFromEnum().AUTO,
 		To:   to,
 	}
 
-	req := model.RunTextTranslationRequest{Body: &t}
-
-	v, err := s.cli.RunTextTranslation(&req)
+	v, err := s.cli.RunTextTranslation(
+		&model.RunTextTranslationRequest{Body: &req},
+	)
 	if err != nil {
 		return "", err
 	}

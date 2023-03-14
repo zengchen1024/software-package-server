@@ -1,6 +1,10 @@
 package translationimpl
 
-import "github.com/huaweicloud/huaweicloud-sdk-go-v3/services/nlp/v2/model"
+import (
+	"errors"
+
+	"github.com/huaweicloud/huaweicloud-sdk-go-v3/services/nlp/v2/model"
+)
 
 type Config struct {
 	AccessKey    string `json:"access_key"     required:"true"`
@@ -10,26 +14,24 @@ type Config struct {
 	AuthEndpoint string `json:"auth_endpoint"  required:"true"`
 }
 
-var textTranslationTo map[string]model.TextTranslationReqTo
+func getSupportedLanguage(languages []string) (map[string]model.TextTranslationReqTo, error) {
+	v := supportedLanguages()
 
-func initMap(languages []string) {
-	textTranslationTo = make(map[string]model.TextTranslationReqTo, len(languages))
-	t := model.GetTextTranslationReqToEnum()
-
-	for _, language := range languages {
-		if l, ok := reqTo(language, t); ok {
-			textTranslationTo[language] = l
+	for _, s := range languages {
+		if _, ok := v[s]; !ok {
+			return nil, errors.New("unsupported language: " + s)
 		}
 	}
+
+	return v, nil
 }
 
-func reqTo(l string, t model.TextTranslationReqToEnum) (model.TextTranslationReqTo, bool) {
-	switch l {
-	case "chinese":
-		return t.ZH, true
-	case "english":
-		return t.EN, true
-	}
+func supportedLanguages() map[string]model.TextTranslationReqTo {
+	t := model.GetTextTranslationReqToEnum()
 
-	return model.TextTranslationReqTo{}, false
+	return map[string]model.TextTranslationReqTo{
+		"chinese": t.ZH,
+		"english": t.EN,
+		// it can add more here.
+	}
 }
