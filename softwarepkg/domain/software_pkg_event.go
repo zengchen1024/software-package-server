@@ -53,8 +53,10 @@ func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgReject
 	return
 }
 
+// softwarePkgAbandonedEvent
 var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
 
+// softwarePkgAlreadyClosedEvent
 func NewSoftwarePkgAlreadyClosedEvent(pkgId string, pr dp.URL) softwarePkgRejectedEvent {
 	return softwarePkgRejectedEvent{
 		PkgId:      pkgId,
@@ -95,5 +97,22 @@ func NewSoftwarePkgAppliedEvent(
 		SourceCodeLicense: app.SourceCode.License.License(),
 		ImportingPkgSig:   app.ImportingPkgSig.ImportingPkgSig(),
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
+	}
+}
+
+// softwarePkgIndirectlyApprovedEvent
+type softwarePkgIndirectlyApprovedEvent struct {
+	PkgId   string `json:"pkg_id"`
+	PkgName string `json:"pkg_name"`
+}
+
+func (e *softwarePkgIndirectlyApprovedEvent) Message() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgIndirectlyApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgIndirectlyApprovedEvent {
+	return softwarePkgIndirectlyApprovedEvent{
+		PkgId:   pkg.Id,
+		PkgName: pkg.PkgName.PackageName(),
 	}
 }

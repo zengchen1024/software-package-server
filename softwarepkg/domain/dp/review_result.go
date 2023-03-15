@@ -19,3 +19,11 @@ type packageReviewResult string
 func (v packageReviewResult) PackageReviewResult() string {
 	return string(v)
 }
+
+func IsPkgReviewResultRejected(r PackageReviewResult) bool {
+	return r != nil && r.PackageReviewResult() == pkgReviewResultRejected
+}
+
+func IsPkgReviewResultApproved(r PackageReviewResult) bool {
+	return r != nil && r.PackageReviewResult() == pkgReviewResultApproved
+}

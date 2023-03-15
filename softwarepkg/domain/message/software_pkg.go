@@ -10,4 +10,5 @@ type SoftwarePkgMessage interface {
 	NotifyPkgRejected(EventMessage) error
 	NotifyPkgAbandoned(EventMessage) error
 	NotifyPkgAlreadyClosed(EventMessage) error
+	NotifyPkgIndirectlyApproved(EventMessage) error
 }

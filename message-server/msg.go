@@ -5,14 +5,14 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// msgToHandleCIChecking
-type msgToHandleCIChecking struct {
+// msgToHandlePkgPRCIChecked
+type msgToHandlePkgPRCIChecked struct {
 	PkgId        string `json:"pkg_id"`
 	RelevantPR   string `json:"relevant_pr"`
 	FailedReason string `json:"failed_reason"`
 }
 
-func (msg *msgToHandleCIChecking) toCmd() (cmd app.CmdToHandleCIChecking, err error) {
+func (msg *msgToHandlePkgPRCIChecked) toCmd() (cmd app.CmdToHandlePkgPRCIChecked, err error) {
 	if cmd.RelevantPR, err = dp.NewURL(msg.RelevantPR); err != nil {
 		return
 	}
@@ -23,15 +23,15 @@ func (msg *msgToHandleCIChecking) toCmd() (cmd app.CmdToHandleCIChecking, err er
 	return
 }
 
-// msgToHandleRepoCreated
-type msgToHandleRepoCreated struct {
+// msgToHandlePkgRepoCreated
+type msgToHandlePkgRepoCreated struct {
 	PkgId        string `json:"pkg_id"`
 	Platform     string `json:"platform"`
 	RepoLink     string `json:"repo_link"`
 	FailedReason string `json:"failed_reason"`
 }
 
-func (msg *msgToHandleRepoCreated) toCmd() (cmd app.CmdToHandleRepoCreated, err error) {
+func (msg *msgToHandlePkgRepoCreated) toCmd() (cmd app.CmdToHandlePkgRepoCreated, err error) {
 	cmd.PkgId = msg.PkgId
 	cmd.FiledReason = msg.FailedReason
 
@@ -46,17 +46,30 @@ func (msg *msgToHandleRepoCreated) toCmd() (cmd app.CmdToHandleRepoCreated, err 
 	return
 }
 
-// msgToHandlePkgRejected
-type msgToHandlePkgRejected struct {
+// msgToHandlePkgPRClosed
+type msgToHandlePkgPRClosed struct {
 	PkgId      string `json:"pkg_id"`
 	Reason     string `json:"reason"`
 	RejectedBy string `json:"rejected_by"`
 }
 
-func (msg *msgToHandlePkgRejected) toCmd() app.CmdToHandlePkgRejected {
-	return app.CmdToHandlePkgRejected{
+func (msg *msgToHandlePkgPRClosed) toCmd() app.CmdToHandlePkgPRClosed {
+	return app.CmdToHandlePkgPRClosed{
 		PkgId:      msg.PkgId,
 		Reason:     msg.Reason,
 		RejectedBy: msg.RejectedBy,
+	}
+}
+
+// msgToHandlePkgPRMerged
+type msgToHandlePkgPRMerged struct {
+	PkgId      string   `json:"pkg_id"`
+	ApprovedBy []string `json:"approved_by"`
+}
+
+func (msg *msgToHandlePkgPRMerged) toCmd() app.CmdToHandlePkgPRMerged {
+	return app.CmdToHandlePkgPRMerged{
+		PkgId:      msg.PkgId,
+		ApprovedBy: msg.ApprovedBy,
 	}
 }

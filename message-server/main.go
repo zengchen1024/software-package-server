@@ -82,9 +82,10 @@ func subscribe(s *server, cfg *Config) error {
 	topics := &cfg.Topics
 
 	h := map[string]kafka.Handler{
-		topics.SoftwarePkgPRClosed:    s.handlePkgRejected,
-		topics.SoftwarePkgCIChecking:  s.handleCIChecking,
-		topics.SoftwarePkgRepoCreated: s.handleRepoCreated,
+		topics.SoftwarePkgPRMerged:    s.handlePkgPRMerged,
+		topics.SoftwarePkgPRClosed:    s.handlePkgPRClosed,
+		topics.SoftwarePkgPRCIChecked: s.handlePkgPRCIChecked,
+		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
 	}
 
 	return kafka.Subscriber().Subscribe(cfg.GroupName, h)

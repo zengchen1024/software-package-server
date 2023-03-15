@@ -10,8 +10,8 @@ type server struct {
 	service app.SoftwarePkgMessageService
 }
 
-func (s *server) handleCIChecking(data []byte) error {
-	msg := new(msgToHandleCIChecking)
+func (s *server) handlePkgPRCIChecked(data []byte) error {
+	msg := new(msgToHandlePkgPRCIChecked)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
@@ -22,11 +22,11 @@ func (s *server) handleCIChecking(data []byte) error {
 		return err
 	}
 
-	return s.service.HandleCIChecking(cmd)
+	return s.service.HandlePkgPRCIChecked(cmd)
 }
 
-func (s *server) handleRepoCreated(data []byte) error {
-	msg := new(msgToHandleRepoCreated)
+func (s *server) handlePkgRepoCreated(data []byte) error {
+	msg := new(msgToHandlePkgRepoCreated)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
@@ -37,15 +37,25 @@ func (s *server) handleRepoCreated(data []byte) error {
 		return err
 	}
 
-	return s.service.HandleRepoCreated(cmd)
+	return s.service.HandlePkgRepoCreated(cmd)
 }
 
-func (s *server) handlePkgRejected(data []byte) error {
-	msg := new(msgToHandlePkgRejected)
+func (s *server) handlePkgPRClosed(data []byte) error {
+	msg := new(msgToHandlePkgPRClosed)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgRejected(msg.toCmd())
+	return s.service.HandlePkgPRClosed(msg.toCmd())
+}
+
+func (s *server) handlePkgPRMerged(data []byte) error {
+	msg := new(msgToHandlePkgPRMerged)
+
+	if err := json.Unmarshal(data, msg); err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgPRMerged(msg.toCmd())
 }

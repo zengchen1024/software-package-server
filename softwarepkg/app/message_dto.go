@@ -7,57 +7,70 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// CmdToHandleCIChecking
-type CmdToHandleCIChecking struct {
+// CmdToHandlePkgPRCIChecked
+type CmdToHandlePkgPRCIChecked struct {
 	PkgId       string
 	RelevantPR  dp.URL
 	FiledReason string
 }
 
-func (cmd *CmdToHandleCIChecking) isSuccess() bool {
+func (cmd *CmdToHandlePkgPRCIChecked) isSuccess() bool {
 	return cmd.FiledReason == ""
 }
 
-func (cmd *CmdToHandleCIChecking) logString() string {
+func (cmd *CmdToHandlePkgPRCIChecked) logString() string {
 	return fmt.Sprintf(
-		"handling ci checking, pkgid:%s, pr:%s",
+		"handling pkg ci checked, pkgid:%s, pr:%s",
 		cmd.PkgId, cmd.RelevantPR.URL(),
 	)
 }
 
-// CmdToHandleRepoCreated
-type CmdToHandleRepoCreated struct {
+// CmdToHandlePkgRepoCreated
+type CmdToHandlePkgRepoCreated struct {
 	PkgId       string
 	FiledReason string
 
 	domain.RepoCreatedInfo
 }
 
-func (cmd *CmdToHandleRepoCreated) isSuccess() bool {
+func (cmd *CmdToHandlePkgRepoCreated) isSuccess() bool {
 	return cmd.FiledReason == ""
 }
 
-func (cmd *CmdToHandleRepoCreated) logString() string {
+func (cmd *CmdToHandlePkgRepoCreated) logString() string {
 	if !cmd.isSuccess() {
 		return ""
 	}
 
 	return fmt.Sprintf(
-		"handling repo created, pkgid:%s, platform:%s, repo:%s",
+		"handling pkg repo created, pkgid:%s, platform:%s, repo:%s",
 		cmd.PkgId, cmd.Platform.PackagePlatform(), cmd.RepoLink.URL(),
 	)
 }
 
-// CmdToHandlePkgRejected
-type CmdToHandlePkgRejected struct {
+// CmdToHandlePkgPRClosed
+type CmdToHandlePkgPRClosed struct {
 	PkgId      string
 	Reason     string
 	RejectedBy string
 }
 
-func (cmd *CmdToHandlePkgRejected) logString() string {
+func (cmd *CmdToHandlePkgPRClosed) logString() string {
 	return fmt.Sprintf(
-		"handling pkg rejected, pkgid:%s, reason:%s, rejected by:%s",
+		"handling pkg pr closed, pkgid:%s, reason:%s, rejected by:%s",
 		cmd.PkgId, cmd.Reason, cmd.RejectedBy,
+	)
+}
+
+// CmdToHandlePkgPRMerged
+type CmdToHandlePkgPRMerged struct {
+	PkgId      string
+	ApprovedBy []string
+}
+
+func (cmd *CmdToHandlePkgPRMerged) logString() string {
+	return fmt.Sprintf(
+		"handling pkg pr merged, pkgid:%s, approved by:%v",
+		cmd.PkgId, cmd.ApprovedBy,
 	)
 }
