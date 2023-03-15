@@ -13,6 +13,8 @@ const (
 	fieldAppliedAt = "applied_at"
 	fieldVersion   = "version"
 	fieldId        = "uuid"
+	frozenStatus   = 1
+	unfrozenStatus = 2
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) {
@@ -31,9 +33,14 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		ReasonToImport:  app.ReasonToImportPkg.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
-		Frozen:          pkg.Frozen,
 		ApprovedBy:      toStringArray(pkg.ApprovedBy),
 		RejectedBy:      toStringArray(pkg.RejectedBy),
+	}
+
+	if pkg.Frozen {
+		do.Frozen = frozenStatus
+	} else {
+		do.Frozen = unfrozenStatus
 	}
 
 	if pkg.RepoLink != nil {
@@ -63,7 +70,7 @@ type SoftwarePkgBasicDO struct {
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64                  `gorm:"column:applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"`
-	Frozen          bool                   `gorm:"column:frozen"`
+	Frozen          int                    `gorm:"column:frozen"`
 	Version         optimisticlock.Version `gorm:"column:version"`
 }
 
@@ -106,7 +113,7 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
-	info.Frozen = do.Frozen
+	info.Frozen = do.Frozen == frozenStatus
 
 	return
 }
