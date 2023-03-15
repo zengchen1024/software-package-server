@@ -32,7 +32,7 @@ func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
 }
 
 func (p *producer) NotifyPkgAlreadyClosed(e message.EventMessage) error {
-	return send(p.topics.AbandonedSoftwarePkg, e)
+	return send(p.topics.AlreadyClosedSoftwarePkg, e)
 }
 
 func (p *producer) NotifyPkgIndirectlyApproved(e message.EventMessage) error {
