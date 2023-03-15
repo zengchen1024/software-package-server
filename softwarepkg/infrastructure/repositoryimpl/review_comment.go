@@ -1,9 +1,11 @@
 package repositoryimpl
 
 import (
+	"github.com/google/uuid"
+
+	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
 type reviewComment struct {
@@ -49,18 +51,21 @@ func (t reviewComment) findSoftwarePkgReviews(pid string) (
 func (t reviewComment) FindReviewComment(pid, commentId string) (
 	r domain.SoftwarePkgReviewComment, err error,
 ) {
-	return
-}
+	u, err := uuid.Parse(commentId)
+	if err != nil {
+		return
+	}
 
-func (t reviewComment) AddTranslatedReviewComment(
-	pid string,
-	comment *domain.SoftwarePkgTranslatedReviewComment,
-) error {
-	return nil
-}
+	var res SoftwarePkgReviewCommentDO
+	filter := SoftwarePkgReviewCommentDO{Id: u, PkgId: pid}
 
-func (t reviewComment) FindTranslatedReviewComment(index *repository.TranslatedReviewCommentIndex) (
-	r *domain.SoftwarePkgTranslatedReviewComment, err error,
-) {
+	if err = t.commentDBCli.GetRecord(&filter, &res); err != nil {
+		if t.commentDBCli.IsRowNotFound(err) {
+			err = commonrepo.NewErrorResourceNotFound(err)
+		}
+	} else {
+		r, err = res.toSoftwarePkgReviewComment()
+	}
+
 	return
 }

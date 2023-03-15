@@ -35,5 +35,5 @@ type SoftwarePkg interface {
 	FindReviewComment(pid, commentId string) (domain.SoftwarePkgReviewComment, error)
 
 	AddTranslatedReviewComment(pid string, comment *domain.SoftwarePkgTranslatedReviewComment) error
-	FindTranslatedReviewComment(*TranslatedReviewCommentIndex) (*domain.SoftwarePkgTranslatedReviewComment, error)
+	FindTranslatedReviewComment(*TranslatedReviewCommentIndex) (domain.SoftwarePkgTranslatedReviewComment, error)
 }

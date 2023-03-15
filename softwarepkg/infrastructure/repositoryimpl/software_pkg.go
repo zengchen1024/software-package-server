@@ -10,6 +10,8 @@ type softwarePkgImpl struct {
 	softwarePkgBasic
 
 	reviewComment
+
+	translationComment
 }
 
 func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
@@ -19,6 +21,9 @@ func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
 		},
 		reviewComment: reviewComment{
 			postgresql.NewDBTable(cfg.Table.ReviewComment),
+		},
+		translationComment: translationComment{
+			postgresql.NewDBTable(cfg.Table.TranslationComment),
 		},
 	}
 }
