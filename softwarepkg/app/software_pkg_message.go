@@ -21,7 +21,7 @@ type SoftwarePkgMessageService interface {
 
 type softwarePkgMessageService struct {
 	repo       repository.SoftwarePkg
-	message    message.SoftwarePkgMessage
+	message    message.SoftwarePkgIndirectMessage
 	maintainer maintainer.Maintainer
 }
 

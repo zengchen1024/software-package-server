@@ -31,14 +31,6 @@ func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
 	return send(p.topics.AbandonedSoftwarePkg, e)
 }
 
-func (p *producer) NotifyPkgAlreadyClosed(e message.EventMessage) error {
-	return send(p.topics.AlreadyClosedSoftwarePkg, e)
-}
-
-func (p *producer) NotifyPkgIndirectlyApproved(e message.EventMessage) error {
-	return send(p.topics.IndirectlyApprovedSoftwarePkg, e)
-}
-
 func send(topic string, v message.EventMessage) error {
 	body, err := v.Message()
 	if err != nil {

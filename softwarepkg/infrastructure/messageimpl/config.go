@@ -9,10 +9,8 @@ type Config struct {
 }
 
 type Topics struct {
-	NewSoftwarePkg                string `json:"new_software_pkg"                   required:"true"`
-	ApprovedSoftwarePkg           string `json:"approved_software_pkg"              required:"true"`
-	RejectedSoftwarePkg           string `json:"rejected_software_pkg"              required:"true"`
-	AbandonedSoftwarePkg          string `json:"abandoned_software_pkg"             required:"true"`
-	AlreadyClosedSoftwarePkg      string `json:"already_closed_software_pkg"        required:"true"`
-	IndirectlyApprovedSoftwarePkg string `json:"indirectly_approved_software_pkg"   required:"true"`
+	NewSoftwarePkg       string `json:"new_software_pkg"        required:"true"`
+	ApprovedSoftwarePkg  string `json:"approved_software_pkg"   required:"true"`
+	RejectedSoftwarePkg  string `json:"rejected_software_pkg"   required:"true"`
+	AbandonedSoftwarePkg string `json:"abandoned_software_pkg"  required:"true"`
 }

@@ -9,8 +9,9 @@ import (
 type Config struct {
 	kafka.Config
 
-	Topics    Topics `json:"topics"      required:"true"`
-	GroupName string `json:"group_name"  required:"true"`
+	Topics         Topics         `json:"topics_to_subscribe"  required:"true"`
+	GroupName      string         `json:"group_name"           required:"true"`
+	TopicsToNotify TopicsToNotify `json:"topics_to_notify"     required:"true"`
 }
 
 func (cfg *Config) validate() error {
@@ -26,6 +27,11 @@ type Topics struct {
 	SoftwarePkgPRMerged    string `json:"software_pkg_pr_merged"      required:"true"`
 	SoftwarePkgPRCIChecked string `json:"software_pkg_pr_ci_checked"  required:"true"`
 	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"   required:"true"`
+}
+
+type TopicsToNotify struct {
+	AlreadyClosedSoftwarePkg      string `json:"already_closed_software_pkg"        required:"true"`
+	IndirectlyApprovedSoftwarePkg string `json:"indirectly_approved_software_pkg"   required:"true"`
 }
 
 func loadConfig(path string) (*Config, error) {
