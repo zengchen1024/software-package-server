@@ -45,7 +45,7 @@ func NewURL(v string) (URL, error) {
 		return nil, errors.New("empty url")
 	}
 
-	if _, err := url.Parse(v); err != nil {
+	if _, err := url.ParseRequestURI(v); err != nil {
 		return nil, errors.New("invalid url")
 	}
 
