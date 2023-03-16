@@ -25,6 +25,18 @@ type softwarePkgMessageService struct {
 	maintainer maintainer.Maintainer
 }
 
+func NewSoftwarePkgMessageService(
+	repo repository.SoftwarePkg,
+	message message.SoftwarePkgIndirectMessage,
+	maintainer maintainer.Maintainer,
+) softwarePkgMessageService {
+	return softwarePkgMessageService{
+		repo:       repo,
+		message:    message,
+		maintainer: maintainer,
+	}
+}
+
 // HandlePkgPRCIChecked
 func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCIChecked) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)

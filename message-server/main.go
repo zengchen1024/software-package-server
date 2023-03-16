@@ -13,6 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
 
 type options struct {
@@ -61,13 +64,19 @@ func main() {
 	}
 
 	// mq
-	if err := kafka.Init(&cfg.Config, log); err != nil {
+	if err = kafka.Init(&cfg.Config, log); err != nil {
 		logrus.Fatalf("initialize mq failed, err:%v", err)
 	}
 
 	defer kafka.Exit()
 
-	s := &server{}
+	messageService := app.NewSoftwarePkgMessageService(
+		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
+		&producer{topics: cfg.TopicsToNotify},
+		maintainerimpl.NewMaintainerImpl(&cfg.Maintainer),
+	)
+
+	s := &server{messageService}
 	if err := subscribe(s, cfg); err != nil {
 		logrus.Errorf("subscribe failed, err:%v", err)
 

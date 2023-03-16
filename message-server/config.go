@@ -4,14 +4,18 @@ import (
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+	"github.com/opensourceways/software-package-server/config"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 )
 
 type Config struct {
 	kafka.Config
 
-	Topics         Topics         `json:"topics_to_subscribe"  required:"true"`
-	GroupName      string         `json:"group_name"           required:"true"`
-	TopicsToNotify TopicsToNotify `json:"topics_to_notify"     required:"true"`
+	Topics         Topics                  `json:"topics_to_subscribe"  required:"true"`
+	GroupName      string                  `json:"group_name"           required:"true"`
+	Postgresql     config.PostgresqlConfig `json:"postgresql"           required:"true"`
+	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
+	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
 }
 
 func (cfg *Config) validate() error {
