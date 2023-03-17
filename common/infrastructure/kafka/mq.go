@@ -86,7 +86,7 @@ func (impl *serviceImpl) registerHandler(topic, group string, h Handler) (mq.Sub
 		return nil, nil
 	}
 
-	return libkafka.Subscribe(topic, group, func(e mq.Event) error {
+	return libkafka.Subscribe(topic, group+topic, func(e mq.Event) error {
 		msg := e.Message()
 		if msg == nil {
 			return nil
