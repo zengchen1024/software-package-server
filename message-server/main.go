@@ -13,7 +13,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 )
@@ -63,6 +65,11 @@ func main() {
 		logrus.Fatalf("load config, err:%s", err.Error())
 	}
 
+	// Postgresql
+	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
+		logrus.Fatalf("init db, err:%s", err.Error())
+	}
+
 	// mq
 	if err = kafka.Init(&cfg.Config, log); err != nil {
 		logrus.Fatalf("initialize mq failed, err:%v", err)
@@ -82,6 +89,8 @@ func main() {
 
 		return
 	}
+
+	dp.Init(&cfg.SoftwarePkg)
 
 	// run
 	run()
