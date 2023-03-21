@@ -102,8 +102,9 @@ func NewSoftwarePkgAppliedEvent(
 
 // softwarePkgIndirectlyApprovedEvent
 type softwarePkgIndirectlyApprovedEvent struct {
-	PkgId   string `json:"pkg_id"`
-	PkgName string `json:"pkg_name"`
+	PkgId    string `json:"pkg_id"`
+	PkgName  string `json:"pkg_name"`
+	Platform string `json:"platform"`
 }
 
 func (e *softwarePkgIndirectlyApprovedEvent) Message() ([]byte, error) {
@@ -112,7 +113,8 @@ func (e *softwarePkgIndirectlyApprovedEvent) Message() ([]byte, error) {
 
 func NewSoftwarePkgIndirectlyApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgIndirectlyApprovedEvent {
 	return softwarePkgIndirectlyApprovedEvent{
-		PkgId:   pkg.Id,
-		PkgName: pkg.PkgName.PackageName(),
+		PkgId:    pkg.Id,
+		PkgName:  pkg.PkgName.PackageName(),
+		Platform: pkg.Application.PackagePlatform.PackagePlatform(),
 	}
 }
