@@ -18,6 +18,8 @@ definitions:
     properties:
       applied_at:
         type: string
+      desc:
+        type: string
       id:
         type: string
       importer:
@@ -26,7 +28,11 @@ definitions:
         type: string
       pkg_name:
         type: string
+      platform:
+        type: string
       repo_link:
+        type: string
+      sig:
         type: string
     type: object
   app.SoftwarePkgReviewCommentDTO:
@@ -54,6 +60,8 @@ definitions:
         items:
           $ref: '#/definitions/app.SoftwarePkgReviewCommentDTO'
         type: array
+      desc:
+        type: string
       id:
         type: string
       importer:
@@ -62,11 +70,15 @@ definitions:
         type: string
       pkg_name:
         type: string
+      platform:
+        type: string
       rejected_by:
         items:
           type: string
         type: array
       repo_link:
+        type: string
+      sig:
         type: string
     type: object
   app.SoftwarePkgsDTO:
@@ -304,7 +316,7 @@ paths:
         type: string
       - description: body of translate review comment
         in: body
-        name: parm
+        name: param
         required: true
         schema:
           $ref: '#/definitions/controller.translationCommentRequest'

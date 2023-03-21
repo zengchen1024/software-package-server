@@ -267,7 +267,7 @@
                     },
                     {
                         "description": "body of translate review comment",
-                        "name": "parm",
+                        "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -357,6 +357,9 @@
                 "applied_at": {
                     "type": "string"
                 },
+                "desc": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -369,7 +372,13 @@
                 "pkg_name": {
                     "type": "string"
                 },
+                "platform": {
+                    "type": "string"
+                },
                 "repo_link": {
+                    "type": "string"
+                },
+                "sig": {
                     "type": "string"
                 }
             }
@@ -412,6 +421,9 @@
                         "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
                     }
                 },
+                "desc": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -424,6 +436,9 @@
                 "pkg_name": {
                     "type": "string"
                 },
+                "platform": {
+                    "type": "string"
+                },
                 "rejected_by": {
                     "type": "array",
                     "items": {
@@ -431,6 +446,9 @@
                     }
                 },
                 "repo_link": {
+                    "type": "string"
+                },
+                "sig": {
                     "type": "string"
                 }
             }

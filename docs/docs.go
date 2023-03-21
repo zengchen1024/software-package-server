@@ -279,7 +279,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "body of translate review comment",
-                        "name": "parm",
+                        "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -369,6 +369,9 @@ const docTemplate = `{
                 "applied_at": {
                     "type": "string"
                 },
+                "desc": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -381,7 +384,13 @@ const docTemplate = `{
                 "pkg_name": {
                     "type": "string"
                 },
+                "platform": {
+                    "type": "string"
+                },
                 "repo_link": {
+                    "type": "string"
+                },
+                "sig": {
                     "type": "string"
                 }
             }
@@ -424,6 +433,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
                     }
                 },
+                "desc": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -436,6 +448,9 @@ const docTemplate = `{
                 "pkg_name": {
                     "type": "string"
                 },
+                "platform": {
+                    "type": "string"
+                },
                 "rejected_by": {
                     "type": "array",
                     "items": {
@@ -443,6 +458,9 @@ const docTemplate = `{
                     }
                 },
                 "repo_link": {
+                    "type": "string"
+                },
+                "sig": {
                     "type": "string"
                 }
             }

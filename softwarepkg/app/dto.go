@@ -28,7 +28,7 @@ type SoftwarePkgBasicInfoDTO struct {
 	Phase     string `json:"phase"`
 	AppliedAt string `json:"applied_at"`
 	RepoLink  string `json:"repo_link"`
-	PkgDesc   string `json:"pkg_desc"`
+	PkgDesc   string `json:"desc"`
 	Sig       string `json:"sig"`
 	Platform  string `json:"platform"`
 }
