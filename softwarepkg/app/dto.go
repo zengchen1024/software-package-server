@@ -28,14 +28,21 @@ type SoftwarePkgBasicInfoDTO struct {
 	Phase     string `json:"phase"`
 	AppliedAt string `json:"applied_at"`
 	RepoLink  string `json:"repo_link"`
+	PkgDesc   string `json:"pkg_desc"`
+	Sig       string `json:"sig"`
+	Platform  string `json:"platform"`
 }
 
 func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicInfoDTO {
+	app := &v.Application
 	dto := SoftwarePkgBasicInfoDTO{
 		Id:        v.Id,
-		Importer:  v.Importer.Account(),
-		PkgName:   v.PkgName.PackageName(),
+		Sig:       app.ImportingPkgSig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
+		PkgDesc:   app.PackageDesc.PackageDesc(),
+		PkgName:   v.PkgName.PackageName(),
+		Platform:  app.PackagePlatform.PackagePlatform(),
+		Importer:  v.Importer.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
 

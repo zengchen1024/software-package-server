@@ -74,6 +74,10 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 		filter.Phase = pkgs.Phase.PackagePhase()
 	}
 
+	if pkgs.Platform != nil {
+		filter.PackagePlatform = pkgs.Platform.PackagePlatform()
+	}
+
 	if total, err = s.basicDBCli.Count(&filter); err != nil || total == 0 {
 		return
 	}

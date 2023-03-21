@@ -8,6 +8,7 @@ import (
 type OptToFindSoftwarePkgs struct {
 	Importer dp.Account
 	Phase    dp.PackagePhase
+	Platform dp.PackagePlatform
 
 	PageNum      int
 	CountPerPage int
