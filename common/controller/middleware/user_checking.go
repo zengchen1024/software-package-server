@@ -16,10 +16,10 @@ const (
 	keyCookie                  = "_Y_G_"
 	keyUserInfo                = "user_info"
 	headerPrivateToken         = "PRIVATE-TOKEN"
-	errorBadRequestNoHeader    = "bad_request_no_token"
-	errorBadRequestNoCookie    = "bad_request_no_cookie"
 	errorBadRequestHaventLogin = "bad_request_havent_login"
 )
+
+var errorNoLogin = errors.New("no login")
 
 var instance *userCheckingMiddleware
 
@@ -66,12 +66,12 @@ func (m *userCheckingMiddleware) CheckUser(ctx *gin.Context) {
 func (m *userCheckingMiddleware) doCheck(ctx *gin.Context) (string, error) {
 	t := m.token(ctx)
 	if t == "" {
-		return errorBadRequestNoHeader, errors.New("no token")
+		return errorBadRequestHaventLogin, errorNoLogin
 	}
 
 	c := m.cookie(ctx)
 	if c == "" {
-		return errorBadRequestNoCookie, errors.New("no cookie")
+		return errorBadRequestHaventLogin, errorNoLogin
 	}
 
 	v, code, err := m.getUserInfo(t, c)
@@ -115,7 +115,7 @@ func (m *userCheckingMiddleware) getUserInfo(token, cookie string) (
 	if err != nil {
 		if status == http.StatusUnauthorized {
 			code = errorBadRequestHaventLogin
-			err = errors.New("no login")
+			err = errorNoLogin
 		}
 	} else {
 		r, err = result.Data.toUser()
