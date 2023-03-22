@@ -7,9 +7,10 @@ import (
 
 // softwarePkgApprovedEvent
 type softwarePkgApprovedEvent struct {
-	PkgId   string `json:"pkg_id"`
-	PkgName string `json:"pkg_name"`
-	PRNum   int    `json:"pr_num"`
+	PkgId    string `json:"pkg_id"`
+	PkgName  string `json:"pkg_name"`
+	PRNum    int    `json:"pr_num"`
+	Platform string `json:"platform"`
 }
 
 func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
@@ -19,9 +20,10 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprovedEvent, err error) {
 	if pkg.RelevantPR != nil {
 		e = softwarePkgApprovedEvent{
-			PkgId:   pkg.Id,
-			PkgName: pkg.PkgName.PackageName(),
-			PRNum:   pkg.PRNum,
+			PkgId:    pkg.Id,
+			PkgName:  pkg.PkgName.PackageName(),
+			PRNum:    pkg.PRNum,
+			Platform: pkg.Application.PackagePlatform.PackagePlatform(),
 		}
 	} else {
 		err = errors.New("missing pr")
