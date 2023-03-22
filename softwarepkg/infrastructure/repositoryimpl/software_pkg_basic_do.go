@@ -50,6 +50,8 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	if pkg.RelevantPR != nil {
 		do.RelevantPR = pkg.RelevantPR.URL()
 	}
+
+	do.PRNum = pkg.PRNum
 }
 
 type SoftwarePkgBasicDO struct {
@@ -64,6 +66,7 @@ type SoftwarePkgBasicDO struct {
 	PackageDesc     string                 `gorm:"column:package_desc"`
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
+	PRNum           int                    `gorm:"column:pr_num"`
 	Sig             string                 `gorm:"column:sig"`
 	ReasonToImport  string                 `gorm:"column:reason_to_import"`
 	ApprovedBy      pq.StringArray         `gorm:"column:approvedby;type:text[];default:'{}'"`
@@ -114,6 +117,8 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	info.Frozen = do.Frozen == frozenStatus
+
+	info.PRNum = do.PRNum
 
 	return
 }

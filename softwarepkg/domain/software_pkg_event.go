@@ -3,15 +3,13 @@ package domain
 import (
 	"encoding/json"
 	"errors"
-
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 // softwarePkgApprovedEvent
 type softwarePkgApprovedEvent struct {
-	PkgId      string `json:"pkg_id"`
-	PkgName    string `json:"pkg_name"`
-	RelevantPR string `json:"pr"`
+	PkgId   string `json:"pkg_id"`
+	PkgName string `json:"pkg_name"`
+	PRNum   int    `json:"pr_num"`
 }
 
 func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
@@ -21,9 +19,9 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprovedEvent, err error) {
 	if pkg.RelevantPR != nil {
 		e = softwarePkgApprovedEvent{
-			PkgId:      pkg.Id,
-			PkgName:    pkg.PkgName.PackageName(),
-			RelevantPR: pkg.RelevantPR.URL(),
+			PkgId:   pkg.Id,
+			PkgName: pkg.PkgName.PackageName(),
+			PRNum:   pkg.PRNum,
 		}
 	} else {
 		err = errors.New("missing pr")
@@ -34,8 +32,9 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprov
 
 // softwarePkgRejectedEvent
 type softwarePkgRejectedEvent struct {
-	PkgId      string `json:"pkg_id"`
-	RelevantPR string `json:"pr"`
+	PkgId  string `json:"pkg_id"`
+	PRNum  int    `json:"pr_num"`
+	Reason string `json:"reason"`
 }
 
 func (e *softwarePkgRejectedEvent) Message() ([]byte, error) {
@@ -44,8 +43,9 @@ func (e *softwarePkgRejectedEvent) Message() ([]byte, error) {
 
 func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
 	if pkg.RelevantPR != nil {
-		e.RelevantPR = pkg.RelevantPR.URL()
 		e.PkgId = pkg.Id
+		e.PRNum = pkg.PRNum
+		e.Reason = "software package application was rejected by maintainer"
 	} else {
 		err = errors.New("missing pr")
 	}
@@ -54,13 +54,24 @@ func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgReject
 }
 
 // softwarePkgAbandonedEvent
-var NewSoftwarePkgAbandonedEvent = NewSoftwarePkgRejectedEvent
+func NewSoftwarePkgAbandonedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
+	if pkg.RelevantPR != nil {
+		e.PkgId = pkg.Id
+		e.PRNum = pkg.PRNum
+		e.Reason = "software package application was abandoned by author"
+	} else {
+		err = errors.New("missing pr")
+	}
+
+	return
+}
 
 // softwarePkgAlreadyClosedEvent
-func NewSoftwarePkgAlreadyClosedEvent(pkgId string, pr dp.URL) softwarePkgRejectedEvent {
+func NewSoftwarePkgAlreadyClosedEvent(pkgId string, prNum int) softwarePkgRejectedEvent {
 	return softwarePkgRejectedEvent{
-		PkgId:      pkgId,
-		RelevantPR: pr.URL(),
+		PkgId:  pkgId,
+		PRNum:  prNum,
+		Reason: "software package application is already closed",
 	}
 }
 

@@ -61,6 +61,7 @@ func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCICh
 		s.addCommentForFailedCI(&cmd)
 	}
 
+	pkg.PRNum = cmd.PRNum
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
@@ -76,7 +77,7 @@ func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgPRC
 		return
 	}
 
-	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.RelevantPR)
+	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.PRNum)
 
 	if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
 		logrus.Errorf(
