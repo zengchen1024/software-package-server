@@ -20,9 +20,9 @@ import (
 )
 
 type options struct {
-	service        liboptions.ServiceOptions
-	enableDebug    bool
-	sigsConfigFile string
+	service       liboptions.ServiceOptions
+	enableDebug   bool
+	sigConfigFile string
 }
 
 func (o *options) Validate() error {
@@ -40,8 +40,8 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 	)
 
 	fs.StringVar(
-		&o.sigsConfigFile, "sigs_file", "",
-		"sigs config file path.",
+		&o.sigConfigFile, "sig_file", "",
+		"sig config file path.",
 	)
 
 	fs.Parse(args)
@@ -94,7 +94,7 @@ func main() {
 	defer messageimpl.Exit()
 
 	// Sig Validator
-	sigValidator, err := sigvalidatorimpl.Init(o.sigsConfigFile)
+	sigValidator, err := sigvalidatorimpl.Init(o.sigConfigFile)
 	if err != nil {
 		logrus.Errorf("init sig validator failed, err:%s", err.Error())
 
