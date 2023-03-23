@@ -15,12 +15,14 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
 type options struct {
-	service     liboptions.ServiceOptions
-	enableDebug bool
+	service        liboptions.ServiceOptions
+	enableDebug    bool
+	sigsConfigFile string
 }
 
 func (o *options) Validate() error {
@@ -35,6 +37,11 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 	fs.BoolVar(
 		&o.enableDebug, "enable_debug", false,
 		"whether to enable debug model.",
+	)
+
+	fs.StringVar(
+		&o.sigsConfigFile, "sigs_file", "",
+		"sigs config file path.",
 	)
 
 	fs.Parse(args)
@@ -86,8 +93,18 @@ func main() {
 
 	defer messageimpl.Exit()
 
+	// Sig Validator
+	sigValidator, err := sigvalidatorimpl.Init(o.sigsConfigFile)
+	if err != nil {
+		logrus.Errorf("init sig validator failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer sigValidator.Stop()
+
 	// Domain
-	dp.Init(&cfg.SoftwarePkg)
+	dp.Init(&cfg.SoftwarePkg, sigValidator)
 
 	middleware.Init(&cfg.Middleware)
 
