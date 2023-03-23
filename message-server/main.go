@@ -18,11 +18,13 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 )
 
 type options struct {
-	service     liboptions.ServiceOptions
-	enableDebug bool
+	service       liboptions.ServiceOptions
+	enableDebug   bool
+	sigConfigFile string
 }
 
 func (o *options) Validate() error {
@@ -36,6 +38,10 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 
 	fs.BoolVar(
 		&o.enableDebug, "enable_debug", false, "whether to enable debug model.",
+	)
+
+	fs.StringVar(
+		&o.sigConfigFile, "sig_file", "", "sig config file path.",
 	)
 
 	fs.Parse(args)
@@ -77,39 +83,30 @@ func main() {
 
 	defer kafka.Exit()
 
+	// Sig Validator
+	sigValidator, err := sigvalidatorimpl.Init(o.sigConfigFile)
+	if err != nil {
+		logrus.Errorf("init sig validator failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer sigValidator.Stop()
+
+	dp.Init(&cfg.SoftwarePkg, sigValidator)
+
+	// service
 	messageService := app.NewSoftwarePkgMessageService(
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		&producer{topics: cfg.TopicsToNotify},
 		maintainerimpl.NewMaintainerImpl(&cfg.Maintainer),
 	)
 
-	s := &server{messageService}
-	if err := subscribe(s, cfg); err != nil {
-		logrus.Errorf("subscribe failed, err:%v", err)
-
-		return
-	}
-
-	dp.Init(&cfg.SoftwarePkg)
-
 	// run
-	run()
+	run(&server{messageService}, cfg)
 }
 
-func subscribe(s *server, cfg *Config) error {
-	topics := &cfg.Topics
-
-	h := map[string]kafka.Handler{
-		topics.SoftwarePkgPRMerged:    s.handlePkgPRMerged,
-		topics.SoftwarePkgPRClosed:    s.handlePkgPRClosed,
-		topics.SoftwarePkgPRCIChecked: s.handlePkgPRCIChecked,
-		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
-	}
-
-	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
-}
-
-func run() {
+func run(s *server, cfg *Config) {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
@@ -145,5 +142,7 @@ func run() {
 		}
 	}(ctx)
 
-	<-ctx.Done()
+	if err := s.run(ctx, cfg); err != nil {
+		logrus.Errorf("server exited, err:%s", err.Error())
+	}
 }

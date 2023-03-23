@@ -22,11 +22,8 @@ func (impl *sigValidatorImpl) IsValidSig(sig string) bool {
 	_, v := impl.agent.GetConfig()
 
 	cfg, ok := v.(*Config)
-	if !ok {
-		return false
-	}
 
-	return cfg.hasSig(sig)
+	return ok && cfg.hasSig(sig)
 }
 
 func (impl *sigValidatorImpl) Stop() {

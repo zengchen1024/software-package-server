@@ -35,13 +35,11 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 	o.service.AddFlags(fs)
 
 	fs.BoolVar(
-		&o.enableDebug, "enable_debug", false,
-		"whether to enable debug model.",
+		&o.enableDebug, "enable_debug", false, "whether to enable debug model.",
 	)
 
 	fs.StringVar(
-		&o.sigConfigFile, "sig_file", "",
-		"sig config file path.",
+		&o.sigConfigFile, "sig_file", "", "sig config file path.",
 	)
 
 	fs.Parse(args)
