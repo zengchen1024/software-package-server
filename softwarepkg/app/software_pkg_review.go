@@ -6,6 +6,7 @@ import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 )
 
 func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDTO, error) {
@@ -20,6 +21,14 @@ func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDT
 func (s *softwarePkgService) NewReviewComment(
 	pid string, cmd *CmdToWriteSoftwarePkgReviewComment,
 ) (code string, err error) {
+	if err = s.sensitive.CheckSensitiveWords(cmd.Content.ReviewComment()); err != nil {
+		if sensitivewords.IsErrorSensitiveInfo(err) {
+			code = errorSoftwarePkgCommentIllegal
+		}
+
+		return
+	}
+
 	pkg, _, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return

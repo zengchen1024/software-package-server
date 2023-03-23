@@ -33,7 +33,7 @@ func Init(cfg *Config, languages []string) error {
 
 	client := v2.NewNlpClient(core.NewHcHttpClientBuilder().
 		WithCredential(auth).
-		WithRegion(region.NewRegion(cfg.Region, cfg.AuthEndpoint)).
+		WithRegion(region.NewRegion(cfg.Region, cfg.Endpoint)).
 		Build())
 
 	instance = &service{
@@ -49,8 +49,7 @@ func Translation() *service {
 }
 
 type errorMsg struct {
-	ErrorCode    string `json:"error_code"`
-	ErrorMessage string `json:"error_message"`
+	ErrorCode string `json:"error_code"`
 }
 
 func (e errorMsg) isParamError() bool {

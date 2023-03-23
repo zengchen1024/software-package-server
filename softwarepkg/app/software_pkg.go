@@ -9,6 +9,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/translation"
 )
@@ -33,12 +34,14 @@ var _ SoftwarePkgService = (*softwarePkgService)(nil)
 func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	message message.SoftwarePkgMessage,
+	sensitive sensitivewords.SensitiveWords,
 	maintainer maintainer.Maintainer,
 	translation translation.Translation,
 ) *softwarePkgService {
 	return &softwarePkgService{
 		repo:         repo,
 		message:      message,
+		sensitive:    sensitive,
 		maintainer:   maintainer,
 		translation:  translation,
 		reviewServie: service.NewReviewService(message),
@@ -49,6 +52,7 @@ type softwarePkgService struct {
 	repo         repository.SoftwarePkg
 	message      message.SoftwarePkgMessage
 	maintainer   maintainer.Maintainer
+	sensitive    sensitivewords.SensitiveWords
 	translation  translation.Translation
 	reviewServie service.SoftwarePkgReviewService
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -64,7 +65,8 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
-			repo, messageimpl.Producer(), maintainer, translationimpl.Translation(),
+			repo, messageimpl.Producer(), sensitivewordsimpl.Sensitive(),
+			maintainer, translationimpl.Translation(),
 		),
 	)
 }

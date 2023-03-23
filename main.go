@@ -14,6 +14,7 @@ import (
 	"github.com/opensourceways/software-package-server/server"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -71,7 +72,11 @@ func main() {
 	// Translation
 	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
 	if err != nil {
-		logrus.Fatalf("init translation err:%v", err)
+		logrus.Fatalf("init translation err:%s", err.Error())
+	}
+
+	if err = sensitivewordsimpl.Init(&cfg.SensitiveWords); err != nil {
+		logrus.Fatalf("init sensitivewords err:%s", err.Error())
 	}
 
 	// MQ

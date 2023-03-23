@@ -13,8 +13,8 @@ const (
 	fieldAppliedAt = "applied_at"
 	fieldVersion   = "version"
 	fieldId        = "uuid"
-	frozenStatus   = 1
-	unfrozenStatus = 2
+	frozenStatus   = "frozen"
+	unfrozenStatus = "unfrozen"
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) {
@@ -66,14 +66,14 @@ type SoftwarePkgBasicDO struct {
 	PackageDesc     string                 `gorm:"column:package_desc"`
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
-	PRNum           int                    `gorm:"column:pr_num"`
 	Sig             string                 `gorm:"column:sig"`
+	Frozen          string                 `gorm:"column:frozen"`
 	ReasonToImport  string                 `gorm:"column:reason_to_import"`
 	ApprovedBy      pq.StringArray         `gorm:"column:approvedby;type:text[];default:'{}'"`
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64                  `gorm:"column:applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"`
-	Frozen          int                    `gorm:"column:frozen"`
+	PRNum           int                    `gorm:"column:pr_num"`
 	Version         optimisticlock.Version `gorm:"column:version"`
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -41,17 +42,19 @@ type PostgresqlConfig struct {
 }
 
 type Config struct {
-	MQ          messageimpl.Config     `json:"mq"             required:"true"`
-	Middleware  middleware.Config      `json:"middleware"     required:"true"`
-	Postgresql  PostgresqlConfig       `json:"postgresql"     required:"true"`
-	Maintainer  maintainerimpl.Config  `json:"maintainer"     required:"true"`
-	SoftwarePkg dp.Config              `json:"software_pkg"   required:"true"`
-	Translation translationimpl.Config `json:"translation"    required:"true"`
+	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
+	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
+	Middleware     middleware.Config         `json:"middleware"           required:"true"`
+	Postgresql     PostgresqlConfig          `json:"postgresql"           required:"true"`
+	Maintainer     maintainerimpl.Config     `json:"maintainer"           required:"true"`
+	SoftwarePkg    dp.Config                 `json:"software_pkg"         required:"true"`
+	Translation    translationimpl.Config    `json:"translation"          required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.MQ,
+		&cfg.SensitiveWords,
 		&cfg.Middleware,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
