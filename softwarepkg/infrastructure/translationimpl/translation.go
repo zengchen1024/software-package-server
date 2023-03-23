@@ -1,6 +1,7 @@
 package translationimpl
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core"
@@ -13,6 +14,10 @@ import (
 )
 
 var instance *service
+
+const (
+	paramErrorCode = "NLP.0301"
+)
 
 func Init(cfg *Config, languages []string) error {
 	sl, err := getSupportedLanguage(languages)
@@ -43,6 +48,24 @@ func Translation() *service {
 	return instance
 }
 
+type errorMsg struct {
+	ErrorCode    string `json:"error_code"`
+	ErrorMessage string `json:"error_message"`
+}
+
+func (e errorMsg) isParamError() bool {
+	return e.ErrorCode == paramErrorCode
+}
+
+func isContentOfTargetLanguage(err error) bool {
+	var e errorMsg
+	if err = json.Unmarshal([]byte(err.Error()), &e); err != nil {
+		return false
+	}
+
+	return e.isParamError()
+}
+
 type service struct {
 	cli                *v2.NlpClient
 	supportedLanguages map[string]model.TextTranslationReqTo
@@ -64,6 +87,10 @@ func (s *service) Translate(content string, l dp.Language) (string, error) {
 		&model.RunTextTranslationRequest{Body: &req},
 	)
 	if err != nil {
+		if isContentOfTargetLanguage(err) {
+			return content, nil
+		}
+
 		return "", err
 	}
 
