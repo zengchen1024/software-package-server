@@ -19,6 +19,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -54,6 +55,8 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 
 func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 	initSoftwarePkgService(v1, cfg)
+
+	controller.AddRouteForSigController(v1, sigvalidatorimpl.SigValidator())
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {

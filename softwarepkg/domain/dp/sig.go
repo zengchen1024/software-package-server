@@ -2,6 +2,13 @@ package dp
 
 import "errors"
 
+var sigValidator SigValidator
+
+type SigValidator interface {
+	IsValidSig(string) bool
+}
+
+// ImportingPkgSig
 type ImportingPkgSig interface {
 	ImportingPkgSig() string
 }
@@ -9,6 +16,10 @@ type ImportingPkgSig interface {
 func NewImportingPkgSig(v string) (ImportingPkgSig, error) {
 	if v == "" {
 		return nil, errors.New("empty sig")
+	}
+
+	if sigValidator.IsValidSig(v) {
+		return nil, errors.New("invalid sig")
 	}
 
 	return importingPkgSig(v), nil

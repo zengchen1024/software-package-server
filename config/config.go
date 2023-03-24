@@ -10,6 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -49,6 +50,7 @@ type Config struct {
 	Maintainer     maintainerimpl.Config     `json:"maintainer"           required:"true"`
 	SoftwarePkg    dp.Config                 `json:"software_pkg"         required:"true"`
 	Translation    translationimpl.Config    `json:"translation"          required:"true"`
+	SigValidator   sigvalidatorimpl.Config   `json:"sig"                  required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {
@@ -61,6 +63,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.SoftwarePkg,
 		&cfg.Maintainer,
 		&cfg.Translation,
+		&cfg.SigValidator,
 	}
 }
 

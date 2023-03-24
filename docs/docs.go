@@ -16,6 +16,26 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/sig": {
+            "get": {
+                "description": "list sigs",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sig"
+                ],
+                "summary": "list sigs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/sigvalidator.Sig"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/softwarepkg": {
             "get": {
                 "description": "list software packages",
@@ -409,6 +429,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "since_creation": {
+                    "type": "integer"
                 }
             }
         },
@@ -549,6 +572,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "language": {
+                    "type": "string"
+                }
+            }
+        },
+        "sigvalidator.Sig": {
+            "type": "object",
+            "properties": {
+                "en_feature": {
+                    "type": "string"
+                },
+                "en_group": {
+                    "type": "string"
+                },
+                "feature": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "sig_names": {
                     "type": "string"
                 }
             }

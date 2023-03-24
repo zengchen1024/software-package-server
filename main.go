@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 )
 
@@ -33,8 +34,7 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 	o.service.AddFlags(fs)
 
 	fs.BoolVar(
-		&o.enableDebug, "enable_debug", false,
-		"whether to enable debug model.",
+		&o.enableDebug, "enable_debug", false, "whether to enable debug model.",
 	)
 
 	fs.Parse(args)
@@ -86,8 +86,17 @@ func main() {
 
 	defer messageimpl.Exit()
 
+	// Sig Validator
+	if err := sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
+		logrus.Errorf("init sig validator failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer sigvalidatorimpl.Exit()
+
 	// Domain
-	dp.Init(&cfg.SoftwarePkg)
+	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
 
 	middleware.Init(&cfg.Middleware)
 

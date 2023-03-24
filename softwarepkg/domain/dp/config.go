@@ -4,8 +4,9 @@ import "strings"
 
 var config Config
 
-func Init(cfg *Config) {
+func Init(cfg *Config, sv SigValidator) {
 	config = *cfg
+	sigValidator = sv
 }
 
 type Config struct {
