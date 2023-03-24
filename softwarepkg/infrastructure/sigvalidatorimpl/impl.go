@@ -1,31 +1,48 @@
 package sigvalidatorimpl
 
-import "github.com/opensourceways/server-common-lib/config"
+import "github.com/opensourceways/server-common-lib/utils"
 
-func Init(filepath string) (*sigValidatorImpl, error) {
-	agent := config.NewConfigAgent(func() config.Config {
-		return new(Config)
-	})
+var instance *agent
 
-	if err := agent.Start(filepath); err != nil {
-		return nil, err
+func Init(cfg *Config) error {
+	v := &agent{
+		t: utils.NewTimer(),
+		loader: sigLoader{
+			cli: utils.NewHttpClient(3),
+		},
 	}
 
-	return &sigValidatorImpl{&agent}, nil
+	err := v.start(cfg.ReadURL, cfg.IntervalDuration())
+	if err == nil {
+		instance = v
+	}
+
+	return err
 }
 
+func Exit() {
+	if instance != nil {
+		instance.Stop()
+	}
+}
+
+func SigValidator() sigValidatorImpl {
+	return sigValidatorImpl{instance}
+}
+
+// sigValidatorImpl
 type sigValidatorImpl struct {
-	agent *config.ConfigAgent
+	agent *agent
 }
 
-func (impl *sigValidatorImpl) IsValidSig(sig string) bool {
-	_, v := impl.agent.GetConfig()
+func (impl sigValidatorImpl) IsValidSig(sig string) bool {
+	v := impl.agent.getSigData()
 
-	cfg, ok := v.(*Config)
-
-	return ok && cfg.hasSig(sig)
+	return v.hasSig(sig)
 }
 
-func (impl *sigValidatorImpl) Stop() {
-	impl.agent.Stop()
+func (impl sigValidatorImpl) GetAll() (info []sigDetail) {
+	v := impl.agent.getSigData()
+
+	return v.getAll()
 }

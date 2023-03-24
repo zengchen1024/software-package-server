@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 )
 
 func loadConfig(path string) (*Config, error) {
@@ -32,6 +33,7 @@ type Config struct {
 	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
+	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
 }
 
 type Topics struct {
@@ -56,11 +58,12 @@ type configSetDefault interface {
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
+		&cfg.Kafka,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg,
 		&cfg.Maintainer,
-		&cfg.Kafka,
+		&cfg.SigValidator,
 	}
 }
 

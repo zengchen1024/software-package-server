@@ -8,6 +8,7 @@ type SigValidator interface {
 	IsValidSig(string) bool
 }
 
+// ImportingPkgSig
 type ImportingPkgSig interface {
 	ImportingPkgSig() string
 }
