@@ -45,6 +45,8 @@ definitions:
         type: string
       id:
         type: string
+      since_creation:
+        type: integer
     type: object
   app.SoftwarePkgReviewDTO:
     properties:
@@ -140,9 +142,35 @@ definitions:
       language:
         type: string
     type: object
+  sigvalidator.Sig:
+    properties:
+      en_feature:
+        type: string
+      en_group:
+        type: string
+      feature:
+        type: string
+      group:
+        type: string
+      sig_names:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /v1/sig:
+    get:
+      consumes:
+      - application/json
+      description: list sigs
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sigvalidator.Sig'
+      summary: list sigs
+      tags:
+      - Sig
   /v1/softwarepkg:
     get:
       consumes:
