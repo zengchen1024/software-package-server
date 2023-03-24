@@ -11,42 +11,40 @@ import (
 
 type agent struct {
 	sig    *sigData
-	md5Sum string
 	mut    sync.RWMutex
 	t      utils.Timer
 	loader sigLoader
 }
 
-func (ca *agent) load(link string) error {
-	c, md5Sum, err := ca.loader.load(link, ca.md5Sum)
-	if err != nil || c == nil {
+func (instance *agent) load(link string) error {
+	v, err := instance.loader.load(link, instance.sig)
+	if err != nil || v == nil {
 		return err
 	}
 
-	ca.mut.Lock()
-	ca.sig = c
-	ca.md5Sum = md5Sum
-	ca.mut.Unlock()
+	instance.mut.Lock()
+	instance.sig = v
+	instance.mut.Unlock()
 
 	return nil
 }
 
-func (ca *agent) getSigData() *sigData {
-	ca.mut.RLock()
-	c := ca.sig // copy the pointer
-	ca.mut.RUnlock()
+func (instance *agent) getSigData() *sigData {
+	instance.mut.RLock()
+	v := instance.sig // copy the pointer
+	instance.mut.RUnlock()
 
-	return c
+	return v
 }
 
-func (ca *agent) start(link string, interval time.Duration) error {
-	if err := ca.load(link); err != nil {
+func (instance *agent) start(link string, interval time.Duration) error {
+	if err := instance.load(link); err != nil {
 		return err
 	}
 
-	ca.t.Start(
+	instance.t.Start(
 		func() {
-			if err := ca.load(link); err != nil {
+			if err := instance.load(link); err != nil {
 				logrus.Errorf("load failed, err:%s", err.Error())
 			}
 		},
@@ -57,6 +55,6 @@ func (ca *agent) start(link string, interval time.Duration) error {
 	return nil
 }
 
-func (ca *agent) Stop() {
-	ca.t.Stop()
+func (instance *agent) stop() {
+	instance.t.Stop()
 }

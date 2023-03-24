@@ -22,7 +22,7 @@ func Init(cfg *Config) error {
 
 func Exit() {
 	if instance != nil {
-		instance.Stop()
+		instance.stop()
 	}
 }
 
