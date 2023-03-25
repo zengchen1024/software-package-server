@@ -40,7 +40,7 @@ func (cmd *CmdToHandlePkgInitialized) isSuccess() bool {
 }
 
 func (cmd *CmdToHandlePkgInitialized) isPkgAreadyExisted() bool {
-	return cmd.RepoLink == nil
+	return cmd.RepoLink != nil
 }
 
 func (cmd *CmdToHandlePkgInitialized) logString() string {

@@ -50,8 +50,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	if pkg.RelevantPR != nil {
 		do.RelevantPR = pkg.RelevantPR.URL()
 	}
-
-	do.PRNum = pkg.PRNum
 }
 
 type SoftwarePkgBasicDO struct {
@@ -73,7 +71,6 @@ type SoftwarePkgBasicDO struct {
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64                  `gorm:"column:applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"`
-	PRNum           int                    `gorm:"column:pr_num"`
 	Version         optimisticlock.Version `gorm:"column:version"`
 }
 
@@ -117,8 +114,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	info.Frozen = do.Frozen == frozenStatus
-
-	info.PRNum = do.PRNum
 
 	return
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
@@ -22,19 +21,16 @@ type SoftwarePkgMessageService interface {
 func NewSoftwarePkgMessageService(
 	repo repository.SoftwarePkg,
 	message message.SoftwarePkgIndirectMessage,
-	maintainer maintainer.Maintainer,
 ) softwarePkgMessageService {
 	return softwarePkgMessageService{
-		repo:       repo,
-		message:    message,
-		maintainer: maintainer,
+		repo:    repo,
+		message: message,
 	}
 }
 
 type softwarePkgMessageService struct {
-	repo       repository.SoftwarePkg
-	message    message.SoftwarePkgIndirectMessage
-	maintainer maintainer.Maintainer
+	repo    repository.SoftwarePkg
+	message message.SoftwarePkgIndirectMessage
 }
 
 // HandlePkgCIChecked
@@ -53,7 +49,6 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 		s.addCommentForFailedCI(&cmd)
 	}
 
-	pkg.PRNum = cmd.PRNum
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
@@ -158,9 +153,9 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 		return nil
 	}
 
-	if b := cmd.isPkgAreadyExisted(); b {
+	if cmd.isPkgAreadyExisted() {
 		if err := pkg.HandlePkgAlreadyExisted(); err != nil {
-			return nil
+			return err
 		}
 
 		s.addCommentForExistedPkg(&cmd)
@@ -210,24 +205,4 @@ func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgIn
 			cmd.logString(), err.Error(),
 		)
 	}
-}
-
-func (s softwarePkgMessageService) validateUser(pkg *domain.SoftwarePkgBasicInfo, v string) (
-	dp.Account, error,
-) {
-	user, err := s.maintainer.FindUser(v)
-	if err != nil {
-		return nil, err
-	}
-
-	has, err := s.maintainer.HasPermission(pkg, user)
-	if err != nil {
-		return nil, err
-	}
-
-	if !has {
-		return nil, fmt.Errorf("no permission")
-	}
-
-	return user, nil
 }

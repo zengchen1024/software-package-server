@@ -42,7 +42,6 @@ type SoftwarePkgBasicInfo struct {
 	ApprovedBy  []dp.Account
 	RejectedBy  []dp.Account
 	RelevantPR  dp.URL
-	PRNum       int
 }
 
 func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
@@ -58,14 +57,14 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 }
 
 func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
-	return entity.Phase.IsReviewing() || entity.Phase.IsCreatingRepo()
+	return entity.Phase.IsReviewing()
 }
 
 // change the status of "creating repo"
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
-	if !entity.Phase.IsReviewing() || entity.Frozen || entity.RelevantPR == nil {
+	if !entity.Phase.IsReviewing() || entity.Frozen {
 		return false, errors.New("not ready")
 	}
 

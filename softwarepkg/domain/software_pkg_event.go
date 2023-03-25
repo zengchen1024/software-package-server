@@ -18,7 +18,6 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedE
 	return softwarePkgApprovedEvent{
 		PkgId:    pkg.Id,
 		PkgName:  pkg.PkgName.PackageName(),
-		PRNum:    pkg.PRNum,
 		Platform: pkg.Application.PackagePlatform.PackagePlatform(),
 	}
 }
