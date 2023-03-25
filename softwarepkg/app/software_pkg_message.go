@@ -45,16 +45,8 @@ func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCICh
 	}
 
 	alreadyClosed, err := pkg.HandleCI(cmd.isSuccess(), cmd.RelevantPR)
-	if err != nil {
+	if err != nil || alreadyClosed {
 		return err
-	}
-
-	if alreadyClosed {
-		if cmd.isSuccess() {
-			s.notifyPkgAlreadyClosed(&cmd)
-		}
-
-		return nil
 	}
 
 	if !cmd.isSuccess() {
@@ -70,21 +62,6 @@ func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCICh
 	}
 
 	return nil
-}
-
-func (s softwarePkgMessageService) notifyPkgAlreadyClosed(cmd *CmdToHandlePkgPRCIChecked) {
-	if !cmd.isSuccess() {
-		return
-	}
-
-	e := domain.NewSoftwarePkgAlreadyClosedEvent(cmd.PkgId, cmd.PRNum)
-
-	if err := s.message.NotifyPkgAlreadyClosed(&e); err != nil {
-		logrus.Errorf(
-			"failed to notify the pkg is already closed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
 }
 
 func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgPRCIChecked) {

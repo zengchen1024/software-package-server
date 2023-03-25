@@ -12,8 +12,6 @@ import (
 
 type SoftwarePkgReviewService interface {
 	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error
-	RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error
-	AbandonPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error
 }
 
 func NewReviewService(m message.SoftwarePkgMessage) SoftwarePkgReviewService {
@@ -34,34 +32,6 @@ func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Acc
 		err = s.message.NotifyPkgApproved(&e)
 	}
 	s.log(pkg, "approved", err)
-
-	return nil
-}
-
-func (s *reviewService) RejectPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
-	if rejected, err := pkg.RejectBy(user); !rejected {
-		return err
-	}
-
-	e, err := domain.NewSoftwarePkgRejectedEvent(pkg)
-	if err == nil {
-		err = s.message.NotifyPkgRejected(&e)
-	}
-	s.log(pkg, "rejected", err)
-
-	return nil
-}
-
-func (s *reviewService) AbandonPkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
-	if err := pkg.Abandon(user); err != nil {
-		return err
-	}
-
-	e, err := domain.NewSoftwarePkgAbandonedEvent(pkg)
-	if err == nil {
-		err = s.message.NotifyPkgAbandoned(&e)
-	}
-	s.log(pkg, "abandoned", err)
 
 	return nil
 }

@@ -32,51 +32,6 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprov
 	return
 }
 
-// softwarePkgRejectedEvent
-type softwarePkgRejectedEvent struct {
-	PkgId  string `json:"pkg_id"`
-	PRNum  int    `json:"pr_num"`
-	Reason string `json:"reason"`
-}
-
-func (e *softwarePkgRejectedEvent) Message() ([]byte, error) {
-	return json.Marshal(e)
-}
-
-func NewSoftwarePkgRejectedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
-	if pkg.RelevantPR != nil {
-		e.PkgId = pkg.Id
-		e.PRNum = pkg.PRNum
-		e.Reason = "software package application was rejected by maintainer"
-	} else {
-		err = errors.New("missing pr")
-	}
-
-	return
-}
-
-// softwarePkgAbandonedEvent
-func NewSoftwarePkgAbandonedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgRejectedEvent, err error) {
-	if pkg.RelevantPR != nil {
-		e.PkgId = pkg.Id
-		e.PRNum = pkg.PRNum
-		e.Reason = "software package application was abandoned by author"
-	} else {
-		err = errors.New("missing pr")
-	}
-
-	return
-}
-
-// softwarePkgAlreadyClosedEvent
-func NewSoftwarePkgAlreadyClosedEvent(pkgId string, prNum int) softwarePkgRejectedEvent {
-	return softwarePkgRejectedEvent{
-		PkgId:  pkgId,
-		PRNum:  prNum,
-		Reason: "software package application is already closed",
-	}
-}
-
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
 	Importer          string `json:"importer"`
