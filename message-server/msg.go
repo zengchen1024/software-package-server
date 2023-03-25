@@ -5,6 +5,39 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+const (
+	pkgPhasePR       = "pr"
+	pkgPhaseRepo     = "repo"
+	pkgPhaseInitCode = "init_code"
+)
+
+// msgToHandlePkg
+type msgToHandlePkg struct {
+	Phase    string           `json:"phase"`
+	PkgId    string           `json:"pkg_id"`
+	PR       msgOfPkgPR       `json:"pr"`
+	Repo     msgOfPkgRepo     `json:"repo"`
+	InitCode msgOfPkgInitCode `json:"init_code"`
+}
+
+// msgOfPkgPR
+type msgOfPkgPR struct {
+	RelevantPR    string `json:"relevant_pr"`
+	Merged        bool   `json:"merged"`
+	DuplicatedPkg bool   `json:"duplicated_pkg"`
+	OtherReason   string `json:"other_reason"`
+}
+
+// msgOfPkgRepo
+type msgOfPkgRepo struct {
+	Platform     string `json:"platform"`
+	RepoLink     string `json:"repo_link"`
+	FailedReason string `json:"failed_reason"`
+}
+
+// msgOfPkgInitCode
+type msgOfPkgInitCode = msgOfPkgRepo
+
 // msgToHandlePkgPRCIChecked
 type msgToHandlePkgPRCIChecked struct {
 	PkgId        string `json:"pkg_id"`

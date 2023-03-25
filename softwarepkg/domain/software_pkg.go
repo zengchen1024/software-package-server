@@ -138,6 +138,16 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 	return false, nil
 }
 
+func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
+	}
+
+	entity.Phase = dp.PackagePhaseClosed
+
+	return nil
+}
+
 type RepoCreatedInfo struct {
 	Platform dp.PackagePlatform
 	RepoLink dp.URL

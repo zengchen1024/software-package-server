@@ -13,16 +13,8 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandlePkgPRClosed(CmdToHandlePkgPRClosed) error
-	HandlePkgPRMerged(CmdToHandlePkgPRMerged) error
-	HandlePkgPRCIChecked(CmdToHandlePkgPRCIChecked) error
+	HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error
 	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
-}
-
-type softwarePkgMessageService struct {
-	repo       repository.SoftwarePkg
-	message    message.SoftwarePkgIndirectMessage
-	maintainer maintainer.Maintainer
 }
 
 func NewSoftwarePkgMessageService(
@@ -37,8 +29,14 @@ func NewSoftwarePkgMessageService(
 	}
 }
 
+type softwarePkgMessageService struct {
+	repo       repository.SoftwarePkg
+	message    message.SoftwarePkgIndirectMessage
+	maintainer maintainer.Maintainer
+}
+
 // HandlePkgPRCIChecked
-func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCIChecked) error {
+func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgInitialized) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
@@ -64,7 +62,7 @@ func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgPRCICh
 	return nil
 }
 
-func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgPRCIChecked) {
+func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgInitialized) {
 	author, _ := dp.NewAccount("software-pkg-robot")
 
 	str := fmt.Sprintf(
@@ -113,86 +111,69 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 	return nil
 }
 
-// HandlePkgPRClosed
-func (s softwarePkgMessageService) HandlePkgPRClosed(cmd CmdToHandlePkgPRClosed) error {
+// HandlePkgInitDone
+func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
 	}
 
-	user, err := s.validateUser(&pkg, cmd.RejectedBy)
-	if err != nil {
-		logrus.Errorf(
-			"validate user failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
+	if cmd.isSuccess() {
+		s.notifyPkgInitialized(&pkg, &cmd)
 
-		return err
+		return nil
 	}
 
-	if b, err := pkg.HandleRejectedBy(user); err != nil || b {
-		return err
-	}
-
-	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		logrus.Errorf(
-			"save pkg failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
-
-	return nil
-}
-
-// HandlePkgPRMerged
-func (s softwarePkgMessageService) HandlePkgPRMerged(cmd CmdToHandlePkgPRMerged) error {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
-	if err != nil {
-		return err
-	}
-
-	users := make([]dp.Account, len(cmd.ApprovedBy))
-
-	for i, item := range cmd.ApprovedBy {
-		user, err := s.validateUser(&pkg, item)
-		if err != nil {
-			logrus.Errorf(
-				"validate user failed when %s, err:%s",
-				cmd.logString(), err.Error(),
-			)
-
-			return err
+	if b := cmd.isPkgAreadyExisted(); b {
+		if err := pkg.HandlePkgAlreadyExisted(); err != nil {
+			return nil
 		}
 
-		users[i] = user
+		s.addCommentForExistedPkg(&cmd)
+
+		if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+			logrus.Errorf(
+				"save pkg failed when %s, err:%s",
+				cmd.logString(), err.Error(),
+			)
+		}
+
+		return nil
 	}
 
-	if b, err := pkg.HandleApprovedBy(users); err != nil || b {
-		return err
-	}
-
-	if dp.IsPkgReviewResultApproved(pkg.ReviewResult()) {
-		s.notifyPkgIndirectlyApproved(&pkg, &cmd)
-	}
-
-	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		logrus.Errorf(
-			"save pkg failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
+	logrus.Errorf("pkg init failed, pkgid:%s, err:%s", cmd.PkgId, cmd.FiledReason)
 
 	return nil
 }
 
-func (s softwarePkgMessageService) notifyPkgIndirectlyApproved(
-	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgPRMerged,
+func (s softwarePkgMessageService) notifyPkgInitialized(
+	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgInitialized,
 ) {
-	e := domain.NewSoftwarePkgIndirectlyApprovedEvent(pkg)
+	// TODO maybe no need
+	e, _ := domain.NewSoftwarePkgInitializedEvent(pkg)
 
 	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
 		logrus.Errorf(
 			"failed to notify the pkg was approved indirectly when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+}
+
+func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgInitialized) {
+	author, _ := dp.NewAccount("software-pkg-robot")
+
+	str := fmt.Sprintf(
+		"I'am sorry to close this application. Because the pkg was imported sometimes ago. The repo address is %s. You can work on that repo.",
+		cmd.RepoLink,
+	)
+	content, _ := dp.NewReviewComment(str)
+
+	comment := domain.NewSoftwarePkgReviewComment(author, content)
+
+	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
 	}

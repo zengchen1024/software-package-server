@@ -68,21 +68,4 @@ func NewSoftwarePkgAppliedEvent(
 	}
 }
 
-// softwarePkgIndirectlyApprovedEvent
-type softwarePkgIndirectlyApprovedEvent struct {
-	PkgId    string `json:"pkg_id"`
-	PkgName  string `json:"pkg_name"`
-	Platform string `json:"platform"`
-}
-
-func (e *softwarePkgIndirectlyApprovedEvent) Message() ([]byte, error) {
-	return json.Marshal(e)
-}
-
-func NewSoftwarePkgIndirectlyApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgIndirectlyApprovedEvent {
-	return softwarePkgIndirectlyApprovedEvent{
-		PkgId:    pkg.Id,
-		PkgName:  pkg.PkgName.PackageName(),
-		Platform: pkg.Application.PackagePlatform.PackagePlatform(),
-	}
-}
+var NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
