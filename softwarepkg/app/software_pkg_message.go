@@ -13,8 +13,10 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
+	HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error
 	HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error
 	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
+	HandlePkgCodeSaved(CmdToHandlePkgCodeSaved) error
 }
 
 func NewSoftwarePkgMessageService(
@@ -35,8 +37,8 @@ type softwarePkgMessageService struct {
 	maintainer maintainer.Maintainer
 }
 
-// HandlePkgPRCIChecked
-func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgInitialized) error {
+// HandlePkgCIChecked
+func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
@@ -62,7 +64,7 @@ func (s softwarePkgMessageService) HandlePkgPRCIChecked(cmd CmdToHandlePkgInitia
 	return nil
 }
 
-func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgInitialized) {
+func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgCIChecked) {
 	author, _ := dp.NewAccount("software-pkg-robot")
 
 	str := fmt.Sprintf(
@@ -108,6 +110,11 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 		)
 	}
 
+	return nil
+}
+
+// HandlePkgRepoCreated
+func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSaved) error {
 	return nil
 }
 

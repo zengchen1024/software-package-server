@@ -7,6 +7,25 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+// CmdToHandlePkgCIChecked
+type CmdToHandlePkgCIChecked struct {
+	PkgId       string
+	RelevantPR  dp.URL
+	PRNum       int
+	FiledReason string
+}
+
+func (cmd *CmdToHandlePkgCIChecked) isSuccess() bool {
+	return cmd.FiledReason == ""
+}
+
+func (cmd *CmdToHandlePkgCIChecked) logString() string {
+	return fmt.Sprintf(
+		"handling pkg ci checked, pkgid:%s, pr:%s",
+		cmd.PkgId, cmd.RelevantPR.URL(),
+	)
+}
+
 // CmdToHandlePkgInitialized
 type CmdToHandlePkgInitialized struct {
 	PkgId      string
@@ -27,7 +46,7 @@ func (cmd *CmdToHandlePkgInitialized) isPkgAreadyExisted() bool {
 
 func (cmd *CmdToHandlePkgInitialized) logString() string {
 	return fmt.Sprintf(
-		"handling pkg init done, pkgid:%s, pr:%s",
+		"handling pkg initialized, pkgid:%s, pr:%s",
 		cmd.PkgId, cmd.RelevantPR.URL(),
 	)
 }
@@ -54,3 +73,6 @@ func (cmd *CmdToHandlePkgRepoCreated) logString() string {
 		cmd.PkgId, cmd.Platform.PackagePlatform(), cmd.RepoLink.URL(),
 	)
 }
+
+// CmdToHandlePkgCodeSaved
+type CmdToHandlePkgCodeSaved = CmdToHandlePkgRepoCreated

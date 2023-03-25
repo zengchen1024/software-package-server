@@ -37,10 +37,10 @@ type Config struct {
 }
 
 type Topics struct {
-	SoftwarePkgPRClosed    string `json:"software_pkg_pr_closed"      required:"true"`
-	SoftwarePkgPRMerged    string `json:"software_pkg_pr_merged"      required:"true"`
-	SoftwarePkgPRCIChecked string `json:"software_pkg_pr_ci_checked"  required:"true"`
-	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"   required:"true"`
+	SoftwarePkgCIChecked   string `json:"software_pkg_ci_checked"       required:"true"`
+	SoftwarePkgInitialized string `json:"software_pkg_initialized"      required:"true"`
+	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"     required:"true"`
+	SoftwarePkgCodeSaved   string `json:"software_pkg_code_saved"       required:"true"`
 }
 
 type TopicsToNotify struct {
