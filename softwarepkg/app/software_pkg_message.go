@@ -119,7 +119,9 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 	}
 
 	if cmd.isSuccess() {
-		s.notifyPkgInitialized(&pkg, &cmd)
+		if !pkg.Application.PackagePlatform.IsLocalPlatform() {
+			s.notifyPkgInitialized(&pkg, &cmd)
+		}
 
 		return nil
 	}
@@ -149,7 +151,6 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 func (s softwarePkgMessageService) notifyPkgInitialized(
 	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgInitialized,
 ) {
-	// TODO maybe no need
 	e, _ := domain.NewSoftwarePkgInitializedEvent(pkg)
 
 	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
