@@ -30,18 +30,17 @@ func (cmd *CmdToHandlePkgCIChecked) logString() string {
 type CmdToHandlePkgInitialized struct {
 	PkgId      string
 	RelevantPR dp.URL
-	PRNum      int
 	// RepoLink is the one of already existed pkg
-	RepoLink    string
+	RepoLink    dp.URL
 	FiledReason string
 }
 
 func (cmd *CmdToHandlePkgInitialized) isSuccess() bool {
-	return cmd.FiledReason == "" && cmd.RepoLink == ""
+	return cmd.FiledReason == "" && cmd.RepoLink == nil
 }
 
 func (cmd *CmdToHandlePkgInitialized) isPkgAreadyExisted() bool {
-	return cmd.RepoLink != ""
+	return cmd.RepoLink == nil
 }
 
 func (cmd *CmdToHandlePkgInitialized) logString() string {

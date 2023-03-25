@@ -57,7 +57,12 @@ func (s *server) handlePkgInitialized(data []byte) error {
 		return err
 	}
 
-	return s.service.HandlePkgInitialized(msg.toCmd())
+	cmd, err := msg.toCmd()
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgInitialized(cmd)
 }
 
 func (s *server) handlePkgRepoCreated(data []byte) error {

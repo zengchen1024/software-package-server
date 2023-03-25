@@ -115,6 +115,31 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 
 // HandlePkgRepoCreated
 func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSaved) error {
+	if !cmd.isSuccess() {
+		logrus.Errorf(
+			"failed to create repo on platform:%s for pkg:%s, err:%s",
+			cmd.Platform.PackagePlatform(), cmd.PkgId, cmd.FiledReason,
+		)
+
+		return nil
+	}
+
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if err := pkg.HandleCodeSaved(); err != nil {
+		return err
+	}
+
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+
 	return nil
 }
 
@@ -158,7 +183,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 func (s softwarePkgMessageService) notifyPkgInitialized(
 	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgInitialized,
 ) {
-	e, _ := domain.NewSoftwarePkgInitializedEvent(pkg)
+	e := domain.NewSoftwarePkgInitializedEvent(pkg)
 
 	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
 		logrus.Errorf(

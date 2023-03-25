@@ -27,10 +27,8 @@ func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Acc
 		return err
 	}
 
-	e, err := domain.NewSoftwarePkgApprovedEvent(pkg)
-	if err == nil {
-		err = s.message.NotifyPkgApproved(&e)
-	}
+	e := domain.NewSoftwarePkgApprovedEvent(pkg)
+	err := s.message.NotifyPkgApproved(&e)
 	s.log(pkg, "approved", err)
 
 	return nil

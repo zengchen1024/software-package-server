@@ -167,35 +167,18 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	}
 
 	entity.RepoLink = info.RepoLink
-	entity.Phase = dp.PackagePhaseImported
 
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleRejectedBy(user dp.Account) (bool, error) {
-	if dp.IsPkgReviewResultRejected(entity.ReviewResult()) {
-		// already rejected
-		return true, nil
+func (entity *SoftwarePkgBasicInfo) HandleCodeSaved() error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
 	}
 
-	_, err := entity.RejectBy(user)
+	entity.Phase = dp.PackagePhaseImported
 
-	return false, err
-}
-
-func (entity *SoftwarePkgBasicInfo) HandleApprovedBy(users []dp.Account) (bool, error) {
-	if dp.IsPkgReviewResultApproved(entity.ReviewResult()) {
-		// already approved
-		return true, nil
-	}
-
-	for i := range users {
-		if b, err := entity.ApproveBy(users[i]); err != nil || b {
-			return false, err
-		}
-	}
-
-	return false, nil
+	return nil
 }
 
 // SoftwarePkg

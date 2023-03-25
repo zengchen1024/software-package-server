@@ -1,9 +1,6 @@
 package domain
 
-import (
-	"encoding/json"
-	"errors"
-)
+import "encoding/json"
 
 // softwarePkgApprovedEvent
 type softwarePkgApprovedEvent struct {
@@ -17,19 +14,13 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) (e softwarePkgApprovedEvent, err error) {
-	if pkg.RelevantPR != nil {
-		e = softwarePkgApprovedEvent{
-			PkgId:    pkg.Id,
-			PkgName:  pkg.PkgName.PackageName(),
-			PRNum:    pkg.PRNum,
-			Platform: pkg.Application.PackagePlatform.PackagePlatform(),
-		}
-	} else {
-		err = errors.New("missing pr")
+func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedEvent {
+	return softwarePkgApprovedEvent{
+		PkgId:    pkg.Id,
+		PkgName:  pkg.PkgName.PackageName(),
+		PRNum:    pkg.PRNum,
+		Platform: pkg.Application.PackagePlatform.PackagePlatform(),
 	}
-
-	return
 }
 
 // softwarePkgAppliedEvent
