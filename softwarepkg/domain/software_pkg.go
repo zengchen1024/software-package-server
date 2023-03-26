@@ -25,8 +25,8 @@ type SoftwarePkgApplication struct {
 }
 
 type SoftwarePkgSourceCode struct {
-	Address dp.URL
-	License dp.License
+	SpecURL   dp.URL
+	SrcRPMURL dp.URL
 }
 
 // SoftwarePkgBasicInfo

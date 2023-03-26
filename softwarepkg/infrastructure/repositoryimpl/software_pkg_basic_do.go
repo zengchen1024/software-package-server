@@ -25,8 +25,8 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		PackageName:     pkg.PkgName.PackageName(),
 		Importer:        pkg.Importer.Account(),
 		Phase:           pkg.Phase.PackagePhase(),
-		SourceCode:      app.SourceCode.Address.URL(),
-		License:         app.SourceCode.License.License(),
+		SpecURL:         app.SourceCode.SpecURL.URL(),
+		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
 		PackagePlatform: app.PackagePlatform.PackagePlatform(),
 		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
@@ -59,8 +59,8 @@ type SoftwarePkgBasicDO struct {
 	Importer        string                 `gorm:"column:importer"`
 	RepoLink        string                 `gorm:"column:repo_link"`
 	Phase           string                 `gorm:"column:phase"`
-	SourceCode      string                 `gorm:"column:source_code"`
-	License         string                 `gorm:"column:license"`
+	SpecURL         string                 `gorm:"column:spec_url"`
+	SrcRPMURL       string                 `gorm:"column:src_rpm_url"`
 	PackageDesc     string                 `gorm:"column:package_desc"`
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
@@ -150,11 +150,11 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgAp
 		return
 	}
 
-	if app.SourceCode.License, err = dp.NewLicense(do.License); err != nil {
+	if app.SourceCode.SrcRPMURL, err = dp.NewURL(do.SrcRPMURL); err != nil {
 		return
 	}
 
-	app.SourceCode.Address, err = dp.NewURL(do.SourceCode)
+	app.SourceCode.SpecURL, err = dp.NewURL(do.SpecURL)
 
 	return
 }

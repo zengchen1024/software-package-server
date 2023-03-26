@@ -66,22 +66,22 @@ func toSoftwarePkgBasicInfoDTOs(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePk
 
 // SoftwarePkgApplicationDTO
 type SoftwarePkgApplicationDTO struct {
+	SpecURL           string `json:"spec_url"`
+	SrcRPMURL         string `json:"src_rpm_url"`
 	PackageDesc       string `json:"desc"`
-	SourceCodeLink    string `json:"source_code"`
 	PackagePlatform   string `json:"platform"`
 	ImportingPkgSig   string `json:"sig"`
 	ReasonToImportPkg string `json:"reason"`
-	SourceCodeLicense string `json:"license"`
 }
 
 func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgApplicationDTO {
 	return SoftwarePkgApplicationDTO{
+		SpecURL:           v.SourceCode.SpecURL.URL(),
+		SrcRPMURL:         v.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:       v.PackageDesc.PackageDesc(),
-		SourceCodeLink:    v.SourceCode.Address.URL(),
 		PackagePlatform:   v.PackagePlatform.PackagePlatform(),
 		ImportingPkgSig:   v.ImportingPkgSig.ImportingPkgSig(),
 		ReasonToImportPkg: v.ReasonToImportPkg.ReasonToImportPkg(),
-		SourceCodeLicense: v.SourceCode.License.License(),
 	}
 }
 

@@ -29,8 +29,8 @@ type softwarePkgAppliedEvent struct {
 	PkgId             string `json:"pkg_id"`
 	PkgName           string `json:"pkg_name"`
 	PkgDesc           string `json:"pkg_desc"`
-	SourceCodeURL     string `json:"source_code_url"`
-	SourceCodeLicense string `json:"source_code_license"`
+	SpecURL           string `json:"spec_url"`
+	SrcRPMURL         string `json:"src_rpm_url"`
 	ImportingPkgSig   string `json:"sig"`
 	ReasonToImportPkg string `json:"reason_to_import"`
 }
@@ -51,8 +51,8 @@ func NewSoftwarePkgAppliedEvent(
 		PkgId:             pkg.Id,
 		PkgName:           pkg.PkgName.PackageName(),
 		PkgDesc:           app.PackageDesc.PackageDesc(),
-		SourceCodeURL:     app.SourceCode.Address.URL(),
-		SourceCodeLicense: app.SourceCode.License.License(),
+		SpecURL:           app.SourceCode.SpecURL.URL(),
+		SrcRPMURL:         app.SourceCode.SrcRPMURL.URL(),
 		ImportingPkgSig:   app.ImportingPkgSig.ImportingPkgSig(),
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
 	}
