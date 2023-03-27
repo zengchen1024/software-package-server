@@ -18,7 +18,7 @@ func NewImportingPkgSig(v string) (ImportingPkgSig, error) {
 		return nil, errors.New("empty sig")
 	}
 
-	if sigValidator.IsValidSig(v) {
+	if !sigValidator.IsValidSig(v) {
 		return nil, errors.New("invalid sig")
 	}
 
