@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
@@ -36,6 +38,7 @@ func NewSoftwarePkgService(
 	message message.SoftwarePkgMessage,
 	sensitive sensitivewords.SensitiveWords,
 	maintainer maintainer.Maintainer,
+	pkgService service.SoftwarePkgService,
 	translation translation.Translation,
 ) *softwarePkgService {
 	return &softwarePkgService{
@@ -44,6 +47,7 @@ func NewSoftwarePkgService(
 		sensitive:    sensitive,
 		maintainer:   maintainer,
 		translation:  translation,
+		pkgService:   pkgService,
 		reviewServie: service.NewReviewService(message),
 	}
 }
@@ -54,6 +58,7 @@ type softwarePkgService struct {
 	maintainer   maintainer.Maintainer
 	sensitive    sensitivewords.SensitiveWords
 	translation  translation.Translation
+	pkgService   service.SoftwarePkgService
 	reviewServie service.SoftwarePkgReviewService
 }
 
@@ -61,6 +66,13 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	code string, err error,
 ) {
 	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
+	if s.pkgService.IsPkgExisted(cmd.PkgName.PackageName()) {
+		err = fmt.Errorf("software package %s is always exist", cmd.PkgName.PackageName())
+		code = errorSoftwarePkgExists
+
+		return
+	}
+
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists

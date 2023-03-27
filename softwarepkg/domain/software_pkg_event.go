@@ -1,6 +1,8 @@
 package domain
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
@@ -39,3 +41,17 @@ var (
 	NewSoftwarePkgApprovedEvent    = NewSoftwarePkgAppliedEvent
 	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
 )
+
+type softwarePkgAlreadyExistedEvent struct {
+	PkgName string `json:"pkg_name"`
+}
+
+func (e *softwarePkgAlreadyExistedEvent) Message() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgAlreadyExistEvent(pkg string) softwarePkgAlreadyExistedEvent {
+	return softwarePkgAlreadyExistedEvent{
+		PkgName: pkg,
+	}
+}

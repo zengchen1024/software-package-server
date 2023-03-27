@@ -8,6 +8,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -44,6 +45,7 @@ type PostgresqlConfig struct {
 
 type Config struct {
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
+	PkgManager     pkgmanager.Config         `json:"pkg_manager"          required:"true"`
 	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
 	Postgresql     PostgresqlConfig          `json:"postgresql"           required:"true"`
@@ -56,6 +58,7 @@ type Config struct {
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.MQ,
+		&cfg.PkgManager,
 		&cfg.SensitiveWords,
 		&cfg.Middleware,
 		&cfg.Postgresql.DB,

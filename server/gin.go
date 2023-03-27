@@ -15,8 +15,10 @@ import (
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -66,10 +68,12 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 
 	maintainer := maintainerimpl.NewMaintainerImpl(&cfg.Maintainer)
 
+	message := messageimpl.Producer()
+
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
 			repo, messageimpl.Producer(), sensitivewordsimpl.Sensitive(),
-			maintainer, translationimpl.Translation(),
+			maintainer, service.NewPkgService(pkgmanager.Instance(), message), translationimpl.Translation(),
 		),
 	)
 }
