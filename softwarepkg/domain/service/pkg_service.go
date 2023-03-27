@@ -1,40 +1,54 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	pkgmanager "github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 )
 
 type SoftwarePkgService interface {
-	IsPkgExisted(string) bool
+	IsPkgExisted(dp.PackageName) bool
 }
 
-func NewPkgService(cli pkgmanager.PkgManager, message message.SoftwarePkgMessage) SoftwarePkgService {
-	return &pkgService{cli: cli, message: message}
+func NewPkgService(
+	manager pkgmanager.PkgManager, message message.SoftwarePkgMessage,
+) SoftwarePkgService {
+	return &pkgService{
+		manager: manager,
+		message: message,
+	}
 }
 
 type pkgService struct {
-	cli     pkgmanager.PkgManager
+	manager pkgmanager.PkgManager
 	message message.SoftwarePkgMessage
 }
 
-func (p *pkgService) IsPkgExisted(pkg string) bool {
-	if !p.cli.IsPkgExisted(pkg) {
+func (s *pkgService) IsPkgExisted(pkg dp.PackageName) bool {
+	if !s.manager.IsPkgExisted(pkg) {
 		return false
 	}
 
 	e := domain.NewSoftwarePkgAlreadyExistEvent(pkg)
-
-	if err := p.message.NotifyPkgAlreadyExisted(&e); err != nil {
-		logrus.Errorf(
-			"failed to notify pkg already exist event,err:%s", err.Error(),
-		)
-	} else {
-		logrus.Debugf("successfully to notify pkg already exist event")
-	}
+	err := s.message.NotifyPkgAlreadyExisted(&e)
+	s.log(pkg, err)
 
 	return true
+}
+
+func (s *pkgService) log(pkg dp.PackageName, err error) {
+	msg := fmt.Sprintf(
+		"notify that a pkg:%s already existed", pkg.PackageName(),
+	)
+
+	if err == nil {
+		logrus.Debugf("successfully to %s", msg)
+	} else {
+		logrus.Errorf("failed to %s, err:%s", msg, err.Error())
+	}
 }

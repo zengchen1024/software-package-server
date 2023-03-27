@@ -15,10 +15,9 @@ import (
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanager"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -62,18 +61,14 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
-	repo := repositoryimpl.NewSoftwarePkg(
-		&cfg.Postgresql.Config,
-	)
-
-	maintainer := maintainerimpl.NewMaintainerImpl(&cfg.Maintainer)
-
-	message := messageimpl.Producer()
-
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
-			repo, messageimpl.Producer(), sensitivewordsimpl.Sensitive(),
-			maintainer, service.NewPkgService(pkgmanager.Instance(), message), translationimpl.Translation(),
+			repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
+			pkgmanagerimpl.Instance(),
+			messageimpl.Producer(),
+			sensitivewordsimpl.Sensitive(),
+			maintainerimpl.NewMaintainerImpl(&cfg.Maintainer),
+			translationimpl.Translation(),
 		),
 	)
 }

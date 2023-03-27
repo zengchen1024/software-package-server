@@ -14,7 +14,7 @@ import (
 	"github.com/opensourceways/software-package-server/server"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanager"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
@@ -101,7 +101,7 @@ func main() {
 
 	middleware.Init(&cfg.Middleware)
 
-	pkgmanager.Init(&cfg.PkgManager)
+	pkgmanagerimpl.Init(&cfg.PkgManager)
 
 	// run
 	server.StartWebServer(o.service.Port, o.service.GracePeriod, cfg)

@@ -1,5 +1,7 @@
 package pkgmanager
 
+import "github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+
 type PkgManager interface {
-	IsPkgExisted(string) bool
+	IsPkgExisted(dp.PackageName) bool
 }

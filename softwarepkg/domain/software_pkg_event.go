@@ -2,6 +2,8 @@ package domain
 
 import (
 	"encoding/json"
+
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 // softwarePkgAppliedEvent
@@ -50,8 +52,8 @@ func (e *softwarePkgAlreadyExistedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgAlreadyExistEvent(pkg string) softwarePkgAlreadyExistedEvent {
+func NewSoftwarePkgAlreadyExistEvent(pkg dp.PackageName) softwarePkgAlreadyExistedEvent {
 	return softwarePkgAlreadyExistedEvent{
-		PkgName: pkg,
+		PkgName: pkg.PackageName(),
 	}
 }
