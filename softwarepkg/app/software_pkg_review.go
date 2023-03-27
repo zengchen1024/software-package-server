@@ -117,7 +117,7 @@ func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, e
 		return
 	}
 
-	if err = s.reviewServie.RejectPkg(&pkg, user); err == nil {
+	if _, err = pkg.RejectBy(user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -130,7 +130,7 @@ func (s *softwarePkgService) Abandon(pid string, user dp.Account) (code string, 
 		return
 	}
 
-	if err = s.reviewServie.AbandonPkg(&pkg, user); err == nil {
+	if err = pkg.Abandon(user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 

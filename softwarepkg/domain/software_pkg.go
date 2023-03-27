@@ -10,7 +10,6 @@ import (
 const minNumOfApprover = 2
 
 type User struct {
-	Id      string
 	Email   dp.Email
 	Account dp.Account
 }
@@ -25,15 +24,15 @@ type SoftwarePkgApplication struct {
 }
 
 type SoftwarePkgSourceCode struct {
-	Address dp.URL
-	License dp.License
+	SpecURL   dp.URL
+	SrcRPMURL dp.URL
 }
 
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id          string
 	PkgName     dp.PackageName
-	Importer    dp.Account
+	Importer    User
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
 	Frozen      bool
@@ -42,7 +41,6 @@ type SoftwarePkgBasicInfo struct {
 	ApprovedBy  []dp.Account
 	RejectedBy  []dp.Account
 	RelevantPR  dp.URL
-	PRNum       int
 }
 
 func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
@@ -58,14 +56,14 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 }
 
 func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
-	return entity.Phase.IsReviewing() || entity.Phase.IsCreatingRepo()
+	return entity.Phase.IsReviewing()
 }
 
 // change the status of "creating repo"
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
-	if !entity.Phase.IsReviewing() || entity.Frozen || entity.RelevantPR == nil {
+	if !entity.Phase.IsReviewing() || entity.Frozen {
 		return false, errors.New("not ready")
 	}
 
@@ -104,7 +102,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user dp.Account) error {
 		return errors.New("can't do this")
 	}
 
-	if !dp.IsSameAccount(user, entity.Importer) {
+	if !dp.IsSameAccount(user, entity.Importer.Account) {
 		return errors.New("not the importer")
 	}
 
@@ -138,6 +136,16 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 	return false, nil
 }
 
+func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
+	}
+
+	entity.Phase = dp.PackagePhaseClosed
+
+	return nil
+}
+
 type RepoCreatedInfo struct {
 	Platform dp.PackagePlatform
 	RepoLink dp.URL
@@ -157,35 +165,18 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	}
 
 	entity.RepoLink = info.RepoLink
-	entity.Phase = dp.PackagePhaseImported
 
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleRejectedBy(user dp.Account) (bool, error) {
-	if dp.IsPkgReviewResultRejected(entity.ReviewResult()) {
-		// already rejected
-		return true, nil
+func (entity *SoftwarePkgBasicInfo) HandleCodeSaved() error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
 	}
 
-	_, err := entity.RejectBy(user)
+	entity.Phase = dp.PackagePhaseImported
 
-	return false, err
-}
-
-func (entity *SoftwarePkgBasicInfo) HandleApprovedBy(users []dp.Account) (bool, error) {
-	if dp.IsPkgReviewResultApproved(entity.ReviewResult()) {
-		// already approved
-		return true, nil
-	}
-
-	for i := range users {
-		if b, err := entity.ApproveBy(users[i]); err != nil || b {
-			return false, err
-		}
-	}
-
-	return false, nil
+	return nil
 }
 
 // SoftwarePkg
@@ -195,10 +186,10 @@ type SoftwarePkg struct {
 	Comments []SoftwarePkgReviewComment
 }
 
-func NewSoftwarePkg(user dp.Account, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
+func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
 	return SoftwarePkgBasicInfo{
 		PkgName:     name,
-		Importer:    user,
+		Importer:    *user,
 		Phase:       dp.PackagePhaseReviewing,
 		Frozen:      true,
 		Application: *app,

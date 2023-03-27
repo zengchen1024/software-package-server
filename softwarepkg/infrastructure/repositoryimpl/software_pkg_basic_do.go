@@ -21,12 +21,14 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	app := &pkg.Application
 
 	*do = SoftwarePkgBasicDO{
-		Id:              uuid.New(),
-		PackageName:     pkg.PkgName.PackageName(),
-		Importer:        pkg.Importer.Account(),
+		Id:          uuid.New(),
+		PackageName: pkg.PkgName.PackageName(),
+		Importer:    pkg.Importer.Account.Account(),
+		// TODO encrypt email
+		ImporterEmail:   pkg.Importer.Email.Email(),
 		Phase:           pkg.Phase.PackagePhase(),
-		SourceCode:      app.SourceCode.Address.URL(),
-		License:         app.SourceCode.License.License(),
+		SpecURL:         app.SourceCode.SpecURL.URL(),
+		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
 		PackagePlatform: app.PackagePlatform.PackagePlatform(),
 		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
@@ -50,8 +52,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	if pkg.RelevantPR != nil {
 		do.RelevantPR = pkg.RelevantPR.URL()
 	}
-
-	do.PRNum = pkg.PRNum
 }
 
 type SoftwarePkgBasicDO struct {
@@ -59,10 +59,11 @@ type SoftwarePkgBasicDO struct {
 	Id              uuid.UUID              `gorm:"column:uuid;type:uuid"`
 	PackageName     string                 `gorm:"column:package_name"`
 	Importer        string                 `gorm:"column:importer"`
+	ImporterEmail   string                 `gorm:"column:importer_email"`
 	RepoLink        string                 `gorm:"column:repo_link"`
 	Phase           string                 `gorm:"column:phase"`
-	SourceCode      string                 `gorm:"column:source_code"`
-	License         string                 `gorm:"column:license"`
+	SpecURL         string                 `gorm:"column:spec_url"`
+	SrcRPMURL       string                 `gorm:"column:src_rpm_url"`
 	PackageDesc     string                 `gorm:"column:package_desc"`
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
@@ -73,7 +74,6 @@ type SoftwarePkgBasicDO struct {
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
 	AppliedAt       int64                  `gorm:"column:applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"`
-	PRNum           int                    `gorm:"column:pr_num"`
 	Version         optimisticlock.Version `gorm:"column:version"`
 }
 
@@ -96,7 +96,11 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		}
 	}
 
-	if info.Importer, err = dp.NewAccount(do.Importer); err != nil {
+	if info.Importer.Account, err = dp.NewAccount(do.Importer); err != nil {
+		return
+	}
+
+	if info.Importer.Email, err = dp.NewEmail(do.ImporterEmail); err != nil {
 		return
 	}
 
@@ -117,8 +121,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	info.Frozen = do.Frozen == frozenStatus
-
-	info.PRNum = do.PRNum
 
 	return
 }
@@ -155,11 +157,11 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgAp
 		return
 	}
 
-	if app.SourceCode.License, err = dp.NewLicense(do.License); err != nil {
+	if app.SourceCode.SrcRPMURL, err = dp.NewURL(do.SrcRPMURL); err != nil {
 		return
 	}
 
-	app.SourceCode.Address, err = dp.NewURL(do.SourceCode)
+	app.SourceCode.SpecURL, err = dp.NewURL(do.SpecURL)
 
 	return
 }

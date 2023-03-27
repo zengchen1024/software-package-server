@@ -1,6 +1,9 @@
 package dp
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 var config Config
 
@@ -10,7 +13,9 @@ func Init(cfg *Config, sv SigValidator) {
 }
 
 type Config struct {
-	SupportedLanguages           []string `json:"supported_languages"`
+	SupportedLanguages           []string `json:"supported_languages"       required:"true"`
+	SupportedPlatforms           []string `json:"supported_platforms"       required:"true"`
+	LocalPlatform                string   `json:"local_platform"            required:"true"`
 	MaxLengthOfPackageName       int      `json:"max_length_of_pkg_name"`
 	MaxLengthOfPackageDesc       int      `json:"max_length_of_pkg_desc"`
 	MaxLengthOfReviewComment     int      `json:"max_length_of_review_comment"`
@@ -40,18 +45,32 @@ func (cfg *Config) SetDefault() {
 }
 
 func (cfg *Config) Validate() error {
-	items := cfg.SupportedLanguages
-	for i, s := range items {
-		items[i] = strings.ToLower(s)
+	cfg.toLower(cfg.SupportedLanguages)
+	cfg.toLower(cfg.SupportedPlatforms)
+
+	if !cfg.isValidPlatform(cfg.LocalPlatform) {
+		return errors.New("unkonw local platform")
 	}
 
 	return nil
 }
 
-func (cfg *Config) isValidLanguage(v string) bool {
-	v = strings.ToLower(v)
+func (cfg *Config) toLower(items []string) {
+	for i, s := range items {
+		items[i] = strings.ToLower(s)
+	}
+}
 
-	for _, s := range cfg.SupportedLanguages {
+func (cfg *Config) isValidLanguage(v string) bool {
+	return cfg.has(strings.ToLower(v), cfg.SupportedLanguages)
+}
+
+func (cfg *Config) isValidPlatform(v string) bool {
+	return cfg.has(strings.ToLower(v), cfg.SupportedPlatforms)
+}
+
+func (cfg *Config) has(v string, items []string) bool {
+	for _, s := range items {
 		if v == s {
 			return true
 		}

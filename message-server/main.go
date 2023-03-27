@@ -16,7 +16,6 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 )
@@ -93,7 +92,6 @@ func main() {
 	messageService := app.NewSoftwarePkgMessageService(
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		&producer{topics: cfg.TopicsToNotify},
-		maintainerimpl.NewMaintainerImpl(&cfg.Maintainer),
 	)
 
 	// run

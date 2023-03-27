@@ -26,17 +26,17 @@ func (s *server) subscribe(cfg *Config) error {
 	topics := &cfg.Topics
 
 	h := map[string]kafka.Handler{
-		topics.SoftwarePkgPRMerged:    s.handlePkgPRMerged,
-		topics.SoftwarePkgPRClosed:    s.handlePkgPRClosed,
-		topics.SoftwarePkgPRCIChecked: s.handlePkgPRCIChecked,
+		topics.SoftwarePkgCIChecked:   s.handlePkgCIChecked,
+		topics.SoftwarePkgInitialized: s.handlePkgInitialized,
 		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
+		topics.SoftwarePkgCodeSaved:   s.handlePkgCodeSaved,
 	}
 
 	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
 }
 
-func (s *server) handlePkgPRCIChecked(data []byte) error {
-	msg := new(msgToHandlePkgPRCIChecked)
+func (s *server) handlePkgCIChecked(data []byte) error {
+	msg := new(msgToHandlePkgCIChecked)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
@@ -47,7 +47,22 @@ func (s *server) handlePkgPRCIChecked(data []byte) error {
 		return err
 	}
 
-	return s.service.HandlePkgPRCIChecked(cmd)
+	return s.service.HandlePkgCIChecked(cmd)
+}
+
+func (s *server) handlePkgInitialized(data []byte) error {
+	msg := new(msgToHandlePkgInitialized)
+
+	if err := json.Unmarshal(data, msg); err != nil {
+		return err
+	}
+
+	cmd, err := msg.toCmd()
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgInitialized(cmd)
 }
 
 func (s *server) handlePkgRepoCreated(data []byte) error {
@@ -65,22 +80,17 @@ func (s *server) handlePkgRepoCreated(data []byte) error {
 	return s.service.HandlePkgRepoCreated(cmd)
 }
 
-func (s *server) handlePkgPRClosed(data []byte) error {
-	msg := new(msgToHandlePkgPRClosed)
+func (s *server) handlePkgCodeSaved(data []byte) error {
+	msg := new(msgToHandlePkgCodeSaved)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgPRClosed(msg.toCmd())
-}
-
-func (s *server) handlePkgPRMerged(data []byte) error {
-	msg := new(msgToHandlePkgPRMerged)
-
-	if err := json.Unmarshal(data, msg); err != nil {
+	cmd, err := msg.toCmd()
+	if err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgPRMerged(msg.toCmd())
+	return s.service.HandlePkgCodeSaved(cmd)
 }

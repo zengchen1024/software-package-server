@@ -7,21 +7,45 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// CmdToHandlePkgPRCIChecked
-type CmdToHandlePkgPRCIChecked struct {
+// CmdToHandlePkgCIChecked
+type CmdToHandlePkgCIChecked struct {
 	PkgId       string
 	RelevantPR  dp.URL
 	PRNum       int
 	FiledReason string
 }
 
-func (cmd *CmdToHandlePkgPRCIChecked) isSuccess() bool {
+func (cmd *CmdToHandlePkgCIChecked) isSuccess() bool {
 	return cmd.FiledReason == ""
 }
 
-func (cmd *CmdToHandlePkgPRCIChecked) logString() string {
+func (cmd *CmdToHandlePkgCIChecked) logString() string {
 	return fmt.Sprintf(
 		"handling pkg ci checked, pkgid:%s, pr:%s",
+		cmd.PkgId, cmd.RelevantPR.URL(),
+	)
+}
+
+// CmdToHandlePkgInitialized
+type CmdToHandlePkgInitialized struct {
+	PkgId      string
+	RelevantPR dp.URL
+	// RepoLink is the one of already existed pkg
+	RepoLink    dp.URL
+	FiledReason string
+}
+
+func (cmd *CmdToHandlePkgInitialized) isSuccess() bool {
+	return cmd.FiledReason == "" && cmd.RepoLink == nil
+}
+
+func (cmd *CmdToHandlePkgInitialized) isPkgAreadyExisted() bool {
+	return cmd.RepoLink != nil
+}
+
+func (cmd *CmdToHandlePkgInitialized) logString() string {
+	return fmt.Sprintf(
+		"handling pkg initialized, pkgid:%s, pr:%s",
 		cmd.PkgId, cmd.RelevantPR.URL(),
 	)
 }
@@ -49,29 +73,5 @@ func (cmd *CmdToHandlePkgRepoCreated) logString() string {
 	)
 }
 
-// CmdToHandlePkgPRClosed
-type CmdToHandlePkgPRClosed struct {
-	PkgId      string
-	Reason     string
-	RejectedBy string
-}
-
-func (cmd *CmdToHandlePkgPRClosed) logString() string {
-	return fmt.Sprintf(
-		"handling pkg pr closed, pkgid:%s, reason:%s, rejected by:%s",
-		cmd.PkgId, cmd.Reason, cmd.RejectedBy,
-	)
-}
-
-// CmdToHandlePkgPRMerged
-type CmdToHandlePkgPRMerged struct {
-	PkgId      string
-	ApprovedBy []string
-}
-
-func (cmd *CmdToHandlePkgPRMerged) logString() string {
-	return fmt.Sprintf(
-		"handling pkg pr merged, pkgid:%s, approved by:%v",
-		cmd.PkgId, cmd.ApprovedBy,
-	)
-}
+// CmdToHandlePkgCodeSaved
+type CmdToHandlePkgCodeSaved = CmdToHandlePkgRepoCreated

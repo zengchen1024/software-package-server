@@ -12,13 +12,13 @@ const (
 )
 
 type softwarePkgRequest struct {
-	SourceCodeUrl     string `json:"source_code"     binding:"required"`
-	SourceCodeLicense string `json:"license"         binding:"required"`
-	PackageName       string `json:"pkg_name"        binding:"required"`
-	PackageDesc       string `json:"desc"            binding:"required"`
-	PackagePlatform   string `json:"platform"        binding:"required"`
-	PackageSig        string `json:"sig"             binding:"required"`
-	PackageReason     string `json:"reason"          binding:"required"`
+	SpecUrl         string `json:"spec_url"        binding:"required"`
+	SrcRPMURL       string `json:"src_rpm_url"     binding:"required"`
+	PackageName     string `json:"pkg_name"        binding:"required"`
+	PackageDesc     string `json:"desc"            binding:"required"`
+	PackageSig      string `json:"sig"             binding:"required"`
+	PackageReason   string `json:"reason"          binding:"required"`
+	PackagePlatform string `json:"platform"        binding:"required"`
 }
 
 func (s softwarePkgRequest) toCmd(importer *domain.User) (
@@ -33,12 +33,12 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 
 	application := &cmd.Application
 
-	application.SourceCode.Address, err = dp.NewURL(s.SourceCodeUrl)
+	application.SourceCode.SpecURL, err = dp.NewURL(s.SpecUrl)
 	if err != nil {
 		return
 	}
 
-	application.SourceCode.License, err = dp.NewLicense(s.SourceCodeLicense)
+	application.SourceCode.SrcRPMURL, err = dp.NewURL(s.SrcRPMURL)
 	if err != nil {
 		return
 	}
