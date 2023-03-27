@@ -42,7 +42,7 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 		PkgDesc:   app.PackageDesc.PackageDesc(),
 		PkgName:   v.PkgName.PackageName(),
 		Platform:  app.PackagePlatform.PackagePlatform(),
-		Importer:  v.Importer.Account(),
+		Importer:  v.Importer.Account.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
 

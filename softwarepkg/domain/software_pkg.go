@@ -10,7 +10,6 @@ import (
 const minNumOfApprover = 2
 
 type User struct {
-	Id      string
 	Email   dp.Email
 	Account dp.Account
 }
@@ -33,7 +32,7 @@ type SoftwarePkgSourceCode struct {
 type SoftwarePkgBasicInfo struct {
 	Id          string
 	PkgName     dp.PackageName
-	Importer    dp.Account
+	Importer    User
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
 	Frozen      bool
@@ -103,7 +102,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user dp.Account) error {
 		return errors.New("can't do this")
 	}
 
-	if !dp.IsSameAccount(user, entity.Importer) {
+	if !dp.IsSameAccount(user, entity.Importer.Account) {
 		return errors.New("not the importer")
 	}
 
@@ -187,10 +186,10 @@ type SoftwarePkg struct {
 	Comments []SoftwarePkgReviewComment
 }
 
-func NewSoftwarePkg(user dp.Account, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
+func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
 	return SoftwarePkgBasicInfo{
 		PkgName:     name,
-		Importer:    user,
+		Importer:    *user,
 		Phase:       dp.PackagePhaseReviewing,
 		Frozen:      true,
 		Application: *app,

@@ -2,26 +2,6 @@ package domain
 
 import "encoding/json"
 
-// softwarePkgApprovedEvent
-type softwarePkgApprovedEvent struct {
-	PkgId    string `json:"pkg_id"`
-	PkgName  string `json:"pkg_name"`
-	PRNum    int    `json:"pr_num"`
-	Platform string `json:"platform"`
-}
-
-func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
-	return json.Marshal(e)
-}
-
-func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedEvent {
-	return softwarePkgApprovedEvent{
-		PkgId:    pkg.Id,
-		PkgName:  pkg.PkgName.PackageName(),
-		Platform: pkg.Application.PackagePlatform.PackagePlatform(),
-	}
-}
-
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
 	Importer          string `json:"importer"`
@@ -39,15 +19,12 @@ func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgAppliedEvent(
-	importer *User,
-	pkg *SoftwarePkgBasicInfo,
-) softwarePkgAppliedEvent {
+func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
 	app := &pkg.Application
 
 	return softwarePkgAppliedEvent{
-		Importer:          importer.Account.Account(),
-		ImporterEmail:     importer.Email.Email(),
+		Importer:          pkg.Importer.Account.Account(),
+		ImporterEmail:     pkg.Importer.Email.Email(),
 		PkgId:             pkg.Id,
 		PkgName:           pkg.PkgName.PackageName(),
 		PkgDesc:           app.PackageDesc.PackageDesc(),
@@ -58,4 +35,7 @@ func NewSoftwarePkgAppliedEvent(
 	}
 }
 
-var NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
+var (
+	NewSoftwarePkgApprovedEvent    = NewSoftwarePkgAppliedEvent
+	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
+)

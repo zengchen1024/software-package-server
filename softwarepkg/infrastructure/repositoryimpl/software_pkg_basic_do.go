@@ -21,9 +21,11 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	app := &pkg.Application
 
 	*do = SoftwarePkgBasicDO{
-		Id:              uuid.New(),
-		PackageName:     pkg.PkgName.PackageName(),
-		Importer:        pkg.Importer.Account(),
+		Id:          uuid.New(),
+		PackageName: pkg.PkgName.PackageName(),
+		Importer:    pkg.Importer.Account.Account(),
+		// TODO encrypt email
+		ImporterEmail:   pkg.Importer.Email.Email(),
 		Phase:           pkg.Phase.PackagePhase(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
@@ -57,6 +59,7 @@ type SoftwarePkgBasicDO struct {
 	Id              uuid.UUID              `gorm:"column:uuid;type:uuid"`
 	PackageName     string                 `gorm:"column:package_name"`
 	Importer        string                 `gorm:"column:importer"`
+	ImporterEmail   string                 `gorm:"column:importer_email"`
 	RepoLink        string                 `gorm:"column:repo_link"`
 	Phase           string                 `gorm:"column:phase"`
 	SpecURL         string                 `gorm:"column:spec_url"`
@@ -93,7 +96,11 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		}
 	}
 
-	if info.Importer, err = dp.NewAccount(do.Importer); err != nil {
+	if info.Importer.Account, err = dp.NewAccount(do.Importer); err != nil {
+		return
+	}
+
+	if info.Importer.Email, err = dp.NewEmail(do.ImporterEmail); err != nil {
 		return
 	}
 

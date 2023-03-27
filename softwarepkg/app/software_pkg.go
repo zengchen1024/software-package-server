@@ -60,13 +60,13 @@ type softwarePkgService struct {
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	code string, err error,
 ) {
-	v := domain.NewSoftwarePkg(cmd.Importer.Account, cmd.PkgName, &cmd.Application)
+	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
 		}
 	} else {
-		e := domain.NewSoftwarePkgAppliedEvent(&cmd.Importer, &v)
+		e := domain.NewSoftwarePkgAppliedEvent(&v)
 		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
 			logrus.Errorf(
 				"failed to notify a new applying pkg:%s, err:%s",
