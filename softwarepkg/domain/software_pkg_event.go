@@ -6,8 +6,39 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+var (
+	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
+)
+
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
+	PkgId     string `json:"pkg_id"`
+	SpecURL   string `json:"spec_url"`
+	SrcRPMURL string `json:"src_rpm_url"`
+}
+
+func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
+	app := &pkg.Application
+
+	return softwarePkgAppliedEvent{
+		PkgId:     pkg.Id,
+		SpecURL:   app.SourceCode.SpecURL.URL(),
+		SrcRPMURL: app.SourceCode.SrcRPMURL.URL(),
+	}
+}
+
+func UnmarshalToSoftwarePkgAppliedEvent(data []byte) (e softwarePkgAppliedEvent, err error) {
+	err = json.Unmarshal(data, &e)
+
+	return
+}
+
+// softwarePkgApprovedEvent
+type softwarePkgApprovedEvent struct {
 	Importer          string `json:"importer"`
 	ImporterEmail     string `json:"importer_email"`
 	PkgId             string `json:"pkg_id"`
@@ -19,14 +50,14 @@ type softwarePkgAppliedEvent struct {
 	ReasonToImportPkg string `json:"reason_to_import"`
 }
 
-func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
+func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
+func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedEvent {
 	app := &pkg.Application
 
-	return softwarePkgAppliedEvent{
+	return softwarePkgApprovedEvent{
 		Importer:          pkg.Importer.Account.Account(),
 		ImporterEmail:     pkg.Importer.Email.Email(),
 		PkgId:             pkg.Id,
@@ -38,11 +69,6 @@ func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEve
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
 	}
 }
-
-var (
-	NewSoftwarePkgApprovedEvent    = NewSoftwarePkgAppliedEvent
-	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
-)
 
 type softwarePkgAlreadyExistedEvent struct {
 	PkgName string `json:"pkg_name"`

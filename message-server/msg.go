@@ -2,8 +2,26 @@ package main
 
 import (
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
+
+func cmdToHandlePkgCIChecking(data []byte) (cmd app.CmdToHandlePkgCIChecking, err error) {
+	v, err := domain.UnmarshalToSoftwarePkgAppliedEvent(data)
+	if err != nil {
+		return
+	}
+
+	cmd.PkgId = v.PkgId
+
+	if cmd.SourceCode.SpecURL, err = dp.NewURL(v.SpecURL); err != nil {
+		return
+	}
+
+	cmd.SourceCode.SrcRPMURL, err = dp.NewURL(v.SrcRPMURL)
+
+	return
+}
 
 // msgToHandlePkgCIChecked
 type msgToHandlePkgCIChecked struct {

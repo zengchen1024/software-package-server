@@ -8,12 +8,14 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgtester"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
 type SoftwarePkgMessageService interface {
-	HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error
-	HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error
+	HandlePkgCIChecking(CmdToHandlePkgCIChecking) error
+	HandlePkgCIChecked(CmdToHandlePkgCIChecked) error
+	HandlePkgInitialized(CmdToHandlePkgInitialized) error
 	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
 	HandlePkgCodeSaved(CmdToHandlePkgCodeSaved) error
 }
@@ -31,6 +33,12 @@ func NewSoftwarePkgMessageService(
 type softwarePkgMessageService struct {
 	repo    repository.SoftwarePkg
 	message message.SoftwarePkgIndirectMessage
+	tester  pkgtester.PkgTester
+}
+
+// HandlePkgCIChecking
+func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
+	return s.tester.SendTest(&cmd)
 }
 
 // HandlePkgCIChecked
