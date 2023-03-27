@@ -8,7 +8,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanager"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -45,14 +45,14 @@ type PostgresqlConfig struct {
 
 type Config struct {
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
-	PkgManager     pkgmanager.Config         `json:"pkg_manager"          required:"true"`
-	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
+	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
 	Postgresql     PostgresqlConfig          `json:"postgresql"           required:"true"`
 	Maintainer     maintainerimpl.Config     `json:"maintainer"           required:"true"`
 	SoftwarePkg    dp.Config                 `json:"software_pkg"         required:"true"`
 	Translation    translationimpl.Config    `json:"translation"          required:"true"`
 	SigValidator   sigvalidatorimpl.Config   `json:"sig"                  required:"true"`
+	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
 }
 
 func (cfg *Config) configItems() []interface{} {

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/sirupsen/logrus"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
@@ -35,10 +36,10 @@ var _ SoftwarePkgService = (*softwarePkgService)(nil)
 
 func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
+	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgMessage,
 	sensitive sensitivewords.SensitiveWords,
 	maintainer maintainer.Maintainer,
-	pkgService service.SoftwarePkgService,
 	translation translation.Translation,
 ) *softwarePkgService {
 	return &softwarePkgService{
@@ -47,7 +48,7 @@ func NewSoftwarePkgService(
 		sensitive:    sensitive,
 		maintainer:   maintainer,
 		translation:  translation,
-		pkgService:   pkgService,
+		pkgService:   service.NewPkgService(manager, message),
 		reviewServie: service.NewReviewService(message),
 	}
 }
@@ -55,8 +56,8 @@ func NewSoftwarePkgService(
 type softwarePkgService struct {
 	repo         repository.SoftwarePkg
 	message      message.SoftwarePkgMessage
-	maintainer   maintainer.Maintainer
 	sensitive    sensitivewords.SensitiveWords
+	maintainer   maintainer.Maintainer
 	translation  translation.Translation
 	pkgService   service.SoftwarePkgService
 	reviewServie service.SoftwarePkgReviewService
@@ -66,8 +67,8 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	code string, err error,
 ) {
 	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
-	if s.pkgService.IsPkgExisted(cmd.PkgName.PackageName()) {
-		err = fmt.Errorf("software package %s is always exist", cmd.PkgName.PackageName())
+	if s.pkgService.IsPkgExisted(cmd.PkgName) {
+		err = errors.New("software package already existed")
 		code = errorSoftwarePkgExists
 
 		return

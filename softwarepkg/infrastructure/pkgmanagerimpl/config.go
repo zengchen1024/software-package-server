@@ -1,4 +1,4 @@
-package pkgmanager
+package pkgmanagerimpl
 
 type Config struct {
 	Org         string `json:"org"            required:"true"`
