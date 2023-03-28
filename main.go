@@ -18,6 +18,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type options struct {
@@ -95,6 +96,12 @@ func main() {
 	}
 
 	defer sigvalidatorimpl.Exit()
+
+	if err = utils.InitEncryption(cfg.EncryptKey); err != nil {
+		logrus.Errorf("init encryption failed, err:%s", err.Error())
+
+		return
+	}
 
 	// Domain
 	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())

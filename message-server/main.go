@@ -18,6 +18,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 type options struct {
@@ -68,6 +69,12 @@ func main() {
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Fatalf("init db, err:%s", err.Error())
+	}
+
+	if err = utils.InitEncryption(cfg.EncryptKey); err != nil {
+		logrus.Errorf("init encryption failed, err:%s", err.Error())
+
+		return
 	}
 
 	// mq

@@ -26,6 +26,7 @@ func loadConfig(path string) (*Config, error) {
 }
 
 type Config struct {
+	EncryptKey     string                  `json:"encrypt_key"          required:"true"`
 	Kafka          kafka.Config            `json:"kafka"                required:"true"`
 	Topics         Topics                  `json:"topics_to_subscribe"  required:"true"`
 	GroupName      string                  `json:"group_name"           required:"true"`

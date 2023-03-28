@@ -7,6 +7,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 const (
@@ -17,15 +18,13 @@ const (
 	unfrozenStatus = "unfrozen"
 )
 
-func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) {
+func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
 	app := &pkg.Application
 
 	*do = SoftwarePkgBasicDO{
-		Id:          uuid.New(),
-		PackageName: pkg.PkgName.PackageName(),
-		Importer:    pkg.Importer.Account.Account(),
-		// TODO encrypt email
-		ImporterEmail:   pkg.Importer.Email.Email(),
+		Id:              uuid.New(),
+		PackageName:     pkg.PkgName.PackageName(),
+		Importer:        pkg.Importer.Account.Account(),
 		Phase:           pkg.Phase.PackagePhase(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
@@ -52,6 +51,10 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	if pkg.RelevantPR != nil {
 		do.RelevantPR = pkg.RelevantPR.URL()
 	}
+
+	do.ImporterEmail, err = utils.Encrypt.Encrypt([]byte(pkg.Importer.Email.Email()))
+
+	return
 }
 
 type SoftwarePkgBasicDO struct {
@@ -100,7 +103,12 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		return
 	}
 
-	if info.Importer.Email, err = dp.NewEmail(do.ImporterEmail); err != nil {
+	v, err := utils.Encrypt.Decrypt(do.ImporterEmail)
+	if err != nil {
+		return
+	}
+
+	if info.Importer.Email, err = dp.NewEmail(string(v)); err != nil {
 		return
 	}
 

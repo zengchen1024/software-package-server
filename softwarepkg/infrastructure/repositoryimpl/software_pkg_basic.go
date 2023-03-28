@@ -27,7 +27,9 @@ func (s softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, vers
 	}
 
 	var do SoftwarePkgBasicDO
-	s.toSoftwarePkgBasicDO(pkg, &do)
+	if err = s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
+		return err
+	}
 
 	do.UpdatedAt = utils.Now()
 	do.Id = u
@@ -110,7 +112,9 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 
 func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
 	var do SoftwarePkgBasicDO
-	s.toSoftwarePkgBasicDO(pkg, &do)
+	if err := s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
+		return err
+	}
 
 	pkg.Id = do.Id.String()
 

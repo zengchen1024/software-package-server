@@ -44,6 +44,7 @@ type PostgresqlConfig struct {
 }
 
 type Config struct {
+	EncryptKey     string                    `json:"encrypt_key"          required:"true"`
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
 	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
