@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 )
 
@@ -34,6 +35,7 @@ type Config struct {
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
 	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
+	PkgCI          pkgciimpl.Config        `json:"ci"                  required:"true"`
 }
 
 type Topics struct {
@@ -62,9 +64,10 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Kafka,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
-		&cfg.SoftwarePkg,
 		&cfg.Maintainer,
+		&cfg.SoftwarePkg,
 		&cfg.SigValidator,
+		&cfg.PkgCI,
 	}
 }
 

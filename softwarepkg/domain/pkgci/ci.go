@@ -1,4 +1,4 @@
-package pkgtester
+package pkgci
 
 import "github.com/opensourceways/software-package-server/softwarepkg/domain"
 
@@ -7,6 +7,6 @@ type SoftwarePkgInfo struct {
 	SourceCode domain.SoftwarePkgSourceCode
 }
 
-type PkgTester interface {
+type PkgCI interface {
 	SendTest(*SoftwarePkgInfo) error
 }

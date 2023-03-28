@@ -8,7 +8,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgtester"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgci"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
@@ -21,24 +21,26 @@ type SoftwarePkgMessageService interface {
 }
 
 func NewSoftwarePkgMessageService(
+	ci pkgci.PkgCI,
 	repo repository.SoftwarePkg,
 	message message.SoftwarePkgIndirectMessage,
 ) softwarePkgMessageService {
 	return softwarePkgMessageService{
+		ci:      ci,
 		repo:    repo,
 		message: message,
 	}
 }
 
 type softwarePkgMessageService struct {
+	ci      pkgci.PkgCI
 	repo    repository.SoftwarePkg
 	message message.SoftwarePkgIndirectMessage
-	tester  pkgtester.PkgTester
 }
 
 // HandlePkgCIChecking
 func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
-	return s.tester.SendTest(&cmd)
+	return s.ci.SendTest(&cmd)
 }
 
 // HandlePkgCIChecked
