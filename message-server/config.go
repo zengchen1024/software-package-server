@@ -8,6 +8,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
+	localutils "github.com/opensourceways/software-package-server/utils"
 )
 
 func loadConfig(path string) (*Config, error) {
@@ -26,10 +27,10 @@ func loadConfig(path string) (*Config, error) {
 }
 
 type Config struct {
-	EncryptKey     string                  `json:"encrypt_key"          required:"true"`
 	Kafka          kafka.Config            `json:"kafka"                required:"true"`
 	Topics         Topics                  `json:"topics_to_subscribe"  required:"true"`
 	GroupName      string                  `json:"group_name"           required:"true"`
+	Encryption     localutils.Config       `json:"encryption"           required:"true"`
 	Postgresql     config.PostgresqlConfig `json:"postgresql"           required:"true"`
 	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
@@ -60,6 +61,7 @@ type configSetDefault interface {
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.Kafka,
+		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg,

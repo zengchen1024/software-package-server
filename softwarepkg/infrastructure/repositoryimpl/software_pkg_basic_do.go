@@ -19,6 +19,11 @@ const (
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
+	do.ImporterEmail, err = toEmailDO(pkg.Importer.Email)
+	if err != nil {
+		return
+	}
+
 	app := &pkg.Application
 
 	*do = SoftwarePkgBasicDO{
@@ -51,8 +56,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	if pkg.RelevantPR != nil {
 		do.RelevantPR = pkg.RelevantPR.URL()
 	}
-
-	do.ImporterEmail, err = utils.Encrypt.Encrypt([]byte(pkg.Importer.Email.Email()))
 
 	return
 }
@@ -103,12 +106,7 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		return
 	}
 
-	v, err := utils.Encrypt.Decrypt(do.ImporterEmail)
-	if err != nil {
-		return
-	}
-
-	if info.Importer.Email, err = dp.NewEmail(string(v)); err != nil {
+	if info.Importer.Email, err = toEmail(string(do.ImporterEmail)); err != nil {
 		return
 	}
 
@@ -181,4 +179,17 @@ func toStringArray(v []dp.Account) (arr pq.StringArray) {
 	}
 
 	return
+}
+
+func toEmailDO(e dp.Email) (string, error) {
+	return utils.Encryption.Encrypt([]byte(e.Email()))
+}
+
+func toEmail(e string) (dp.Email, error) {
+	v, err := utils.Encryption.Decrypt(e)
+	if err != nil {
+		return nil, err
+	}
+
+	return dp.NewEmail(string(v))
 }

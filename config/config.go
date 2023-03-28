@@ -13,6 +13,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
+	localutils "github.com/opensourceways/software-package-server/utils"
 )
 
 func LoadConfig(path string) (*Config, error) {
@@ -44,8 +45,8 @@ type PostgresqlConfig struct {
 }
 
 type Config struct {
-	EncryptKey     string                    `json:"encrypt_key"          required:"true"`
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
+	Encryption     localutils.Config         `json:"encryption"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
 	Postgresql     PostgresqlConfig          `json:"postgresql"           required:"true"`
@@ -59,6 +60,7 @@ type Config struct {
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.MQ,
+		&cfg.Encryption,
 		&cfg.PkgManager,
 		&cfg.SensitiveWords,
 		&cfg.Middleware,
