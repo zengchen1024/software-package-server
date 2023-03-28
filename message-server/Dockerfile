@@ -8,6 +8,7 @@ RUN cd /go/src/github.com/opensourceways/software-package-server/message-server 
 FROM alpine:latest
 WORKDIR /opt/app/
 
+COPY ../softwarepkg/infrastructure/pkgciimpl/payload.json /opt/app/payload.json
 COPY  --from=BUILDER /go/src/github.com/opensourceways/software-package-server/message-server/message-server /opt/app
 
 ENTRYPOINT ["/opt/app/message-server"]
