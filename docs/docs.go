@@ -30,7 +30,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/clavalidator.CLA"
+                            "$ref": "#/definitions/controller.claSingedResp"
                         }
                     },
                     "400": {
@@ -536,14 +536,6 @@ const docTemplate = `{
                 }
             }
         },
-        "clavalidator.CLA": {
-            "type": "object",
-            "properties": {
-                "signed": {
-                    "type": "boolean"
-                }
-            }
-        },
         "controller.ResponseData": {
             "type": "object",
             "properties": {
@@ -553,6 +545,14 @@ const docTemplate = `{
                 "data": {},
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.claSingedResp": {
+            "type": "object",
+            "properties": {
+                "signed": {
+                    "type": "boolean"
                 }
             }
         },
