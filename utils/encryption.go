@@ -10,15 +10,19 @@ import (
 	"io"
 )
 
+type Config struct {
+	EncryptionKey string `json:"encryption_key"  required:"true"`
+}
+
 type SymmetricEncryption interface {
 	Encrypt(plaintext []byte) (string, error)
 	Decrypt(ciphertext string) ([]byte, error)
 }
 
-var Encrypt SymmetricEncryption
+var Encryption SymmetricEncryption
 
 func InitEncryption(key string) (err error) {
-	Encrypt, err = newSymmetricEncryption(key, "")
+	Encryption, err = newSymmetricEncryption(key, "")
 
 	return
 }
@@ -49,7 +53,7 @@ func newSymmetricEncryption(key, nonce string) (SymmetricEncryption, error) {
 		se.nonce = nonce1
 	}
 
-	return se, nil
+	return &se, nil
 }
 
 type symmetricEncryption struct {
@@ -57,7 +61,7 @@ type symmetricEncryption struct {
 	nonce []byte
 }
 
-func (se symmetricEncryption) Encrypt(plaintext []byte) (string, error) {
+func (se *symmetricEncryption) Encrypt(plaintext []byte) (string, error) {
 	nonce := se.nonce
 	if nonce == nil {
 		nonce = make([]byte, se.aead.NonceSize())
@@ -71,18 +75,18 @@ func (se symmetricEncryption) Encrypt(plaintext []byte) (string, error) {
 	), nil
 }
 
-func (se symmetricEncryption) Decrypt(ciphertext string) ([]byte, error) {
-	bys, err := base64.StdEncoding.DecodeString(ciphertext)
+func (se *symmetricEncryption) Decrypt(ciphertext string) ([]byte, error) {
+	content, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return nil, err
 	}
 
 	nonceSize := se.aead.NonceSize()
-	if len(bys) < nonceSize {
+	if len(content) < nonceSize {
 		return nil, errors.New("ciphertext too short")
 	}
 
-	nonce, text := bys[:nonceSize], bys[nonceSize:]
+	nonce, text := content[:nonceSize], content[nonceSize:]
 
 	return se.aead.Open(nil, nonce, text, nil)
 }

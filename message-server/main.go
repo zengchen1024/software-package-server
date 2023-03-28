@@ -71,7 +71,7 @@ func main() {
 		logrus.Fatalf("init db, err:%s", err.Error())
 	}
 
-	if err = utils.InitEncryption(cfg.EncryptKey); err != nil {
+	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
 		logrus.Errorf("init encryption failed, err:%s", err.Error())
 
 		return
