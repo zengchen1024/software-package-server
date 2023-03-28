@@ -25,7 +25,7 @@ func AddRouteForCLAController(r *gin.RouterGroup, service clavalidator.ClaValida
 // @Description verify cla
 // @Tags  CLA
 // @Accept json
-// @Success 200 {object} clavalidator.CLA
+// @Success 200 {object} claSingedResp
 // @Failure 400 {object} ResponseData
 // @Router /v1/cla [get]
 func (c CLAController) VerifyCla(ctx *gin.Context) {
@@ -36,17 +36,13 @@ func (c CLAController) VerifyCla(ctx *gin.Context) {
 		return
 	}
 
-	has, err := c.service.HasSignedCLA(user.Email)
-	if err != nil {
+	if v, err := c.service.HasSignedCLA(user.Email); err != nil {
 		commonctl.SendFailedResp(ctx, "", err)
-
-		return
+	} else {
+		commonctl.SendRespOfGet(ctx, claSingedResp{v})
 	}
+}
 
-	var v clavalidator.CLA
-	if has {
-		v.Signed = true
-	}
-
-	commonctl.SendRespOfGet(ctx, v)
+type claSingedResp struct {
+	Signed bool `json:"signed"`
 }

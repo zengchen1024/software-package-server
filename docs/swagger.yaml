@@ -97,11 +97,6 @@ definitions:
       content:
         type: string
     type: object
-  clavalidator.CLA:
-    properties:
-      signed:
-        type: boolean
-    type: object
   controller.ResponseData:
     properties:
       code:
@@ -109,6 +104,11 @@ definitions:
       data: {}
       msg:
         type: string
+    type: object
+  controller.claSingedResp:
+    properties:
+      signed:
+        type: boolean
     type: object
   controller.reviewCommentRequest:
     properties:
@@ -172,7 +172,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/clavalidator.CLA'
+            $ref: '#/definitions/controller.claSingedResp'
         "400":
           description: Bad Request
           schema:

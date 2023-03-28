@@ -5,15 +5,17 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/google/uuid v1.3.0
+	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.33
 	github.com/lib/pq v1.10.7
 	github.com/opensourceways/kafka-lib v0.0.0-20230208095708-dcdb61015d05
+	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c
 	github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db
 	github.com/sirupsen/logrus v1.9.0
-	github.com/swaggo/files v1.0.0
+	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.5.3
-	github.com/swaggo/swag v1.8.10
-	gorm.io/driver/postgres v1.4.8
-	gorm.io/gorm v1.24.2
+	github.com/swaggo/swag v1.8.11
+	gorm.io/driver/postgres v1.5.0
+	gorm.io/gorm v1.24.7-0.20230306060331-85eaf9eeda11
 	gorm.io/plugin/optimisticlock v1.1.0
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -44,7 +46,6 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
-	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.30 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.0 // indirect
@@ -65,7 +66,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96 // indirect
-	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect

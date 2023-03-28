@@ -26,7 +26,7 @@ type service struct {
 	cli utils.HttpClient
 }
 
-type signingInfo struct {
+type signedResult struct {
 	Data struct {
 		Signed bool `json:"signed"`
 	} `json:"data"`
@@ -38,10 +38,9 @@ func (s *service) HasSignedCLA(email dp.Email) (bool, error) {
 		return false, err
 	}
 
-	var v signingInfo
+	v := new(signedResult)
 
-	_, err = s.cli.ForwardTo(req, &v)
-	if err != nil {
+	if _, err = s.cli.ForwardTo(req, v); err != nil {
 		return false, err
 	}
 
