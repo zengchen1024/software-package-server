@@ -19,9 +19,9 @@ const (
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
-	do.ImporterEmail, err = toEmailDO(pkg.Importer.Email)
+	email, err := toEmailDO(pkg.Importer.Email)
 	if err != nil {
-		return
+		return err
 	}
 
 	app := &pkg.Application
@@ -30,6 +30,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		Id:              uuid.New(),
 		PackageName:     pkg.PkgName.PackageName(),
 		Importer:        pkg.Importer.Account.Account(),
+		ImporterEmail:   email,
 		Phase:           pkg.Phase.PackagePhase(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
