@@ -16,6 +16,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/cla": {
+            "get": {
+                "description": "verify cla",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CLA"
+                ],
+                "summary": "verify cla",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/clavalidator.CLA"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/sig": {
             "get": {
                 "description": "list sigs",
@@ -366,9 +392,6 @@ const docTemplate = `{
                 "desc": {
                     "type": "string"
                 },
-                "license": {
-                    "type": "string"
-                },
                 "platform": {
                     "type": "string"
                 },
@@ -378,7 +401,10 @@ const docTemplate = `{
                 "sig": {
                     "type": "string"
                 },
-                "source_code": {
+                "spec_url": {
+                    "type": "string"
+                },
+                "src_rpm_url": {
                     "type": "string"
                 }
             }
@@ -510,6 +536,14 @@ const docTemplate = `{
                 }
             }
         },
+        "clavalidator.CLA": {
+            "type": "object",
+            "properties": {
+                "signed": {
+                    "type": "boolean"
+                }
+            }
+        },
         "controller.ResponseData": {
             "type": "object",
             "properties": {
@@ -537,18 +571,15 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "desc",
-                "license",
                 "pkg_name",
                 "platform",
                 "reason",
                 "sig",
-                "source_code"
+                "spec_url",
+                "src_rpm_url"
             ],
             "properties": {
                 "desc": {
-                    "type": "string"
-                },
-                "license": {
                     "type": "string"
                 },
                 "pkg_name": {
@@ -563,7 +594,10 @@ const docTemplate = `{
                 "sig": {
                     "type": "string"
                 },
-                "source_code": {
+                "spec_url": {
+                    "type": "string"
+                },
+                "src_rpm_url": {
                     "type": "string"
                 }
             }

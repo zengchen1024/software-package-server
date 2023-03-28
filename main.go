@@ -13,6 +13,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/server"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
@@ -109,6 +110,8 @@ func main() {
 	middleware.Init(&cfg.Middleware)
 
 	pkgmanagerimpl.Init(&cfg.PkgManager)
+
+	clavalidatorimpl.Init(&cfg.CLA)
 
 	// run
 	server.StartWebServer(o.service.Port, o.service.GracePeriod, cfg)

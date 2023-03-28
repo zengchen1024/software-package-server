@@ -3,15 +3,15 @@ definitions:
     properties:
       desc:
         type: string
-      license:
-        type: string
       platform:
         type: string
       reason:
         type: string
       sig:
         type: string
-      source_code:
+      spec_url:
+        type: string
+      src_rpm_url:
         type: string
     type: object
   app.SoftwarePkgBasicInfoDTO:
@@ -97,6 +97,11 @@ definitions:
       content:
         type: string
     type: object
+  clavalidator.CLA:
+    properties:
+      signed:
+        type: boolean
+    type: object
   controller.ResponseData:
     properties:
       code:
@@ -116,8 +121,6 @@ definitions:
     properties:
       desc:
         type: string
-      license:
-        type: string
       pkg_name:
         type: string
       platform:
@@ -126,16 +129,18 @@ definitions:
         type: string
       sig:
         type: string
-      source_code:
+      spec_url:
+        type: string
+      src_rpm_url:
         type: string
     required:
     - desc
-    - license
     - pkg_name
     - platform
     - reason
     - sig
-    - source_code
+    - spec_url
+    - src_rpm_url
     type: object
   controller.translationCommentRequest:
     properties:
@@ -158,6 +163,23 @@ definitions:
 info:
   contact: {}
 paths:
+  /v1/cla:
+    get:
+      consumes:
+      - application/json
+      description: verify cla
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clavalidator.CLA'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: verify cla
+      tags:
+      - CLA
   /v1/sig:
     get:
       consumes:

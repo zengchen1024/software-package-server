@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/software-package-server/docs"
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
@@ -58,6 +59,10 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 	initSoftwarePkgService(v1, cfg)
 
 	controller.AddRouteForSigController(v1, sigvalidatorimpl.SigValidator())
+
+	controller.AddRouteForCLAController(
+		v1, clavalidatorimpl.Instance(),
+	)
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
