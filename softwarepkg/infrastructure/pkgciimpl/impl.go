@@ -57,7 +57,8 @@ func (impl *pkgCIImpl) SendTest(info *pkgci.SoftwarePkgInfo) error {
 	}
 
 	payload := testPayload{
-		common:  impl.commonBody,
+		common: impl.commonBody,
+		// data[1:] ignores the prefix of '{' in order to append to the common body
 		pkgInfo: bytes.NewReader(data[1:]),
 	}
 
