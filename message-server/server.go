@@ -26,6 +26,7 @@ func (s *server) subscribe(cfg *Config) error {
 	topics := &cfg.Topics
 
 	h := map[string]kafka.Handler{
+		topics.SoftwarePkgCIChecking:  s.handlePkgCIChecking,
 		topics.SoftwarePkgCIChecked:   s.handlePkgCIChecked,
 		topics.SoftwarePkgInitialized: s.handlePkgInitialized,
 		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
@@ -33,6 +34,15 @@ func (s *server) subscribe(cfg *Config) error {
 	}
 
 	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
+}
+
+func (s *server) handlePkgCIChecking(data []byte) error {
+	cmd, err := cmdToHandlePkgCIChecking(data)
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgCIChecking(cmd)
 }
 
 func (s *server) handlePkgCIChecked(data []byte) error {

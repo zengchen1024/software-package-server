@@ -16,6 +16,7 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/utils"
@@ -95,8 +96,16 @@ func main() {
 
 	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
 
+	// ci
+	if err := pkgciimpl.Init(&cfg.PkgCI); err != nil {
+		logrus.Errorf("init ci failed, err:%s", err.Error())
+
+		return
+	}
+
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
+		pkgciimpl.PkgCI(),
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		&producer{topics: cfg.TopicsToNotify},
 	)

@@ -7,6 +7,7 @@ import (
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	localutils "github.com/opensourceways/software-package-server/utils"
 )
@@ -36,9 +37,11 @@ type Config struct {
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
 	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
+	PkgCI          pkgciimpl.Config        `json:"ci"                  required:"true"`
 }
 
 type Topics struct {
+	SoftwarePkgCIChecking  string `json:"software_pkg_ci_checking"      required:"true"`
 	SoftwarePkgCIChecked   string `json:"software_pkg_ci_checked"       required:"true"`
 	SoftwarePkgInitialized string `json:"software_pkg_initialized"      required:"true"`
 	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"     required:"true"`
@@ -64,9 +67,10 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
-		&cfg.SoftwarePkg,
 		&cfg.Maintainer,
+		&cfg.SoftwarePkg,
 		&cfg.SigValidator,
+		&cfg.PkgCI,
 	}
 }
 
