@@ -12,11 +12,9 @@ type PackageName interface {
 }
 
 func NewPackageName(v string) (PackageName, error) {
-	if v == "" {
-		return nil, errors.New("empty package name")
+	if v == "" || !reName.MatchString(v) {
+		return nil, errors.New("invalid package name")
 	}
-
-	// TODO: check by regexp
 
 	if max := config.MaxLengthOfPackageName; utils.StrLen(v) > max {
 		return nil, fmt.Errorf(
