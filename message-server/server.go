@@ -107,12 +107,7 @@ func (s *server) handlePkgCodeSaved(data []byte) error {
 }
 
 func (s *server) handlePkgAlreadyExisted(data []byte) error {
-	msg := new(msgToHandlePkgAlreadyExisted)
-	if err := json.Unmarshal(data, msg); err != nil {
-		return err
-	}
-
-	cmd, err := msg.toCmd()
+	cmd, err := cmdToHandlePkgAlreadyExisted(data)
 	if err != nil {
 		return err
 	}

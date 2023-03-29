@@ -3,6 +3,7 @@ package repositoryimpl
 import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
@@ -39,4 +40,8 @@ func (impl softwarePkgImpl) FindSoftwarePkg(pid string) (
 	pkg.Comments, err = impl.findSoftwarePkgReviews(pid)
 
 	return
+}
+
+func (impl softwarePkgImpl) HasSoftwarePkg(dp.PackageName) (bool, error) {
+	return false, nil
 }

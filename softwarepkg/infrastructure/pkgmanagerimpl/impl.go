@@ -2,9 +2,7 @@ package pkgmanagerimpl
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
-	"strings"
 
 	sdk "github.com/opensourceways/go-gitee/gitee"
 	"github.com/opensourceways/robot-gitee-lib/client"
@@ -15,90 +13,81 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-var (
-	instance *service
-	base     *BaseConfig
-)
+var instance *service
 
-func Init(cfg *Config) {
-	instance = &service{
-		cli: client.NewClient(cfg.Token()),
-		org: cfg.Org,
+func Init(cfg *Config) error {
+	v, err := cfg.ExistingPkgs.DefaultInfo.toPkgBasicInfo()
+	if err != nil {
+		return err
 	}
 
-	base = &cfg.Base
+	instance = &service{
+		cli:        client.NewClient(cfg.Token()),
+		cfg:        cfg.ExistingPkgs,
+		defaultPkg: v,
+	}
+
+	return nil
 }
 
 func Instance() *service {
 	return instance
 }
 
-type repository struct {
+type pkgMetaData struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 }
 
 type service struct {
-	cli client.Client
-	org string
+	cli        client.Client
+	cfg        ExistingPkgsConfig
+	defaultPkg domain.SoftwarePkgBasicInfo
 }
 
 func (s *service) IsPkgExisted(pkg dp.PackageName) bool {
-	_, err := s.cli.GetRepo(s.org, pkg.PackageName())
+	_, err := s.cli.GetRepo(s.cfg.OrgOfPkgRepo, pkg.PackageName())
 
 	return err == nil
 }
 
-func (s *service) GetPkg(pkg dp.PackageName) (domain.SoftwarePkgBasicInfo, error) {
-	v, err := s.cli.GetRepo(s.org, pkg.PackageName())
+func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo, err error) {
+	repo, err := s.cli.GetRepo(s.cfg.OrgOfPkgRepo, name.PackageName())
 	if err != nil {
-		return domain.SoftwarePkgBasicInfo{}, err
+		return
 	}
 
-	path, sig, err := s.repoDetailPath(pkg)
+	sig, err := s.fetchSig(name)
 	if err != nil {
-		return domain.SoftwarePkgBasicInfo{}, err
+		return
 	}
 
-	var repo repository
-	if err = s.pathContent(path, &repo); err != nil {
-		return domain.SoftwarePkgBasicInfo{}, err
+	meta, err := s.getPkgMetaData(name, sig)
+	if err != nil {
+		return
 	}
 
-	return s.toPkgBasicInfo(pkg, v, repo, sig)
+	return s.toPkgBasicInfo(name, &repo, &meta, sig)
 }
 
 func (s *service) toPkgBasicInfo(
-	pkg dp.PackageName, v sdk.Project, repo repository, sig string,
+	name dp.PackageName, repo *sdk.Project, meta *pkgMetaData, sig string,
 ) (info domain.SoftwarePkgBasicInfo, err error) {
-	info.PkgName = pkg
-	importer := &info.Importer
+	info = s.defaultPkg
 
-	if importer.Account, err = dp.NewAccount("software-pkg-robot"); err != nil {
-		return
-	}
-
-	if importer.Email, err = dp.NewEmail("software@openeuler.org"); err != nil {
-		return
-	}
-
-	if info.RepoLink, err = dp.NewURL(v.GetUrl()); err != nil {
-		return
-	}
-
-	info.Phase = dp.PackagePhaseImported
+	info.PkgName = name
 	info.AppliedAt = utils.Now()
 
-	app := &info.Application
-	if app.PackagePlatform, err = dp.NewPackagePlatform("gitee"); err != nil {
+	if info.RepoLink, err = dp.NewURL(repo.GetUrl()); err != nil {
 		return
 	}
 
-	desc := pkg.PackageName()
-	if len(repo.Description) > 0 {
-		desc = repo.Description
-	}
+	app := &info.Application
 
+	desc := repo.Description
+	if desc == "" {
+		desc = fmt.Sprintf("importing software package:%s", name.PackageName())
+	}
 	if app.PackageDesc, err = dp.NewPackageDesc(desc); err != nil {
 		return
 	}
@@ -107,52 +96,26 @@ func (s *service) toPkgBasicInfo(
 		return
 	}
 
-	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(pkg.PackageName()); err != nil {
-		return
-	}
-
-	source := &app.SourceCode
-	if source.SpecURL, err = dp.NewURL(v.GetUrl()); err != nil {
-		return
-	}
-
-	source.SrcRPMURL, err = dp.NewURL(v.GetUrl())
-
 	return
 }
 
-func (s *service) repoDetailPath(pkg dp.PackageName) (
-	path string, sig string, err error,
-) {
-	v, err := s.cli.GetDirectoryTree(base.Org, base.Repo, base.Branch, 1)
-	if err != nil {
-		return
-	}
-
-	for _, t := range v.Tree {
-		patharr := strings.Split(t.Path, "/")
-		if len(patharr) != 5 {
-			continue
-		}
-		file := fmt.Sprintf("%s.yaml", pkg.PackageName())
-		if patharr[0] == "sig" && patharr[2] == s.org && patharr[4] == file {
-			path = t.Path
-			sig = patharr[1]
-
-			return
-		}
-	}
-
-	return "", "", errors.New("no path")
+func (s *service) fetchSig(pkg dp.PackageName) (sig string, err error) {
+	// TODO
+	return "", nil
 }
 
-func (s *service) pathContent(path string, res interface{}) error {
-	v, err := s.cli.GetPathContent(base.Org, base.Repo, path, base.Branch)
-	if err != nil {
-		return err
+func (s *service) getPkgMetaData(name dp.PackageName, sig string) (r pkgMetaData, err error) {
+	meta := &s.cfg.MetadataRepo
+
+	str := name.PackageName()
+	path := fmt.Sprintf("sig/%s/src-openeuler/%s/%s.yaml", sig, string(str[0]), str)
+
+	v, err := s.cli.GetPathContent(meta.Org, meta.Repo, path, meta.Branch)
+	if err == nil {
+		err = decodeYamlFile(v.Content, &r)
 	}
 
-	return decodeYamlFile(v.Content, res)
+	return
 }
 
 func decodeYamlFile(content string, v interface{}) error {

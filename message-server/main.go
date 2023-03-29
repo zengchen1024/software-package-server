@@ -65,12 +65,16 @@ func main() {
 	// cfg
 	cfg, err := loadConfig(o.service.ConfigFile)
 	if err != nil {
-		logrus.Fatalf("load config, err:%s", err.Error())
+		logrus.Errorf("load config, err:%s", err.Error())
+
+		return
 	}
 
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
-		logrus.Fatalf("init db, err:%s", err.Error())
+		logrus.Errorf("init db, err:%s", err.Error())
+
+		return
 	}
 
 	// Encryption
@@ -80,9 +84,18 @@ func main() {
 		return
 	}
 
+	// ci
+	if err := pkgciimpl.Init(&cfg.PkgCI); err != nil {
+		logrus.Errorf("init ci failed, err:%s", err.Error())
+
+		return
+	}
+
 	// mq
 	if err = kafka.Init(&cfg.Kafka, log); err != nil {
-		logrus.Fatalf("initialize mq failed, err:%v", err)
+		logrus.Errorf("initialize mq failed, err:%v", err)
+
+		return
 	}
 
 	defer kafka.Exit()
@@ -96,15 +109,10 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
+	// domain primitive
 	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
 
-	// ci
-	if err := pkgciimpl.Init(&cfg.PkgCI); err != nil {
-		logrus.Errorf("init ci failed, err:%s", err.Error())
-
-		return
-	}
-
+	// pkg manager
 	pkgmanagerimpl.Init(&cfg.PkgManager)
 
 	// service
