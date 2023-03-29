@@ -42,6 +42,19 @@ func (impl softwarePkgImpl) FindSoftwarePkg(pid string) (
 	return
 }
 
-func (impl softwarePkgImpl) HasSoftwarePkg(dp.PackageName) (bool, error) {
-	return false, nil
+func (impl softwarePkgImpl) HasSoftwarePkg(pkg dp.PackageName) (bool, error) {
+	filter := SoftwarePkgBasicDO{PackageName: pkg.PackageName()}
+
+	var res SoftwarePkgBasicDO
+
+	err := impl.softwarePkgBasic.basicDBCli.GetRecord(&filter, &res)
+	if err != nil {
+		if impl.softwarePkgBasic.basicDBCli.IsRowNotFound(err) {
+			err = nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
