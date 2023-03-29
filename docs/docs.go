@@ -173,7 +173,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.softwarePkgAppUpdateRequest"
+                            "$ref": "#/definitions/controller.softwarePkgRequest"
                         }
                     }
                 ],
@@ -607,41 +607,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "comment": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.softwarePkgAppUpdateRequest": {
-            "type": "object",
-            "required": [
-                "desc",
-                "pkg_name",
-                "platform",
-                "reason",
-                "sig",
-                "spec_url",
-                "src_rpm_url"
-            ],
-            "properties": {
-                "desc": {
-                    "type": "string"
-                },
-                "pkg_name": {
-                    "type": "string"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "sig": {
-                    "type": "string"
-                },
-                "spec_url": {
-                    "type": "string"
-                },
-                "src_rpm_url": {
                     "type": "string"
                 }
             }

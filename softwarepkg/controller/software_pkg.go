@@ -269,13 +269,13 @@ func (ctl SoftwarePkgController) TranslateReviewComment(ctx *gin.Context) {
 // @Description update application of software package
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param    id      path     string                         true    "id of software package"
-// @Param    param   body     softwarePkgAppUpdateRequest    true    "body of updating software package application"
+// @Param    id      path     string                true    "id of software package"
+// @Param    param   body     softwarePkgRequest    true    "body of updating software package application"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/:id [put]
 func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
-	var req softwarePkgAppUpdateRequest
+	var req softwarePkgRequest
 	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
@@ -296,7 +296,13 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 		return
 	}
 
-	if err = ctl.service.UpdateApplication(&cmd, ctx.Param("id")); err != nil {
+	err = ctl.service.UpdateApplication(
+		&app.CmdToUpdateSoftwarePkgApplication{
+			PkgId:                    ctx.Param("id"),
+			CmdToApplyNewSoftwarePkg: cmd,
+		},
+	)
+	if err != nil {
 		commonctl.SendFailedResp(ctx, "", err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
