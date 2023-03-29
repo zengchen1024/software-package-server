@@ -9,25 +9,29 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgci"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
 type SoftwarePkgMessageService interface {
 	HandlePkgCIChecking(CmdToHandlePkgCIChecking) error
 	HandlePkgCIChecked(CmdToHandlePkgCIChecked) error
+	HandlePkgCodeSaved(CmdToHandlePkgCodeSaved) error
 	HandlePkgInitialized(CmdToHandlePkgInitialized) error
 	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
-	HandlePkgCodeSaved(CmdToHandlePkgCodeSaved) error
+	HandlePkgAlreadyExisted(CmdToHandlePkgAlreadyExisted) error
 }
 
 func NewSoftwarePkgMessageService(
 	ci pkgci.PkgCI,
 	repo repository.SoftwarePkg,
+	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgIndirectMessage,
 ) softwarePkgMessageService {
 	return softwarePkgMessageService{
 		ci:      ci,
 		repo:    repo,
+		manager: manager,
 		message: message,
 	}
 }
@@ -35,6 +39,7 @@ func NewSoftwarePkgMessageService(
 type softwarePkgMessageService struct {
 	ci      pkgci.PkgCI
 	repo    repository.SoftwarePkg
+	manager pkgmanager.PkgManager
 	message message.SoftwarePkgIndirectMessage
 }
 
@@ -215,4 +220,23 @@ func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgIn
 			cmd.logString(), err.Error(),
 		)
 	}
+}
+
+// HandlePkgAlreadyExisted
+func (s softwarePkgMessageService) HandlePkgAlreadyExisted(cmd CmdToHandlePkgAlreadyExisted) error {
+	v, err := s.manager.GetPkg(cmd.PkgName)
+	if err != nil {
+		logrus.Errorf("get repo detail failed,err:%s", err.Error())
+
+		return err
+	}
+
+	if err = s.repo.AddSoftwarePkg(&v); err != nil {
+		logrus.Errorf(
+			"failed to add a software pkg, pkgname: %s,err:%s",
+			cmd.PkgName.PackageName(), err.Error(),
+		)
+	}
+
+	return err
 }

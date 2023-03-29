@@ -94,3 +94,13 @@ func (msg *msgToHandlePkgRepoCreated) toCmd() (cmd app.CmdToHandlePkgRepoCreated
 
 // msgToHandlePkgCodeSaved
 type msgToHandlePkgCodeSaved = msgToHandlePkgRepoCreated
+
+type msgToHandlePkgAlreadyExisted struct {
+	PkgName string `json:"pkg_name"`
+}
+
+func (msg *msgToHandlePkgAlreadyExisted) toCmd() (cmd app.CmdToHandlePkgAlreadyExisted, err error) {
+	cmd.PkgName, err = dp.NewPackageName(msg.PkgName)
+
+	return
+}

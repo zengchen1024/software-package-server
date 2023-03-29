@@ -79,3 +79,7 @@ func (cmd *CmdToHandlePkgRepoCreated) logString() string {
 
 // CmdToHandlePkgCodeSaved
 type CmdToHandlePkgCodeSaved = CmdToHandlePkgRepoCreated
+
+type CmdToHandlePkgAlreadyExisted struct {
+	PkgName dp.PackageName
+}

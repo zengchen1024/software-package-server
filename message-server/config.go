@@ -8,6 +8,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	localutils "github.com/opensourceways/software-package-server/utils"
 )
@@ -34,6 +35,7 @@ type Config struct {
 	Encryption     localutils.Config       `json:"encryption"           required:"true"`
 	Postgresql     config.PostgresqlConfig `json:"postgresql"           required:"true"`
 	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
+	PkgManager     pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
 	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
@@ -41,11 +43,12 @@ type Config struct {
 }
 
 type Topics struct {
-	SoftwarePkgCIChecking  string `json:"software_pkg_ci_checking"      required:"true"`
-	SoftwarePkgCIChecked   string `json:"software_pkg_ci_checked"       required:"true"`
-	SoftwarePkgInitialized string `json:"software_pkg_initialized"      required:"true"`
-	SoftwarePkgRepoCreated string `json:"software_pkg_repo_created"     required:"true"`
-	SoftwarePkgCodeSaved   string `json:"software_pkg_code_saved"       required:"true"`
+	SoftwarePkgCIChecking     string `json:"software_pkg_ci_checking"      required:"true"`
+	SoftwarePkgCIChecked      string `json:"software_pkg_ci_checked"       required:"true"`
+	SoftwarePkgCodeSaved      string `json:"software_pkg_code_saved"       required:"true"`
+	SoftwarePkgInitialized    string `json:"software_pkg_initialized"      required:"true"`
+	SoftwarePkgRepoCreated    string `json:"software_pkg_repo_created"     required:"true"`
+	SoftwarePkgAlreadyExisted string `json:"software_pkg_already_existed"  required:"true"`
 }
 
 type TopicsToNotify struct {
@@ -69,6 +72,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Postgresql.Config,
 		&cfg.Maintainer,
 		&cfg.SoftwarePkg,
+		&cfg.PkgManager,
 		&cfg.SigValidator,
 		&cfg.PkgCI,
 	}

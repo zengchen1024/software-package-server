@@ -17,6 +17,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/utils"
@@ -72,6 +73,7 @@ func main() {
 		logrus.Fatalf("init db, err:%s", err.Error())
 	}
 
+	// Encryption
 	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
 		logrus.Errorf("init encryption failed, err:%s", err.Error())
 
@@ -86,7 +88,7 @@ func main() {
 	defer kafka.Exit()
 
 	// Sig Validator
-	if err := sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
+	if err = sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
 		logrus.Errorf("init sig validator failed, err:%s", err.Error())
 
 		return
@@ -103,10 +105,13 @@ func main() {
 		return
 	}
 
+	pkgmanagerimpl.Init(&cfg.PkgManager)
+
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
 		pkgciimpl.PkgCI(),
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
+		pkgmanagerimpl.Instance(),
 		&producer{topics: cfg.TopicsToNotify},
 	)
 

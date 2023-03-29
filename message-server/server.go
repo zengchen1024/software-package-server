@@ -26,11 +26,12 @@ func (s *server) subscribe(cfg *Config) error {
 	topics := &cfg.Topics
 
 	h := map[string]kafka.Handler{
-		topics.SoftwarePkgCIChecking:  s.handlePkgCIChecking,
-		topics.SoftwarePkgCIChecked:   s.handlePkgCIChecked,
-		topics.SoftwarePkgInitialized: s.handlePkgInitialized,
-		topics.SoftwarePkgRepoCreated: s.handlePkgRepoCreated,
-		topics.SoftwarePkgCodeSaved:   s.handlePkgCodeSaved,
+		topics.SoftwarePkgCIChecking:     s.handlePkgCIChecking,
+		topics.SoftwarePkgCIChecked:      s.handlePkgCIChecked,
+		topics.SoftwarePkgCodeSaved:      s.handlePkgCodeSaved,
+		topics.SoftwarePkgInitialized:    s.handlePkgInitialized,
+		topics.SoftwarePkgRepoCreated:    s.handlePkgRepoCreated,
+		topics.SoftwarePkgAlreadyExisted: s.handlePkgAlreadyExisted,
 	}
 
 	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
@@ -103,4 +104,18 @@ func (s *server) handlePkgCodeSaved(data []byte) error {
 	}
 
 	return s.service.HandlePkgCodeSaved(cmd)
+}
+
+func (s *server) handlePkgAlreadyExisted(data []byte) error {
+	msg := new(msgToHandlePkgAlreadyExisted)
+	if err := json.Unmarshal(data, msg); err != nil {
+		return err
+	}
+
+	cmd, err := msg.toCmd()
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgAlreadyExisted(cmd)
 }
