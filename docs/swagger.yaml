@@ -117,31 +117,6 @@ definitions:
     required:
     - comment
     type: object
-  controller.softwarePkgAppUpdateRequest:
-    properties:
-      desc:
-        type: string
-      pkg_name:
-        type: string
-      platform:
-        type: string
-      reason:
-        type: string
-      sig:
-        type: string
-      spec_url:
-        type: string
-      src_rpm_url:
-        type: string
-    required:
-    - desc
-    - pkg_name
-    - platform
-    - reason
-    - sig
-    - spec_url
-    - src_rpm_url
-    type: object
   controller.softwarePkgRequest:
     properties:
       desc:
@@ -291,7 +266,7 @@ paths:
         name: param
         required: true
         schema:
-          $ref: '#/definitions/controller.softwarePkgAppUpdateRequest'
+          $ref: '#/definitions/controller.softwarePkgRequest'
       responses:
         "202":
           description: Accepted

@@ -13,7 +13,10 @@ type CmdToApplyNewSoftwarePkg struct {
 	Application domain.SoftwarePkgApplication
 }
 
-type CmdToUpdateSoftwarePkgApplication = CmdToApplyNewSoftwarePkg
+type CmdToUpdateSoftwarePkgApplication struct {
+	PkgId string
+	CmdToApplyNewSoftwarePkg
+}
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs
 

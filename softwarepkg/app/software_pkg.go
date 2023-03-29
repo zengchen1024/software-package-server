@@ -21,7 +21,7 @@ type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
-	UpdateApplication(*CmdToUpdateSoftwarePkgApplication, string) error
+	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
 
 	Approve(string, dp.Account) (string, error)
 	Reject(string, dp.Account) (string, error)
@@ -105,8 +105,8 @@ func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, erro
 	return toSoftwarePkgsDTO(v, total), nil
 }
 
-func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication, pid string) error {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication) error {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
 		return err
 	}
