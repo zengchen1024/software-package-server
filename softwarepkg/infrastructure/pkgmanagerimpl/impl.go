@@ -3,6 +3,7 @@ package pkgmanagerimpl
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	sdk "github.com/opensourceways/go-gitee/gitee"
 	"github.com/opensourceways/robot-gitee-lib/client"
@@ -108,7 +109,10 @@ func (s *service) getPkgMetaData(name dp.PackageName, sig string) (r pkgMetaData
 	meta := &s.cfg.MetadataRepo
 
 	str := name.PackageName()
-	path := fmt.Sprintf("sig/%s/src-openeuler/%s/%s.yaml", sig, string(str[0]), str)
+	path := fmt.Sprintf(
+		"sig/%s/src-openeuler/%s/%s.yaml",
+		sig, strings.ToLower(str[:1]), str,
+	)
 
 	v, err := s.cli.GetPathContent(meta.Org, meta.Repo, path, meta.Branch)
 	if err == nil {
