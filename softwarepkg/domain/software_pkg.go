@@ -179,6 +179,20 @@ func (entity *SoftwarePkgBasicInfo) HandleCodeSaved() error {
 	return nil
 }
 
+func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
+	if !entity.Phase.IsReviewing() {
+		return errors.New("can't do this")
+	}
+
+	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
+		return errors.New("not the importer")
+	}
+
+	entity.Application = *cmd
+
+	return nil
+}
+
 // SoftwarePkg
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo

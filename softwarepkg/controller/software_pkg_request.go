@@ -63,6 +63,8 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 	return
 }
 
+type softwarePkgAppUpdateRequest = softwarePkgRequest
+
 type softwarePkgListQuery struct {
 	Importer     string `json:"importer"       form:"importer"`
 	Phase        string `json:"phase"          form:"phase"`

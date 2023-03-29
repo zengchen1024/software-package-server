@@ -137,6 +137,50 @@
                 }
             }
         },
+        "/v1/softwarepkg/:id": {
+            "put": {
+                "description": "update application of software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "update application of software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "body of updating software package application",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.softwarePkgAppUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/softwarepkg/{id}": {
             "get": {
                 "description": "get software package",
@@ -551,6 +595,41 @@
             ],
             "properties": {
                 "comment": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.softwarePkgAppUpdateRequest": {
+            "type": "object",
+            "required": [
+                "desc",
+                "pkg_name",
+                "platform",
+                "reason",
+                "sig",
+                "spec_url",
+                "src_rpm_url"
+            ],
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "pkg_name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "sig": {
+                    "type": "string"
+                },
+                "spec_url": {
+                    "type": "string"
+                },
+                "src_rpm_url": {
                     "type": "string"
                 }
             }

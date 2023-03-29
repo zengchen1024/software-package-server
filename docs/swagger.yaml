@@ -117,6 +117,31 @@ definitions:
     required:
     - comment
     type: object
+  controller.softwarePkgAppUpdateRequest:
+    properties:
+      desc:
+        type: string
+      pkg_name:
+        type: string
+      platform:
+        type: string
+      reason:
+        type: string
+      sig:
+        type: string
+      spec_url:
+        type: string
+      src_rpm_url:
+        type: string
+    required:
+    - desc
+    - pkg_name
+    - platform
+    - reason
+    - sig
+    - spec_url
+    - src_rpm_url
+    type: object
   controller.softwarePkgRequest:
     properties:
       desc:
@@ -248,6 +273,35 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: apply a new software package
+      tags:
+      - SoftwarePkg
+  /v1/softwarepkg/:id:
+    put:
+      consumes:
+      - application/json
+      description: update application of software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: body of updating software package application
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/controller.softwarePkgAppUpdateRequest'
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: update application of software package
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}:
