@@ -17,16 +17,19 @@ import (
 var instance *service
 
 func Init(cfg *Config) error {
-	v, err := cfg.ExistingPkgs.DefaultInfo.toPkgBasicInfo()
+	info := &cfg.ExistingPkgs
+
+	v, err := info.DefaultInfo.toPkgBasicInfo()
 	if err != nil {
 		return err
 	}
 
 	instance = &service{
-		cli:        client.NewClient(cfg.Token()),
-		cfg:        cfg.ExistingPkgs,
-		libcli:     libutils.NewHttpClient(3),
-		defaultPkg: v,
+		cli:              client.NewClient(cfg.Token()),
+		httpCli:          libutils.NewHttpClient(3),
+		defaultPkg:       v,
+		orgOfPkgRepo:     info.OrgOfPkgRepo,
+		metaDataEndpoint: info.MetaDataEndpoint,
 	}
 
 	return nil
@@ -37,30 +40,27 @@ func Instance() *service {
 }
 
 type pkgMetaData struct {
-	Data []metaData `json:"data"`
-}
-
-type metaData struct {
 	MailingList string `json:"mailing_list"`
 	Description string `json:"description"`
 	SigName     string `json:"sig_name"`
 }
 
 type service struct {
-	cli        client.Client
-	cfg        ExistingPkgsConfig
-	libcli     libutils.HttpClient
-	defaultPkg domain.SoftwarePkgBasicInfo
+	cli              client.Client
+	httpCli          libutils.HttpClient
+	defaultPkg       domain.SoftwarePkgBasicInfo
+	orgOfPkgRepo     string
+	metaDataEndpoint string
 }
 
 func (s *service) IsPkgExisted(pkg dp.PackageName) bool {
-	_, err := s.cli.GetRepo(s.cfg.OrgOfPkgRepo, pkg.PackageName())
+	_, err := s.cli.GetRepo(s.orgOfPkgRepo, pkg.PackageName())
 
 	return err == nil
 }
 
 func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo, err error) {
-	repo, err := s.cli.GetRepo(s.cfg.OrgOfPkgRepo, name.PackageName())
+	repo, err := s.cli.GetRepo(s.orgOfPkgRepo, name.PackageName())
 	if err != nil {
 		return
 	}
@@ -70,11 +70,11 @@ func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo,
 		return
 	}
 
-	return s.toPkgBasicInfo(name, &repo, &meta.Data[0])
+	return s.toPkgBasicInfo(name, &repo, &meta)
 }
 
 func (s *service) toPkgBasicInfo(
-	name dp.PackageName, repo *sdk.Project, meta *metaData,
+	name dp.PackageName, repo *sdk.Project, meta *pkgMetaData,
 ) (info domain.SoftwarePkgBasicInfo, err error) {
 
 	info = s.defaultPkg
@@ -111,18 +111,25 @@ func (s *service) toPkgBasicInfo(
 }
 
 func (s *service) getPkgMetaData(name dp.PackageName) (r pkgMetaData, err error) {
-
-	req, err := http.NewRequest(http.MethodGet, s.cfg.MetaDataEndpoint+name.PackageName(), nil)
+	req, err := http.NewRequest(
+		http.MethodGet, s.metaDataEndpoint+name.PackageName(), nil,
+	)
 	if err != nil {
-		return pkgMetaData{}, err
+		return
 	}
 
-	if _, err = s.libcli.ForwardTo(req, &r); err != nil {
-		return pkgMetaData{}, err
+	var v struct {
+		Data []pkgMetaData `json:"data"`
 	}
 
-	if len(r.Data) == 0 {
-		err = errors.New("not find pkg meta data")
+	if _, err = s.httpCli.ForwardTo(req, &v); err != nil {
+		return
+	}
+
+	if len(v.Data) == 0 {
+		err = errors.New("pkg meta data is not found")
+	} else {
+		r = v.Data[0]
 	}
 
 	return

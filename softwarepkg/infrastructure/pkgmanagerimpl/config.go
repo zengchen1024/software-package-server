@@ -20,6 +20,7 @@ func (cfg *Config) Token() func() []byte {
 	}
 }
 
+// ExistingPkgsConfig
 type ExistingPkgsConfig struct {
 	MetaDataEndpoint string                 `json:"meta_data_endpoint"      required:"true"`
 	OrgOfPkgRepo     string                 `json:"org_of_pkg_repo"   required:"true"`
@@ -32,12 +33,7 @@ func (cfg *ExistingPkgsConfig) setDefault() {
 	}
 }
 
-type MetadataRepoConfig struct {
-	Org    string `json:"org"      required:"true"`
-	Repo   string `json:"repo"     required:"true"`
-	Branch string `json:"branch"   required:"true"`
-}
-
+// ExistingPkgDefaultInfo
 type ExistingPkgDefaultInfo struct {
 	Platform       string `json:"platform"          required:"true"`
 	ImporterName   string `json:"importer_name"     required:"true"`
