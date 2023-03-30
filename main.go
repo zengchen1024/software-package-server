@@ -53,7 +53,9 @@ func main() {
 		os.Args[1:]...,
 	)
 	if err := o.Validate(); err != nil {
-		logrus.Fatalf("Invalid options, err:%s", err.Error())
+		logrus.Errorf("Invalid options, err:%s", err.Error())
+
+		return
 	}
 
 	if o.enableDebug {
@@ -64,30 +66,10 @@ func main() {
 	// Config
 	cfg, err := config.LoadConfig(o.service.ConfigFile)
 	if err != nil {
-		logrus.Fatalf("load config, err:%s", err.Error())
-	}
+		logrus.Errorf("load config, err:%s", err.Error())
 
-	// Postgresql
-	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
-		logrus.Fatalf("init db, err:%s", err.Error())
+		return
 	}
-
-	// Translation
-	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
-	if err != nil {
-		logrus.Fatalf("init translation err:%s", err.Error())
-	}
-
-	if err = sensitivewordsimpl.Init(&cfg.SensitiveWords); err != nil {
-		logrus.Fatalf("init sensitivewords err:%s", err.Error())
-	}
-
-	// MQ
-	if err = messageimpl.Init(&cfg.MQ, log); err != nil {
-		logrus.Fatalf("init mq, err:%s", err.Error())
-	}
-
-	defer messageimpl.Exit()
 
 	// Sig Validator
 	if err := sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
@@ -98,18 +80,55 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
+	// Domain
+	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+
+	// Postgresql
+	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
+		logrus.Errorf("init db, err:%s", err.Error())
+
+		return
+	}
+
+	// Translation
+	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
+	if err != nil {
+		logrus.Errorf("init translation err:%s", err.Error())
+
+		return
+	}
+
+	// Sensitive words
+	if err = sensitivewordsimpl.Init(&cfg.SensitiveWords); err != nil {
+		logrus.Errorf("init sensitivewords err:%s", err.Error())
+
+		return
+	}
+
+	// Pkg manager
+	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
+		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
+
+		return
+	}
+
+	// Encryption
 	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
 		logrus.Errorf("init encryption failed, err:%s", err.Error())
 
 		return
 	}
 
-	// Domain
-	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+	// MQ
+	if err = messageimpl.Init(&cfg.MQ, log); err != nil {
+		logrus.Errorf("init mq, err:%s", err.Error())
+
+		return
+	}
+
+	defer messageimpl.Exit()
 
 	middleware.Init(&cfg.Middleware)
-
-	pkgmanagerimpl.Init(&cfg.PkgManager)
 
 	clavalidatorimpl.Init(&cfg.CLA)
 

@@ -70,6 +70,25 @@ func main() {
 		return
 	}
 
+	// Sig Validator
+	if err = sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
+		logrus.Errorf("init sig validator failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer sigvalidatorimpl.Exit()
+
+	// domain primitive
+	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+
+	// Pkg manager
+	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
+		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
+
+		return
+	}
+
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Errorf("init db, err:%s", err.Error())
@@ -99,21 +118,6 @@ func main() {
 	}
 
 	defer kafka.Exit()
-
-	// Sig Validator
-	if err = sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
-		logrus.Errorf("init sig validator failed, err:%s", err.Error())
-
-		return
-	}
-
-	defer sigvalidatorimpl.Exit()
-
-	// domain primitive
-	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
-
-	// pkg manager
-	pkgmanagerimpl.Init(&cfg.PkgManager)
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(

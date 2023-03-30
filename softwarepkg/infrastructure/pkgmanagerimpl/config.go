@@ -14,12 +14,6 @@ func (cfg *Config) SetDefault() {
 	cfg.ExistingPkgs.setDefault()
 }
 
-func (cfg *Config) Validate() error {
-	_, err := cfg.ExistingPkgs.DefaultInfo.toPkgBasicInfo()
-
-	return err
-}
-
 func (cfg *Config) Token() func() []byte {
 	return func() []byte {
 		return []byte(cfg.AccessToken)
