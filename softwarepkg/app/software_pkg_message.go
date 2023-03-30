@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
@@ -123,7 +124,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 	return nil
 }
 
-// HandlePkgRepoCreated
+// HandlePkgCodeSaved
 func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSaved) error {
 	if !cmd.isSuccess() {
 		logrus.Errorf(
@@ -224,16 +225,24 @@ func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgIn
 
 // HandlePkgAlreadyExisted
 func (s softwarePkgMessageService) HandlePkgAlreadyExisted(cmd CmdToHandlePkgAlreadyExisted) error {
+	if b, _ := s.repo.HasSoftwarePkg(cmd.PkgName); b {
+		return nil
+	}
+
 	v, err := s.manager.GetPkg(cmd.PkgName)
 	if err != nil {
-		logrus.Errorf("get repo detail failed,err:%s", err.Error())
+		logrus.Errorf("get pkg/%s failed, err:%s", cmd.PkgName.PackageName(), err.Error())
 
 		return err
 	}
 
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
+		if commonrepo.IsErrorDuplicateCreating(err) {
+			return nil
+		}
+
 		logrus.Errorf(
-			"failed to add a software pkg, pkgname: %s,err:%s",
+			"failed to add a software pkg, pkgname:%s, err:%s",
 			cmd.PkgName.PackageName(), err.Error(),
 		)
 	}

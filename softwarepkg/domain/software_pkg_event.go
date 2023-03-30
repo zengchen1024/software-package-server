@@ -83,3 +83,11 @@ func NewSoftwarePkgAlreadyExistEvent(pkg dp.PackageName) softwarePkgAlreadyExist
 		PkgName: pkg.PackageName(),
 	}
 }
+
+func UnmarshalToSoftwarePkgAlreadyExistEvent(data []byte) (
+	e softwarePkgAlreadyExistedEvent, err error,
+) {
+	err = json.Unmarshal(data, &e)
+
+	return
+}

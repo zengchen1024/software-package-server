@@ -95,12 +95,14 @@ func (msg *msgToHandlePkgRepoCreated) toCmd() (cmd app.CmdToHandlePkgRepoCreated
 // msgToHandlePkgCodeSaved
 type msgToHandlePkgCodeSaved = msgToHandlePkgRepoCreated
 
-type msgToHandlePkgAlreadyExisted struct {
-	PkgName string `json:"pkg_name"`
-}
+// cmdToHandlePkgAlreadyExisted
+func cmdToHandlePkgAlreadyExisted(data []byte) (cmd app.CmdToHandlePkgAlreadyExisted, err error) {
+	v, err := domain.UnmarshalToSoftwarePkgAlreadyExistEvent(data)
+	if err != nil {
+		return
+	}
 
-func (msg *msgToHandlePkgAlreadyExisted) toCmd() (cmd app.CmdToHandlePkgAlreadyExisted, err error) {
-	cmd.PkgName, err = dp.NewPackageName(msg.PkgName)
+	cmd.PkgName, err = dp.NewPackageName(v.PkgName)
 
 	return
 }

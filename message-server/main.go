@@ -65,27 +65,10 @@ func main() {
 	// cfg
 	cfg, err := loadConfig(o.service.ConfigFile)
 	if err != nil {
-		logrus.Fatalf("load config, err:%s", err.Error())
-	}
-
-	// Postgresql
-	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
-		logrus.Fatalf("init db, err:%s", err.Error())
-	}
-
-	// Encryption
-	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
-		logrus.Errorf("init encryption failed, err:%s", err.Error())
+		logrus.Errorf("load config, err:%s", err.Error())
 
 		return
 	}
-
-	// mq
-	if err = kafka.Init(&cfg.Kafka, log); err != nil {
-		logrus.Fatalf("initialize mq failed, err:%v", err)
-	}
-
-	defer kafka.Exit()
 
 	// Sig Validator
 	if err = sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
@@ -96,7 +79,29 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
+	// domain primitive
 	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+
+	// Pkg manager
+	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
+		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
+
+		return
+	}
+
+	// Postgresql
+	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
+		logrus.Errorf("init db, err:%s", err.Error())
+
+		return
+	}
+
+	// Encryption
+	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
+		logrus.Errorf("init encryption failed, err:%s", err.Error())
+
+		return
+	}
 
 	// ci
 	if err := pkgciimpl.Init(&cfg.PkgCI); err != nil {
@@ -105,7 +110,14 @@ func main() {
 		return
 	}
 
-	pkgmanagerimpl.Init(&cfg.PkgManager)
+	// mq
+	if err = kafka.Init(&cfg.Kafka, log); err != nil {
+		logrus.Errorf("initialize mq failed, err:%v", err)
+
+		return
+	}
+
+	defer kafka.Exit()
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
