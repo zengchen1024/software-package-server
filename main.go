@@ -12,6 +12,7 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/server"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
@@ -82,7 +83,8 @@ func main() {
 	defer sigvalidatorimpl.Exit()
 
 	// Domain
-	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+	domain.Init(&cfg.SoftwarePkg.Config)
+	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
@@ -92,7 +94,9 @@ func main() {
 	}
 
 	// Translation
-	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
+	err = translationimpl.Init(
+		&cfg.Translation, cfg.SoftwarePkg.DomainPrimitive.SupportedLanguages,
+	)
 	if err != nil {
 		logrus.Errorf("init translation err:%s", err.Error())
 

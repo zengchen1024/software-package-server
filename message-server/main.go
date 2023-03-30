@@ -15,6 +15,7 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
@@ -79,8 +80,9 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
-	// domain primitive
-	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+	// Domain
+	domain.Init(&cfg.SoftwarePkg.Config)
+	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	// Pkg manager
 	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {

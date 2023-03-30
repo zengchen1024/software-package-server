@@ -7,9 +7,6 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-// TODO
-const minNumOfApprover = 2
-
 type Importer struct {
 	Email   dp.Email
 	Account dp.Account
@@ -56,7 +53,7 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 		return dp.PkgReviewResultRejected
 	}
 
-	if len(entity.ApprovedBy) >= minNumOfApprover {
+	if len(entity.ApprovedBy) >= config.MinNumOfApprovers {
 		return dp.PkgReviewResultApproved
 	}
 
@@ -79,7 +76,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
 
 	approved := false
 	// only set the result once to avoid duplicate case.
-	if len(entity.ApprovedBy) == minNumOfApprover {
+	if len(entity.ApprovedBy) == config.MinNumOfApprovers {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 		approved = true
 	}
