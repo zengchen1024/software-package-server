@@ -5,21 +5,22 @@ import (
 
 	"github.com/opensourceways/server-common-lib/utils"
 
+	"github.com/opensourceways/software-package-server/common/infrastructure/cacheagent"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-var instance *agent
+var instance *cacheagent.Agent
 
 func Init(cfg *Config) error {
-	v := &agent{
-		t: utils.NewTimer(),
-		loader: sigLoader{
-			cli: utils.NewHttpClient(3),
+	v, err := cacheagent.NewCacheAgent(
+		&sigLoader{
+			cli:  utils.NewHttpClient(3),
+			link: cfg.ReadURL,
 		},
-	}
+		cfg.IntervalDuration(),
+	)
 
-	err := v.start(cfg.ReadURL, cfg.IntervalDuration())
 	if err == nil {
 		instance = v
 	}
@@ -29,7 +30,7 @@ func Init(cfg *Config) error {
 
 func Exit() {
 	if instance != nil {
-		instance.stop()
+		instance.Stop()
 	}
 }
 
@@ -39,13 +40,14 @@ func Maintainer() maintainerImpl {
 
 // maintainerImpl
 type maintainerImpl struct {
-	agent *agent
+	agent *cacheagent.Agent
 }
 
 func (impl maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user *domain.User) bool {
-	v := impl.agent.getSigData()
+	v := impl.agent.GetData()
+	m, ok := v.(*sigData)
 
-	return v.hasMaintainer(user.GiteeID)
+	return ok && m.hasMaintainer(user.GiteeID)
 }
 
 func (impl maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {

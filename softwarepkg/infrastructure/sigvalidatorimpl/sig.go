@@ -45,11 +45,12 @@ func (s *sigData) init(md5sum string) {
 
 // sigLoader
 type sigLoader struct {
-	cli utils.HttpClient
+	cli  utils.HttpClient
+	link string
 }
 
-func (l *sigLoader) read(link string) (data []byte, err error) {
-	req, err := http.NewRequest(http.MethodGet, link, nil)
+func (l *sigLoader) read() (data []byte, err error) {
+	req, err := http.NewRequest(http.MethodGet, l.link, nil)
 	if err == nil {
 		data, _, err = l.cli.Download(req)
 	}
@@ -57,8 +58,16 @@ func (l *sigLoader) read(link string) (data []byte, err error) {
 	return
 }
 
-func (l *sigLoader) load(link string, old *sigData) (s *sigData, err error) {
-	b, err := l.read(link)
+func (l *sigLoader) Load(old interface{}) (interface{}, error) {
+	if old == nil {
+		return l.load(nil)
+	}
+
+	return l.load(old.(*sigData))
+}
+
+func (l *sigLoader) load(old *sigData) (s *sigData, err error) {
+	b, err := l.read()
 	if err != nil {
 		return
 	}
