@@ -7,11 +7,18 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
+// TODO
 const minNumOfApprover = 2
 
-type User struct {
+type Importer struct {
 	Email   dp.Email
 	Account dp.Account
+}
+
+type User struct {
+	Importer
+
+	GiteeID string
 }
 
 // SoftwarePkgApplication
@@ -32,7 +39,7 @@ type SoftwarePkgSourceCode struct {
 type SoftwarePkgBasicInfo struct {
 	Id          string
 	PkgName     dp.PackageName
-	Importer    User
+	Importer    Importer
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
 	CIStatus    dp.PackageCIStatus
@@ -63,12 +70,12 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // change the status of "creating repo"
 // send out the event
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() || entity.Frozen {
 		return false, errors.New("not ready")
 	}
 
-	entity.ApprovedBy = append(entity.ApprovedBy, user)
+	entity.ApprovedBy = append(entity.ApprovedBy, user.Account)
 
 	approved := false
 	// only set the result once to avoid duplicate case.
@@ -81,12 +88,12 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user dp.Account) (bool, error) {
 }
 
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) RejectBy(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() {
 		return false, errors.New("can't do this")
 	}
 
-	entity.RejectedBy = append(entity.RejectedBy, user)
+	entity.RejectedBy = append(entity.RejectedBy, user.Account)
 
 	rejected := false
 	// only set the result once to avoid duplicate case.
@@ -98,12 +105,12 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user dp.Account) (bool, error) {
 	return rejected, nil
 }
 
-func (entity *SoftwarePkgBasicInfo) Abandon(user dp.Account) error {
+func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
 
-	if !dp.IsSameAccount(user, entity.Importer.Account) {
+	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
 		return errors.New("not the importer")
 	}
 
@@ -205,7 +212,7 @@ type SoftwarePkg struct {
 func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
 	return SoftwarePkgBasicInfo{
 		PkgName:     name,
-		Importer:    *user,
+		Importer:    user.Importer,
 		Phase:       dp.PackagePhaseReviewing,
 		CIStatus:    dp.PackageCIStatusWaiting,
 		Frozen:      true,

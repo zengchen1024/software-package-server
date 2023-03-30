@@ -6,7 +6,6 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -34,7 +33,6 @@ type Config struct {
 	GroupName      string                  `json:"group_name"           required:"true"`
 	Encryption     localutils.Config       `json:"encryption"           required:"true"`
 	Postgresql     config.PostgresqlConfig `json:"postgresql"           required:"true"`
-	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
 	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`

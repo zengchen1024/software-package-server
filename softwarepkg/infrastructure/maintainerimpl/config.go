@@ -1,5 +1,14 @@
 package maintainerimpl
 
+import "time"
+
 type Config struct {
-	PermissionURL string `json:"permission_url" required:"true"`
+	ReadURL string `json:"read_url" required:"true"`
+
+	// Interval the unit is hour
+	Interval int `json:"interval" required:"true"`
+}
+
+func (cfg *Config) IntervalDuration() time.Duration {
+	return time.Duration(cfg.Interval) * time.Hour
 }
