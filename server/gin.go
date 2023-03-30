@@ -72,7 +72,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 			pkgmanagerimpl.Instance(),
 			messageimpl.Producer(),
 			sensitivewordsimpl.Sensitive(),
-			maintainerimpl.NewMaintainerImpl(&cfg.Maintainer),
+			maintainerimpl.Maintainer(),
 			translationimpl.Translation(),
 		),
 	)

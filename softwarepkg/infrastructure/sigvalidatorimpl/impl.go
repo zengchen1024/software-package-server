@@ -1,18 +1,22 @@
 package sigvalidatorimpl
 
-import "github.com/opensourceways/server-common-lib/utils"
+import (
+	"github.com/opensourceways/server-common-lib/utils"
 
-var instance *agent
+	"github.com/opensourceways/software-package-server/common/infrastructure/cacheagent"
+)
+
+var instance *cacheagent.Agent
 
 func Init(cfg *Config) error {
-	v := &agent{
-		t: utils.NewTimer(),
-		loader: sigLoader{
-			cli: utils.NewHttpClient(3),
+	v, err := cacheagent.NewCacheAgent(
+		&sigLoader{
+			cli:  utils.NewHttpClient(3),
+			link: cfg.ReadURL,
 		},
-	}
+		cfg.IntervalDuration(),
+	)
 
-	err := v.start(cfg.ReadURL, cfg.IntervalDuration())
 	if err == nil {
 		instance = v
 	}
@@ -22,7 +26,7 @@ func Init(cfg *Config) error {
 
 func Exit() {
 	if instance != nil {
-		instance.stop()
+		instance.Stop()
 	}
 }
 
@@ -32,17 +36,23 @@ func SigValidator() sigValidatorImpl {
 
 // sigValidatorImpl
 type sigValidatorImpl struct {
-	agent *agent
+	agent *cacheagent.Agent
 }
 
 func (impl sigValidatorImpl) IsValidSig(sig string) bool {
-	v := impl.agent.getSigData()
+	v := impl.agent.GetData()
+	m, ok := v.(*sigData)
 
-	return v.hasSig(sig)
+	return ok && m.hasSig(sig)
 }
 
 func (impl sigValidatorImpl) GetAll() (info []sigDetail) {
-	v := impl.agent.getSigData()
+	v := impl.agent.GetData()
 
-	return v.getAll()
+	m, ok := v.(*sigData)
+	if !ok {
+		return nil
+	}
+
+	return m.getAll()
 }

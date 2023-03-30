@@ -137,7 +137,7 @@ func (ctl SoftwarePkgController) Approve(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.Approve(ctx.Param("id"), user.Account); err != nil {
+	if code, err := ctl.service.Approve(ctx.Param("id"), &user); err != nil {
 		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
@@ -161,7 +161,7 @@ func (ctl SoftwarePkgController) Reject(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.Reject(ctx.Param("id"), user.Account); err != nil {
+	if code, err := ctl.service.Reject(ctx.Param("id"), &user); err != nil {
 		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
@@ -185,7 +185,7 @@ func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.Abandon(ctx.Param("id"), user.Account); err != nil {
+	if code, err := ctl.service.Abandon(ctx.Param("id"), &user); err != nil {
 		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)

@@ -4,11 +4,12 @@ import (
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
-	"github.com/opensourceways/software-package-server/config"
+	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	localutils "github.com/opensourceways/software-package-server/utils"
 )
@@ -28,18 +29,29 @@ func loadConfig(path string) (*Config, error) {
 	return cfg, nil
 }
 
+type domainConfig struct {
+	domain.Config
+
+	DomainPrimitive dp.Config `json:"domain_primitive"  required:"true"`
+}
+
+type postgresqlConfig struct {
+	DB postgresql.Config `json:"db" required:"true"`
+
+	repositoryimpl.Config
+}
+
 type Config struct {
 	Kafka          kafka.Config            `json:"kafka"                required:"true"`
 	Topics         Topics                  `json:"topics_to_subscribe"  required:"true"`
 	GroupName      string                  `json:"group_name"           required:"true"`
 	Encryption     localutils.Config       `json:"encryption"           required:"true"`
-	Postgresql     config.PostgresqlConfig `json:"postgresql"           required:"true"`
-	Maintainer     maintainerimpl.Config   `json:"maintainer"           required:"true"`
+	Postgresql     postgresqlConfig        `json:"postgresql"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
-	SoftwarePkg    dp.Config               `json:"software_pkg"         required:"true"`
+	SoftwarePkg    domainConfig            `json:"software_pkg"         required:"true"`
 	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
 	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
-	PkgCI          pkgciimpl.Config        `json:"ci"                  required:"true"`
+	PkgCI          pkgciimpl.Config        `json:"ci"                   required:"true"`
 }
 
 type Topics struct {
@@ -70,8 +82,8 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
-		&cfg.Maintainer,
-		&cfg.SoftwarePkg,
+		&cfg.SoftwarePkg.Config,
+		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.PkgManager,
 		&cfg.SigValidator,
 		&cfg.PkgCI,

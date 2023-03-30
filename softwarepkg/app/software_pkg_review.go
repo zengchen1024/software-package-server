@@ -5,7 +5,6 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 )
 
@@ -90,7 +89,7 @@ func (s *softwarePkgService) TranslateReviewComment(
 	return
 }
 
-func (s *softwarePkgService) Approve(pid string, user dp.Account) (code string, err error) {
+func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return
@@ -107,7 +106,7 @@ func (s *softwarePkgService) Approve(pid string, user dp.Account) (code string, 
 	return
 }
 
-func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, err error) {
+func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return
@@ -124,7 +123,7 @@ func (s *softwarePkgService) Reject(pid string, user dp.Account) (code string, e
 	return
 }
 
-func (s *softwarePkgService) Abandon(pid string, user dp.Account) (code string, err error) {
+func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
 		return
@@ -137,18 +136,12 @@ func (s *softwarePkgService) Abandon(pid string, user dp.Account) (code string, 
 	return
 }
 
-func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) (
-	code string, err error,
+func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) (
+	string, error,
 ) {
-	b, err := s.maintainer.HasPermission(pkg, user)
-	if err != nil {
-		return
+	if s.maintainer.HasPermission(pkg, user) {
+		return "", nil
 	}
 
-	if !b {
-		code = errorSoftwarePkgNoPermission
-		err = errors.New("no permission")
-	}
-
-	return
+	return errorSoftwarePkgNoPermission, errors.New("no permission")
 }

@@ -40,7 +40,6 @@ func Instance() *service {
 }
 
 type pkgMetaData struct {
-	MailingList string `json:"mailing_list"`
 	Description string `json:"description"`
 	SigName     string `json:"sig_name"`
 }

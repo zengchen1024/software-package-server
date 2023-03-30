@@ -5,6 +5,7 @@ import (
 
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
@@ -39,7 +40,13 @@ type configSetDefault interface {
 	SetDefault()
 }
 
-type PostgresqlConfig struct {
+type domainConfig struct {
+	domain.Config
+
+	DomainPrimitive dp.Config `json:"domain_primitive"  required:"true"`
+}
+
+type postgresqlConfig struct {
 	DB postgresql.Config `json:"db" required:"true"`
 
 	repositoryimpl.Config
@@ -51,9 +58,9 @@ type Config struct {
 	Encryption     localutils.Config         `json:"encryption"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
-	Postgresql     PostgresqlConfig          `json:"postgresql"           required:"true"`
+	Postgresql     postgresqlConfig          `json:"postgresql"           required:"true"`
 	Maintainer     maintainerimpl.Config     `json:"maintainer"           required:"true"`
-	SoftwarePkg    dp.Config                 `json:"software_pkg"         required:"true"`
+	SoftwarePkg    domainConfig              `json:"software_pkg"         required:"true"`
 	Translation    translationimpl.Config    `json:"translation"          required:"true"`
 	SigValidator   sigvalidatorimpl.Config   `json:"sig"                  required:"true"`
 	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
@@ -69,7 +76,8 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Middleware,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
-		&cfg.SoftwarePkg,
+		&cfg.SoftwarePkg.Config,
+		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.Maintainer,
 		&cfg.Translation,
 		&cfg.SigValidator,

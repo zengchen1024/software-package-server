@@ -6,12 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 )
 
 type SoftwarePkgReviewService interface {
-	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error
+	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) error
 }
 
 func NewReviewService(m message.SoftwarePkgMessage) SoftwarePkgReviewService {
@@ -22,7 +21,7 @@ type reviewService struct {
 	message message.SoftwarePkgMessage
 }
 
-func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user dp.Account) error {
+func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) error {
 	if approved, err := pkg.ApproveBy(user); !approved {
 		return err
 	}

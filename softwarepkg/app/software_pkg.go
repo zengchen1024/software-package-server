@@ -7,7 +7,6 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
@@ -23,9 +22,9 @@ type SoftwarePkgService interface {
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
 
-	Approve(string, dp.Account) (string, error)
-	Reject(string, dp.Account) (string, error)
-	Abandon(string, dp.Account) (string, error)
+	Approve(string, *domain.User) (string, error)
+	Reject(string, *domain.User) (string, error)
+	Abandon(string, *domain.User) (string, error)
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
 
 	TranslateReviewComment(*CmdToTranslateReviewComment) (

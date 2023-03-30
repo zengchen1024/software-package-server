@@ -12,8 +12,10 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/config"
 	"github.com/opensourceways/software-package-server/server"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
@@ -81,7 +83,8 @@ func main() {
 	defer sigvalidatorimpl.Exit()
 
 	// Domain
-	dp.Init(&cfg.SoftwarePkg, sigvalidatorimpl.SigValidator())
+	domain.Init(&cfg.SoftwarePkg.Config)
+	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
@@ -91,7 +94,9 @@ func main() {
 	}
 
 	// Translation
-	err = translationimpl.Init(&cfg.Translation, cfg.SoftwarePkg.SupportedLanguages)
+	err = translationimpl.Init(
+		&cfg.Translation, cfg.SoftwarePkg.DomainPrimitive.SupportedLanguages,
+	)
 	if err != nil {
 		logrus.Errorf("init translation err:%s", err.Error())
 
@@ -127,6 +132,15 @@ func main() {
 	}
 
 	defer messageimpl.Exit()
+
+	// Maintainer
+	if err := maintainerimpl.Init(&cfg.Maintainer); err != nil {
+		logrus.Errorf("init maintainer failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer maintainerimpl.Exit()
 
 	middleware.Init(&cfg.Middleware)
 

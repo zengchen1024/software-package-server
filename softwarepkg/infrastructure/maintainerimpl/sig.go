@@ -1,4 +1,4 @@
-package sigvalidatorimpl
+package maintainerimpl
 
 import (
 	"crypto/md5"
@@ -7,39 +7,34 @@ import (
 	"net/http"
 
 	"github.com/opensourceways/server-common-lib/utils"
-
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/sigvalidator"
 )
-
-type sigDetail = sigvalidator.Sig
 
 // sigData
 type sigData struct {
-	Data []sigDetail `json:"data"`
+	Data []struct {
+		Maintaines []string `json:"maintainers"`
+	} `json:"data"`
 
-	sigs   map[string]bool
-	md5sum string
+	maintainers map[string]bool
+	md5sum      string
 }
 
-func (s *sigData) getAll() (info []sigDetail) {
-	if s == nil {
-		return nil
-	}
-
-	return s.Data
-}
-
-func (s *sigData) hasSig(sig string) bool {
-	return s != nil && s.sigs != nil && s.sigs[sig]
+func (s *sigData) hasMaintainer(v string) bool {
+	return s != nil && s.maintainers != nil && s.maintainers[v]
 }
 
 func (s *sigData) init(md5sum string) {
 	s.md5sum = md5sum
 
-	s.sigs = make(map[string]bool, len(s.Data))
+	if len(s.Data) == 0 {
+		return
+	}
 
-	for i := range s.Data {
-		s.sigs[s.Data[i].SigNames] = true
+	items := s.Data[0].Maintaines
+	s.maintainers = make(map[string]bool, len(items))
+
+	for i := range items {
+		s.maintainers[items[i]] = true
 	}
 }
 
