@@ -18,6 +18,8 @@ definitions:
     properties:
       applied_at:
         type: string
+      ci_status:
+        type: string
       desc:
         type: string
       id:
@@ -58,6 +60,8 @@ definitions:
         items:
           type: string
         type: array
+      ci_status:
+        type: string
       comments:
         items:
           $ref: '#/definitions/app.SoftwarePkgReviewCommentDTO'

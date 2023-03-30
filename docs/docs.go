@@ -459,6 +459,9 @@ const docTemplate = `{
                 "applied_at": {
                     "type": "string"
                 },
+                "ci_status": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -519,6 +522,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "ci_status": {
+                    "type": "string"
                 },
                 "comments": {
                     "type": "array",

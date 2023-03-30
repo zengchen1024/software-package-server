@@ -35,6 +35,7 @@ type SoftwarePkgBasicInfo struct {
 	Importer    User
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
+	CIStatus    dp.PackageCIStatus
 	Frozen      bool
 	AppliedAt   int64
 	Application SoftwarePkgApplication
@@ -129,8 +130,9 @@ func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, err
 
 	if success {
 		entity.Frozen = false
+		entity.CIStatus = dp.PackageCIStatusPassed
 	} else {
-		entity.Phase = dp.PackagePhaseClosed
+		entity.CIStatus = dp.PackageCIStatusFailed
 	}
 
 	return false, nil
@@ -205,6 +207,7 @@ func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication
 		PkgName:     name,
 		Importer:    *user,
 		Phase:       dp.PackagePhaseReviewing,
+		CIStatus:    dp.PackageCIStatusWaiting,
 		Frozen:      true,
 		Application: *app,
 		AppliedAt:   utils.Now(),
