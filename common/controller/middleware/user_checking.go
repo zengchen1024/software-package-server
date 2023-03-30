@@ -125,8 +125,12 @@ func (m *userCheckingMiddleware) getUserInfo(token, cookie string) (
 }
 
 type userInfoData struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
+	Email      string `json:"email"`
+	Username   string `json:"username"`
+	Identities []struct {
+		LoginName string `json:"login_name"`
+		Identity  string `json:"identity"`
+	} `json:"identities"`
 }
 
 func (d *userInfoData) toUser() (v domain.User, err error) {
@@ -135,6 +139,13 @@ func (d *userInfoData) toUser() (v domain.User, err error) {
 	}
 
 	v.Email, err = dp.NewEmail(d.Email)
+
+	for _, identity := range d.Identities {
+		if identity.Identity == "gitee" {
+			v.GiteeID = identity.LoginName
+			break
+		}
+	}
 
 	return
 }
