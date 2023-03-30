@@ -3,6 +3,8 @@ package app
 import (
 	"errors"
 
+	"github.com/sirupsen/logrus"
+
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
@@ -131,6 +133,35 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string
 
 	if err = pkg.Abandon(user); err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
+	}
+
+	return
+}
+
+func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string, err error) {
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	if err != nil {
+		return
+	}
+
+	if err = pkg.RerunCI(user); err != nil {
+		return
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return
+	}
+
+	e := domain.NewSoftwarePkgAppUpdatedEvent(&pkg)
+	if err = s.message.NotifyPkgToRerunCI(&e); err != nil {
+		logrus.Errorf(
+			"failed to notify re-running ci for pkg:%s, err:%s",
+			pkg.Id, err.Error(),
+		)
+	} else {
+		logrus.Debugf(
+			"successfully to notify re-running ci for pkg:%s", pkg.Id,
+		)
 	}
 
 	return

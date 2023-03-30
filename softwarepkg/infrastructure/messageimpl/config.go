@@ -13,5 +13,5 @@ type Topics struct {
 	ApprovedSoftwarePkg       string `json:"approved_software_pkg"         required:"true"`
 	RejectedSoftwarePkg       string `json:"rejected_software_pkg"         required:"true"`
 	AbandonedSoftwarePkg      string `json:"abandoned_software_pkg"        required:"true"`
-	AlreadyExistedSoftwarePkg string `json:"already_existed_software_pkg"    required:"true"`
+	AlreadyExistedSoftwarePkg string `json:"already_existed_software_pkg"  required:"true"`
 }

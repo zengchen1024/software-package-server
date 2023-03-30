@@ -427,6 +427,41 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/softwarepkg/{id}/review/rerunci": {
+            "put": {
+                "description": "rerun ci of software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "rerun ci of software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

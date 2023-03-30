@@ -116,6 +116,20 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	return nil
 }
 
+func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
+	if !entity.Phase.IsReviewing() || !entity.CIStatus.IsCIFailed() {
+		return errors.New("can't do this")
+	}
+
+	if !dp.IsSameAccount(user.Importer.Account, entity.Importer.Account) {
+		return errors.New("not the importer")
+	}
+
+	entity.CIStatus = dp.PackageCIStatusWaiting
+
+	return nil
+}
+
 func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, error) {
 	if entity.RelevantPR != nil {
 		return false, errors.New("only handle CI once")

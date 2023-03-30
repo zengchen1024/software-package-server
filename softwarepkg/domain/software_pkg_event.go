@@ -21,6 +21,8 @@ func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
+var NewSoftwarePkgAppUpdatedEvent = NewSoftwarePkgAppliedEvent
+
 func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
 	app := &pkg.Application
 

@@ -25,6 +25,7 @@ type SoftwarePkgService interface {
 	Approve(string, *domain.User) (string, error)
 	Reject(string, *domain.User) (string, error)
 	Abandon(string, *domain.User) (string, error)
+	RerunCI(string, *domain.User) (string, error)
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
 
 	TranslateReviewComment(*CmdToTranslateReviewComment) (
