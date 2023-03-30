@@ -21,10 +21,9 @@ func (cfg *Config) Token() func() []byte {
 }
 
 type ExistingPkgsConfig struct {
-	SigEndpoint  string                 `json:"sig_endpoint"      required:"true"`
-	OrgOfPkgRepo string                 `json:"org_of_pkg_repo"   required:"true"`
-	MetadataRepo MetadataRepoConfig     `json:"meta_data_repo"    required:"true"`
-	DefaultInfo  ExistingPkgDefaultInfo `json:"default_info"      required:"true"`
+	MetaDataEndpoint string                 `json:"meta_data_endpoint"      required:"true"`
+	OrgOfPkgRepo     string                 `json:"org_of_pkg_repo"   required:"true"`
+	DefaultInfo      ExistingPkgDefaultInfo `json:"default_info"      required:"true"`
 }
 
 func (cfg *ExistingPkgsConfig) setDefault() {
@@ -40,10 +39,7 @@ type MetadataRepoConfig struct {
 }
 
 type ExistingPkgDefaultInfo struct {
-	SpecURL        string `json:"spec_url"          required:"true"`
-	SrcRPMURL      string `json:"src_rpm_url"       required:"true"`
 	Platform       string `json:"platform"          required:"true"`
-	RelevantPR     string `json:"relevant_pr"       required:"true"`
 	ImporterName   string `json:"importer_name"     required:"true"`
 	ImporterEmail  string `json:"importer_email"    required:"true"`
 	ReasonToImport string `json:"reason_to_import"  required:"true"`
@@ -51,6 +47,7 @@ type ExistingPkgDefaultInfo struct {
 
 func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
 	info.Phase = dp.PackagePhaseImported
+	info.CIStatus = dp.PackageCIStatusPassed
 
 	// importer
 	importer := &info.Importer
@@ -60,11 +57,6 @@ func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkgBasi
 	}
 
 	if importer.Email, err = dp.NewEmail(cfg.ImporterEmail); err != nil {
-		return
-	}
-
-	// pr
-	if info.RelevantPR, err = dp.NewURL(cfg.RelevantPR); err != nil {
 		return
 	}
 
@@ -78,14 +70,6 @@ func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkgBasi
 	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(cfg.ReasonToImport); err != nil {
 		return
 	}
-
-	// source code
-	source := &app.SourceCode
-	if source.SpecURL, err = dp.NewURL(cfg.SpecURL); err != nil {
-		return
-	}
-
-	source.SrcRPMURL, err = dp.NewURL(cfg.SrcRPMURL)
 
 	return
 }

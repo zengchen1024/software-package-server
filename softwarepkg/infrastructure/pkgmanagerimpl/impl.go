@@ -1,13 +1,13 @@
 package pkgmanagerimpl
 
 import (
-	"encoding/base64"
+	"errors"
 	"fmt"
-	"strings"
+	"net/http"
 
 	sdk "github.com/opensourceways/go-gitee/gitee"
 	"github.com/opensourceways/robot-gitee-lib/client"
-	"sigs.k8s.io/yaml"
+	libutils "github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -25,6 +25,7 @@ func Init(cfg *Config) error {
 	instance = &service{
 		cli:        client.NewClient(cfg.Token()),
 		cfg:        cfg.ExistingPkgs,
+		libcli:     libutils.NewHttpClient(3),
 		defaultPkg: v,
 	}
 
@@ -36,13 +37,19 @@ func Instance() *service {
 }
 
 type pkgMetaData struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
+	Data []metaData `json:"data"`
+}
+
+type metaData struct {
+	MailingList string `json:"mailing_list"`
+	Description string `json:"description"`
+	SigName     string `json:"sig_name"`
 }
 
 type service struct {
 	cli        client.Client
 	cfg        ExistingPkgsConfig
+	libcli     libutils.HttpClient
 	defaultPkg domain.SoftwarePkgBasicInfo
 }
 
@@ -58,75 +65,65 @@ func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo,
 		return
 	}
 
-	sig, err := s.fetchSig(name)
+	meta, err := s.getPkgMetaData(name)
 	if err != nil {
 		return
 	}
 
-	meta, err := s.getPkgMetaData(name, sig)
-	if err != nil {
-		return
-	}
-
-	return s.toPkgBasicInfo(name, &repo, &meta, sig)
+	return s.toPkgBasicInfo(name, &repo, &meta.Data[0])
 }
 
 func (s *service) toPkgBasicInfo(
-	name dp.PackageName, repo *sdk.Project, meta *pkgMetaData, sig string,
+	name dp.PackageName, repo *sdk.Project, meta *metaData,
 ) (info domain.SoftwarePkgBasicInfo, err error) {
+
 	info = s.defaultPkg
 
 	info.PkgName = name
 	info.AppliedAt = utils.Now()
 
-	if info.RepoLink, err = dp.NewURL(repo.GetUrl()); err != nil {
+	url, err := dp.NewURL(repo.GetUrl())
+	if err != nil {
 		return
 	}
 
+	info.RepoLink = url
+	info.RelevantPR = url
+
 	app := &info.Application
+	app.SourceCode.SrcRPMURL = url
+	app.SourceCode.SpecURL = url
 
 	desc := repo.Description
 	if desc == "" {
-		desc = fmt.Sprintf("importing software package:%s", name.PackageName())
+		desc = fmt.Sprintf("importing software package: %s", name.PackageName())
 	}
+
 	if app.PackageDesc, err = dp.NewPackageDesc(desc); err != nil {
 		return
 	}
 
-	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(sig); err != nil {
+	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(meta.SigName); err != nil {
 		return
 	}
 
 	return
 }
 
-func (s *service) fetchSig(pkg dp.PackageName) (sig string, err error) {
-	// TODO
-	return "", nil
-}
+func (s *service) getPkgMetaData(name dp.PackageName) (r pkgMetaData, err error) {
 
-func (s *service) getPkgMetaData(name dp.PackageName, sig string) (r pkgMetaData, err error) {
-	meta := &s.cfg.MetadataRepo
+	req, err := http.NewRequest(http.MethodGet, s.cfg.MetaDataEndpoint+name.PackageName(), nil)
+	if err != nil {
+		return pkgMetaData{}, err
+	}
 
-	str := name.PackageName()
-	path := fmt.Sprintf(
-		"sig/%s/src-openeuler/%s/%s.yaml",
-		sig, strings.ToLower(str[:1]), str,
-	)
+	if _, err = s.libcli.ForwardTo(req, &r); err != nil {
+		return pkgMetaData{}, err
+	}
 
-	v, err := s.cli.GetPathContent(meta.Org, meta.Repo, path, meta.Branch)
-	if err == nil {
-		err = decodeYamlFile(v.Content, &r)
+	if len(r.Data) == 0 {
+		err = errors.New("not find pkg meta data")
 	}
 
 	return
-}
-
-func decodeYamlFile(content string, v interface{}) error {
-	c, err := base64.StdEncoding.DecodeString(content)
-	if err != nil {
-		return err
-	}
-
-	return yaml.Unmarshal(c, v)
 }
