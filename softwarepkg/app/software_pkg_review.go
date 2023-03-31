@@ -131,7 +131,9 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string
 		return
 	}
 
-	if err = pkg.Abandon(user); err == nil {
+	if err = pkg.Abandon(user); err != nil {
+		code = domain.ParseErrorCode(err)
+	} else {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -145,6 +147,8 @@ func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string
 	}
 
 	if err = pkg.RerunCI(user); err != nil {
+		code = domain.ParseErrorCode(err)
+
 		return
 	}
 
