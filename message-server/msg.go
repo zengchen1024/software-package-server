@@ -17,14 +17,16 @@ func cmdToHandlePkgCIChecking(data []byte) (cmd app.CmdToHandlePkgCIChecking, er
 
 // msgToHandlePkgCIChecked
 type msgToHandlePkgCIChecked struct {
-	PkgId        string `json:"pkg_id"`
-	FailedReason string `json:"failed_reason"`
+	PkgId   string `json:"pkg_id"`
+	Detail  string `json:"detail"`
+	Success bool   `json:"success"`
 }
 
 func (msg *msgToHandlePkgCIChecked) toCmd() app.CmdToHandlePkgCIChecked {
 	return app.CmdToHandlePkgCIChecked{
-		PkgId:       msg.PkgId,
-		FiledReason: msg.FailedReason,
+		PkgId:   msg.PkgId,
+		Detail:  msg.Detail,
+		Success: msg.Success,
 	}
 }
 

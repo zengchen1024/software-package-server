@@ -29,9 +29,12 @@ func NewSoftwarePkgMessageService(
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgIndirectMessage,
 ) softwarePkgMessageService {
+	robot, _ := dp.NewAccount("software-pkg-robot")
+
 	return softwarePkgMessageService{
 		ci:      ci,
 		repo:    repo,
+		robot:   robot,
 		manager: manager,
 		message: message,
 	}
@@ -40,6 +43,7 @@ func NewSoftwarePkgMessageService(
 type softwarePkgMessageService struct {
 	ci      pkgci.PkgCI
 	repo    repository.SoftwarePkg
+	robot   dp.Account
 	manager pkgmanager.PkgManager
 	message message.SoftwarePkgIndirectMessage
 }
@@ -76,13 +80,11 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 		return err
 	}
 
-	if err := pkg.HandleCIChecked(cmd.isSuccess()); err != nil {
+	if err := pkg.HandleCIChecked(cmd.Success); err != nil {
 		return err
 	}
 
-	if !cmd.isSuccess() {
-		s.addCommentForFailedCI(&cmd)
-	}
+	s.addCIComment(&cmd)
 
 	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
@@ -94,16 +96,9 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 	return nil
 }
 
-func (s softwarePkgMessageService) addCommentForFailedCI(cmd *CmdToHandlePkgCIChecked) {
-	author, _ := dp.NewAccount("software-pkg-robot")
-
-	str := fmt.Sprintf(
-		"I'am sorry to close this application. Because the checking failed with the reason as bellow.\n\n%s",
-		cmd.FiledReason,
-	)
-	content, _ := dp.NewReviewComment(str)
-
-	comment := domain.NewSoftwarePkgReviewComment(author, content)
+func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIChecked) {
+	content, _ := dp.NewReviewComment(cmd.Detail)
+	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
 	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(
@@ -226,15 +221,12 @@ func (s softwarePkgMessageService) notifyPkgInitialized(
 }
 
 func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgInitialized) {
-	author, _ := dp.NewAccount("software-pkg-robot")
-
 	str := fmt.Sprintf(
 		"I'am sorry to close this application. Because the pkg was imported sometimes ago. The repo address is %s. You can work on that repo.",
 		cmd.RepoLink,
 	)
 	content, _ := dp.NewReviewComment(str)
-
-	comment := domain.NewSoftwarePkgReviewComment(author, content)
+	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
 	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(

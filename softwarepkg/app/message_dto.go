@@ -20,12 +20,9 @@ func (cmd *CmdToHandlePkgCIChecking) logString() string {
 
 // CmdToHandlePkgCIChecked
 type CmdToHandlePkgCIChecked struct {
-	PkgId       string
-	FiledReason string
-}
-
-func (cmd *CmdToHandlePkgCIChecked) isSuccess() bool {
-	return cmd.FiledReason == ""
+	PkgId   string
+	Success bool
+	Detail  string
 }
 
 func (cmd *CmdToHandlePkgCIChecked) logString() string {
