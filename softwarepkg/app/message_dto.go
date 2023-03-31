@@ -12,6 +12,12 @@ type CmdToHandlePkgCIChecking struct {
 	PkgId string
 }
 
+func (cmd *CmdToHandlePkgCIChecking) logString() string {
+	return fmt.Sprintf(
+		"handling pkg ci checking, pkgid:%s", cmd.PkgId,
+	)
+}
+
 // CmdToHandlePkgCIChecked
 type CmdToHandlePkgCIChecked struct {
 	PkgId       string
