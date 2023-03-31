@@ -158,6 +158,16 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool) error {
 	return nil
 }
 
+func (entity *SoftwarePkgBasicInfo) HandlePkgInitialized(pr dp.URL) error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
+	}
+
+	entity.RelevantPR = pr
+
+	return nil
+}
+
 func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
@@ -174,10 +184,6 @@ type RepoCreatedInfo struct {
 }
 
 func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) error {
-	if entity.RepoLink != nil {
-		return errors.New("only do once")
-	}
-
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
 	}
@@ -191,9 +197,9 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCodeSaved() error {
-	if !entity.Phase.IsCreatingRepo() {
-		return errors.New("can't do this")
+func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error {
+	if err := entity.HandleRepoCreated(info); err != nil {
+		return err
 	}
 
 	entity.Phase = dp.PackagePhaseImported

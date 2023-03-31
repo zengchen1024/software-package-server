@@ -159,7 +159,7 @@ func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSave
 		return err
 	}
 
-	if err := pkg.HandleCodeSaved(); err != nil {
+	if err := pkg.HandleCodeSaved(cmd.RepoCreatedInfo); err != nil {
 		return err
 	}
 
@@ -173,7 +173,7 @@ func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSave
 	return nil
 }
 
-// HandlePkgInitDone
+// HandlePkgInitialized
 func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
@@ -181,31 +181,33 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 	}
 
 	if cmd.isSuccess() {
+		if err := pkg.HandlePkgInitialized(cmd.RelevantPR); err != nil {
+			return err
+		}
+
 		if !pkg.Application.PackagePlatform.IsLocalPlatform() {
 			s.notifyPkgInitialized(&pkg, &cmd)
 		}
+	} else {
+		if !cmd.isPkgAreadyExisted() {
+			logrus.Errorf("pkg init failed, pkgid:%s, err:%s", cmd.PkgId, cmd.FiledReason)
 
-		return nil
-	}
+			return nil
+		}
 
-	if cmd.isPkgAreadyExisted() {
 		if err := pkg.HandlePkgAlreadyExisted(); err != nil {
 			return err
 		}
 
 		s.addCommentForExistedPkg(&cmd)
-
-		if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-			logrus.Errorf(
-				"save pkg failed when %s, err:%s",
-				cmd.logString(), err.Error(),
-			)
-		}
-
-		return nil
 	}
 
-	logrus.Errorf("pkg init failed, pkgid:%s, err:%s", cmd.PkgId, cmd.FiledReason)
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
 
 	return nil
 }
