@@ -5,11 +5,12 @@ import (
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgci"
 )
 
 // CmdToHandlePkgCIChecking
-type CmdToHandlePkgCIChecking = pkgci.SoftwarePkgInfo
+type CmdToHandlePkgCIChecking struct {
+	PkgId string
+}
 
 // CmdToHandlePkgCIChecked
 type CmdToHandlePkgCIChecked struct {

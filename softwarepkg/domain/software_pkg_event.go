@@ -7,29 +7,22 @@ import (
 )
 
 var (
+	NewSoftwarePkgAppUpdatedEvent  = NewSoftwarePkgAppliedEvent
 	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
 )
 
 // softwarePkgAppliedEvent
 type softwarePkgAppliedEvent struct {
-	PkgId     string `json:"pkg_id"`
-	SpecURL   string `json:"spec_url"`
-	SrcRPMURL string `json:"src_rpm_url"`
+	PkgId string `json:"pkg_id"`
 }
 
 func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-var NewSoftwarePkgAppUpdatedEvent = NewSoftwarePkgAppliedEvent
-
 func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
-	app := &pkg.Application
-
 	return softwarePkgAppliedEvent{
-		PkgId:     pkg.Id,
-		SpecURL:   app.SourceCode.SpecURL.URL(),
-		SrcRPMURL: app.SourceCode.SrcRPMURL.URL(),
+		PkgId: pkg.Id,
 	}
 }
 

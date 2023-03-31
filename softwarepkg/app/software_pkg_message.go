@@ -46,7 +46,12 @@ type softwarePkgMessageService struct {
 
 // HandlePkgCIChecking
 func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
-	return s.ci.SendTest(&cmd)
+	pkg, _, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil || !pkg.CanRunCI() {
+		return err
+	}
+
+	return s.ci.SendTest(&pkg)
 }
 
 // HandlePkgCIChecked

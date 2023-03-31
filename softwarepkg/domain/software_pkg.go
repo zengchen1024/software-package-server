@@ -64,6 +64,10 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
+func (entity *SoftwarePkgBasicInfo) CanRunCI() bool {
+	return entity.Phase.IsReviewing() && !entity.CIStatus.IsCIRunning()
+}
+
 // change the status of "creating repo"
 // send out the event
 // notify the importer
@@ -117,7 +121,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 }
 
 func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
-	if !entity.Phase.IsReviewing() || !entity.CIStatus.IsCIFailed() {
+	if !entity.CanRunCI() {
 		return errors.New("can't do this")
 	}
 
