@@ -18,7 +18,7 @@ import (
 
 type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
-	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, error)
+	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) (string, error)
 
@@ -108,7 +108,7 @@ func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, erro
 func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication) (string, error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
 	if err != nil {
-		return "", err
+		return errorCodeForFindingPkg(err), err
 	}
 
 	if err = pkg.UpdateApplication(&cmd.Application, &cmd.Importer); err != nil {

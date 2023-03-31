@@ -114,8 +114,8 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id} [get]
 func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
-	if v, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+	if v, code, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
+		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfGet(ctx, v)
 	}
