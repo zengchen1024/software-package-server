@@ -142,30 +142,20 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, pr dp.URL) (bool, error) {
-	if entity.RelevantPR != nil {
-		return false, errors.New("only handle CI once")
-	}
-
-	if entity.Phase.IsClosed() {
-		// already closed
-		return true, nil
-	}
-
+func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool) error {
 	if !entity.Phase.IsReviewing() {
-		return false, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
-	entity.RelevantPR = pr
+	entity.Frozen = !success
 
 	if success {
-		entity.Frozen = false
 		entity.CIStatus = dp.PackageCIStatusPassed
 	} else {
 		entity.CIStatus = dp.PackageCIStatusFailed
 	}
 
-	return false, nil
+	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {

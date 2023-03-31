@@ -76,8 +76,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 		return err
 	}
 
-	alreadyClosed, err := pkg.HandleCIChecked(cmd.isSuccess(), cmd.RelevantPR)
-	if err != nil || alreadyClosed {
+	if err := pkg.HandleCIChecked(cmd.isSuccess()); err != nil {
 		return err
 	}
 
