@@ -142,30 +142,30 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, pr dp.URL) (bool, error) {
-	if entity.RelevantPR != nil {
-		return false, errors.New("only handle CI once")
-	}
-
-	if entity.Phase.IsClosed() {
-		// already closed
-		return true, nil
-	}
-
+func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool) error {
 	if !entity.Phase.IsReviewing() {
-		return false, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
-	entity.RelevantPR = pr
+	entity.Frozen = !success
 
 	if success {
-		entity.Frozen = false
 		entity.CIStatus = dp.PackageCIStatusPassed
 	} else {
 		entity.CIStatus = dp.PackageCIStatusFailed
 	}
 
-	return false, nil
+	return nil
+}
+
+func (entity *SoftwarePkgBasicInfo) HandlePkgInitialized(pr dp.URL) error {
+	if !entity.Phase.IsCreatingRepo() {
+		return errors.New("can't do this")
+	}
+
+	entity.RelevantPR = pr
+
+	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {
@@ -184,10 +184,6 @@ type RepoCreatedInfo struct {
 }
 
 func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) error {
-	if entity.RepoLink != nil {
-		return errors.New("only do once")
-	}
-
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
 	}
@@ -201,9 +197,9 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCodeSaved() error {
-	if !entity.Phase.IsCreatingRepo() {
-		return errors.New("can't do this")
+func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error {
+	if err := entity.HandleRepoCreated(info); err != nil {
+		return err
 	}
 
 	entity.Phase = dp.PackagePhaseImported

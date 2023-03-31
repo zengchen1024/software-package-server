@@ -17,22 +17,17 @@ func cmdToHandlePkgCIChecking(data []byte) (cmd app.CmdToHandlePkgCIChecking, er
 
 // msgToHandlePkgCIChecked
 type msgToHandlePkgCIChecked struct {
-	PkgId        string `json:"pkg_id"`
-	RelevantPR   string `json:"relevant_pr"`
-	PRNum        int    `json:"pr_num"`
-	FailedReason string `json:"failed_reason"`
+	PkgId   string `json:"pkg_id"`
+	Detail  string `json:"detail"`
+	Success bool   `json:"success"`
 }
 
-func (msg *msgToHandlePkgCIChecked) toCmd() (cmd app.CmdToHandlePkgCIChecked, err error) {
-	if cmd.RelevantPR, err = dp.NewURL(msg.RelevantPR); err != nil {
-		return
+func (msg *msgToHandlePkgCIChecked) toCmd() app.CmdToHandlePkgCIChecked {
+	return app.CmdToHandlePkgCIChecked{
+		PkgId:   msg.PkgId,
+		Detail:  msg.Detail,
+		Success: msg.Success,
 	}
-
-	cmd.PkgId = msg.PkgId
-	cmd.FiledReason = msg.FailedReason
-	cmd.PRNum = msg.PRNum
-
-	return
 }
 
 // msgToHandlePkgInitialized

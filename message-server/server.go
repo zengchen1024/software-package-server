@@ -53,12 +53,7 @@ func (s *server) handlePkgCIChecked(data []byte) error {
 		return err
 	}
 
-	cmd, err := msg.toCmd()
-	if err != nil {
-		return err
-	}
-
-	return s.service.HandlePkgCIChecked(cmd)
+	return s.service.HandlePkgCIChecked(msg.toCmd())
 }
 
 func (s *server) handlePkgInitialized(data []byte) error {

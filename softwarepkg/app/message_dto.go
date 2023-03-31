@@ -20,20 +20,14 @@ func (cmd *CmdToHandlePkgCIChecking) logString() string {
 
 // CmdToHandlePkgCIChecked
 type CmdToHandlePkgCIChecked struct {
-	PkgId       string
-	RelevantPR  dp.URL
-	PRNum       int
-	FiledReason string
-}
-
-func (cmd *CmdToHandlePkgCIChecked) isSuccess() bool {
-	return cmd.FiledReason == ""
+	PkgId   string
+	Detail  string
+	Success bool
 }
 
 func (cmd *CmdToHandlePkgCIChecked) logString() string {
 	return fmt.Sprintf(
-		"handling pkg ci checked, pkgid:%s, pr:%s",
-		cmd.PkgId, cmd.RelevantPR.URL(),
+		"handling pkg ci checked, pkgid:%s", cmd.PkgId,
 	)
 }
 
