@@ -10,13 +10,13 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 )
 
-func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDTO, error) {
+func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDTO, string, error) {
 	v, _, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
-		return SoftwarePkgReviewDTO{}, err
+		return SoftwarePkgReviewDTO{}, errorCodeForFindingPkg(err), err
 	}
 
-	return toSoftwarePkgReviewDTO(&v), nil
+	return toSoftwarePkgReviewDTO(&v), "", nil
 }
 
 func (s *softwarePkgService) NewReviewComment(
@@ -32,6 +32,8 @@ func (s *softwarePkgService) NewReviewComment(
 
 	pkg, _, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
+		code = errorCodeForFindingPkg(err)
+
 		return
 	}
 
@@ -94,6 +96,8 @@ func (s *softwarePkgService) TranslateReviewComment(
 func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
+		code = errorCodeForFindingPkg(err)
+
 		return
 	}
 
@@ -111,6 +115,8 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
+		code = errorCodeForFindingPkg(err)
+
 		return
 	}
 
@@ -128,6 +134,8 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
+		code = errorCodeForFindingPkg(err)
+
 		return
 	}
 
@@ -143,6 +151,8 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string
 func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string, err error) {
 	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
 	if err != nil {
+		code = errorCodeForFindingPkg(err)
+
 		return
 	}
 
