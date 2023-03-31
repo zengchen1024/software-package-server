@@ -69,7 +69,7 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() || entity.Frozen {
-		return false, errors.New("not ready")
+		return false, errors.New("can't do this")
 	}
 
 	entity.ApprovedBy = append(entity.ApprovedBy, user.Account)
@@ -108,7 +108,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	}
 
 	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return errors.New("not the importer")
+		return errorNotTheImporter
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
@@ -123,10 +123,24 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
 	}
 
 	if !dp.IsSameAccount(user.Importer.Account, entity.Importer.Account) {
-		return errors.New("not the importer")
+		return errorNotTheImporter
 	}
 
 	entity.CIStatus = dp.PackageCIStatusWaiting
+
+	return nil
+}
+
+func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
+	if !entity.Phase.IsReviewing() {
+		return errors.New("can't do this")
+	}
+
+	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
+		return errorNotTheImporter
+	}
+
+	entity.Application = *cmd
 
 	return nil
 }
@@ -203,20 +217,6 @@ func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error 
 	}
 
 	entity.Phase = dp.PackagePhaseImported
-
-	return nil
-}
-
-func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
-	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
-	}
-
-	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return errors.New("not the importer")
-	}
-
-	entity.Application = *cmd
 
 	return nil
 }

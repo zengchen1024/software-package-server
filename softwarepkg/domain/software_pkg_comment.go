@@ -23,6 +23,7 @@ func NewSoftwarePkgReviewComment(
 	}
 }
 
+// SoftwarePkgTranslatedReviewComment
 type SoftwarePkgTranslatedReviewComment struct {
 	Id        string
 	CommentId string

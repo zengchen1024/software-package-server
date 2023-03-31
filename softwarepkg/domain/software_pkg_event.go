@@ -67,6 +67,7 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedE
 	}
 }
 
+// softwarePkgAlreadyExistedEvent
 type softwarePkgAlreadyExistedEvent struct {
 	PkgName string `json:"pkg_name"`
 }

@@ -297,14 +297,14 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 		return
 	}
 
-	err = ctl.service.UpdateApplication(
+	code, err := ctl.service.UpdateApplication(
 		&app.CmdToUpdateSoftwarePkgApplication{
 			PkgId:                    ctx.Param("id"),
 			CmdToApplyNewSoftwarePkg: cmd,
 		},
 	)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendFailedResp(ctx, code, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
 	}
