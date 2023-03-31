@@ -117,7 +117,8 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 }
 
 func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
-	if !entity.Phase.IsReviewing() || !entity.CIStatus.IsCIFailed() {
+	b := entity.Phase.IsReviewing() && !entity.CIStatus.IsCIRunning()
+	if !b {
 		return errors.New("can't do this")
 	}
 
@@ -130,7 +131,18 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCI(success bool, pr dp.URL) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
+	b := entity.Phase.IsReviewing() && entity.CIStatus.IsCIWaiting()
+	if !b {
+		return errors.New("can't do this")
+	}
+
+	entity.CIStatus = dp.PackageCIStatusRunning
+
+	return nil
+}
+
+func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, pr dp.URL) (bool, error) {
 	if entity.RelevantPR != nil {
 		return false, errors.New("only handle CI once")
 	}

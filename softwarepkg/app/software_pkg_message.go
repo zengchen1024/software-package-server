@@ -46,7 +46,27 @@ type softwarePkgMessageService struct {
 
 // HandlePkgCIChecking
 func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
-	return s.ci.SendTest(&cmd)
+	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if err := pkg.HandleCIChecking(); err != nil {
+		return err
+	}
+
+	if err := s.ci.SendTest(&pkg); err != nil {
+		return err
+	}
+
+	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+	}
+
+	return nil
 }
 
 // HandlePkgCIChecked
@@ -56,7 +76,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 		return err
 	}
 
-	alreadyClosed, err := pkg.HandleCI(cmd.isSuccess(), cmd.RelevantPR)
+	alreadyClosed, err := pkg.HandleCIChecked(cmd.isSuccess(), cmd.RelevantPR)
 	if err != nil || alreadyClosed {
 		return err
 	}
