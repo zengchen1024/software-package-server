@@ -66,21 +66,23 @@ func (l *sigLoader) Load(old interface{}) (interface{}, error) {
 	return l.load(old.(*sigData))
 }
 
-func (l *sigLoader) load(old *sigData) (s *sigData, err error) {
+// must declare the first return value is interface{}
+// because (*sigData)(nil) != (interface{})(nil)
+func (l *sigLoader) load(old *sigData) (interface{}, error) {
 	b, err := l.read()
-	if err != nil {
-		return
+	if err != nil || len(b) == 0 {
+		return nil, err
 	}
 
 	md5sum := fmt.Sprintf("%x", md5.Sum(b))
 	if old != nil && old.md5sum == md5sum {
-		return
+		return nil, nil
 	}
 
-	s = new(sigData)
+	s := new(sigData)
 	if err = json.Unmarshal(b, s); err == nil {
 		s.init(md5sum)
 	}
 
-	return
+	return s, nil
 }
