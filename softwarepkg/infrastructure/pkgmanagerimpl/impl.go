@@ -81,7 +81,7 @@ func (s *service) toPkgBasicInfo(
 	info.PkgName = name
 	info.AppliedAt = utils.Now()
 
-	url, err := dp.NewURL(repo.GetUrl())
+	url, err := dp.NewURL(repo.GetHtmlUrl())
 	if err != nil {
 		return
 	}
