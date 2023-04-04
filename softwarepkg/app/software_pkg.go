@@ -7,6 +7,7 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
@@ -33,7 +34,11 @@ type SoftwarePkgService interface {
 	)
 }
 
-var _ SoftwarePkgService = (*softwarePkgService)(nil)
+var (
+	_ SoftwarePkgService = (*softwarePkgService)(nil)
+
+	softwarePkgRobot = "software-pkg-robot"
+)
 
 func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
@@ -43,8 +48,11 @@ func NewSoftwarePkgService(
 	maintainer maintainer.Maintainer,
 	translation translation.Translation,
 ) *softwarePkgService {
+	robot, _ := dp.NewAccount(softwarePkgRobot)
+
 	return &softwarePkgService{
 		repo:         repo,
+		robot:        robot,
 		message:      message,
 		sensitive:    sensitive,
 		maintainer:   maintainer,
@@ -56,6 +64,7 @@ func NewSoftwarePkgService(
 
 type softwarePkgService struct {
 	repo         repository.SoftwarePkg
+	robot        dp.Account
 	message      message.SoftwarePkgMessage
 	sensitive    sensitivewords.SensitiveWords
 	maintainer   maintainer.Maintainer
