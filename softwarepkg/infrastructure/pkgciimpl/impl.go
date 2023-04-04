@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/opensourceways/server-common-lib/utils"
+
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 )
 
@@ -55,7 +56,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 		return err
 	}
 
-	_, _, err = impl.cli.Download(req)
+	_, err = impl.cli.ForwardTo(req, nil)
 
 	return err
 }
