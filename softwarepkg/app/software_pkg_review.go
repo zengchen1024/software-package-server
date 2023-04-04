@@ -7,6 +7,7 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 )
 
@@ -176,9 +177,23 @@ func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string
 		logrus.Debugf(
 			"successfully to notify re-running ci for pkg:%s", pkg.Id,
 		)
+
+		s.addCommentToRerunCI(pid)
 	}
 
 	return
+}
+
+func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
+	content, _ := dp.NewReviewComment("The CI will rerun now.")
+	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
+
+	if err := s.repo.AddReviewComment(pkgId, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when reruns ci for pkg:%s, err:%s",
+			pkgId, err.Error(),
+		)
+	}
 }
 
 func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) (

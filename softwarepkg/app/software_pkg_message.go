@@ -29,7 +29,7 @@ func NewSoftwarePkgMessageService(
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgIndirectMessage,
 ) softwarePkgMessageService {
-	robot, _ := dp.NewAccount("software-pkg-robot")
+	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return softwarePkgMessageService{
 		ci:      ci,
