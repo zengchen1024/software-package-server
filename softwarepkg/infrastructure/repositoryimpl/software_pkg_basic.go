@@ -6,6 +6,7 @@ import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/utils"
 )
@@ -118,10 +119,9 @@ func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error
 
 	pkg.Id = do.Id.String()
 
-	err := s.basicDBCli.Insert(
-		&SoftwarePkgBasicDO{
-			PackageName: do.PackageName,
-		},
+	err := s.basicDBCli.InsertWithNot(
+		&SoftwarePkgBasicDO{PackageName: do.PackageName},
+		&SoftwarePkgBasicDO{Phase: dp.PackagePhaseClosed.PackagePhase()},
 		&do,
 	)
 	if err != nil && s.basicDBCli.IsRowExists(err) {

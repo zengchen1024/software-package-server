@@ -62,6 +62,23 @@ func (t dbTable) Insert(filter, result interface{}) error {
 	return nil
 }
 
+func (t dbTable) InsertWithNot(filter, notFilter, result interface{}) error {
+	query := db.Table(t.name).
+		Where(filter).
+		Not(notFilter).
+		FirstOrCreate(result)
+
+	if err := query.Error; err != nil {
+		return err
+	}
+
+	if query.RowsAffected == 0 {
+		return errRowExists
+	}
+
+	return nil
+}
+
 func (t dbTable) GetRecords(
 	filter, result interface{}, p Pagination,
 	sort []SortByColumn,

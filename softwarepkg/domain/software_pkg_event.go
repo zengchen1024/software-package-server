@@ -61,7 +61,7 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedE
 		PkgDesc:           app.PackageDesc.PackageDesc(),
 		SpecURL:           app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:         app.SourceCode.SrcRPMURL.URL(),
-		Platform:          pkg.Application.PackagePlatform.PackagePlatform(),
+		Platform:          app.PackagePlatform.PackagePlatform(),
 		ImportingPkgSig:   app.ImportingPkgSig.ImportingPkgSig(),
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
 	}

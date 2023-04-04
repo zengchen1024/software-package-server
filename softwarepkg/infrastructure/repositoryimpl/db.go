@@ -4,6 +4,7 @@ import "github.com/opensourceways/software-package-server/common/infrastructure/
 
 type dbClient interface {
 	Insert(filter, result interface{}) error
+	InsertWithNot(filter, notFilter, result interface{}) error
 	Count(filter interface{}) (int, error)
 	GetRecords(filter, result interface{}, p postgresql.Pagination, sort []postgresql.SortByColumn) error
 	GetRecord(filter, result interface{}) error
