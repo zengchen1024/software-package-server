@@ -68,27 +68,41 @@ func (s softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
 func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
 	r []domain.SoftwarePkgBasicInfo, total int, err error,
 ) {
-	var filter SoftwarePkgBasicDO
+
+	var filter []postgresql.ColumnFilter
+
 	if pkgs.Importer != nil {
-		filter.Importer = pkgs.Importer.Account()
+		filter = append(filter,
+			postgresql.NewEqualFilter(fieldImporter, pkgs.Importer.Account()),
+		)
 	}
 
 	if pkgs.Phase != nil {
-		filter.Phase = pkgs.Phase.PackagePhase()
+		filter = append(filter,
+			postgresql.NewEqualFilter(fieldPhase, pkgs.Phase.PackagePhase()),
+		)
 	}
 
 	if pkgs.Platform != nil {
-		filter.PackagePlatform = pkgs.Platform.PackagePlatform()
+		filter = append(filter,
+			postgresql.NewEqualFilter(fieldPackagePlatform, pkgs.Platform.PackagePlatform()),
+		)
 	}
 
-	if total, err = s.basicDBCli.Count(&filter); err != nil || total == 0 {
+	if pkgs.PkgName != nil {
+		filter = append(filter,
+			postgresql.NewLikeFilter(fieldPackageName, pkgs.PkgName.PackageName()),
+		)
+	}
+
+	if total, err = s.basicDBCli.Count(filter); err != nil || total == 0 {
 		return
 	}
 
 	var dos []SoftwarePkgBasicDO
 
 	err = s.basicDBCli.GetRecords(
-		&filter, &dos,
+		filter, &dos,
 		postgresql.Pagination{
 			PageNum:      pkgs.PageNum,
 			CountPerPage: pkgs.CountPerPage,

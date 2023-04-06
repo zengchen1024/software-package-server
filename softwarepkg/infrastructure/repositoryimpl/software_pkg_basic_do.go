@@ -11,9 +11,14 @@ import (
 )
 
 const (
-	fieldAppliedAt = "applied_at"
-	fieldVersion   = "version"
-	fieldId        = "uuid"
+	fieldId              = "uuid"
+	fieldPhase           = "phase"
+	fieldVersion         = "version"
+	fieldImporter        = "importer"
+	fieldAppliedAt       = "applied_at"
+	fieldPackageName     = "package_name"
+	fieldPackagePlatform = "package_platform"
+
 	frozenStatus   = "frozen"
 	unfrozenStatus = "unfrozen"
 )

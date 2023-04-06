@@ -64,8 +64,9 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 }
 
 type softwarePkgListQuery struct {
-	Importer     string `json:"importer"       form:"importer"`
 	Phase        string `json:"phase"          form:"phase"`
+	PkgName      string `json:"pkg_name"       form:"pkg_name"`
+	Importer     string `json:"importer"       form:"importer"`
 	Platform     string `json:"platform"       form:"platform"`
 	PageNum      int    `json:"page_num"       form:"page_num"`
 	CountPerPage int    `json:"count_per_page" form:"count_per_page"`
@@ -86,6 +87,12 @@ func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
 
 	if s.Platform != "" {
 		if pkg.Platform, err = dp.NewPackagePlatform(s.Platform); err != nil {
+			return
+		}
+	}
+
+	if s.PkgName != "" {
+		if pkg.PkgName, err = dp.NewPackageName(s.PkgName); err != nil {
 			return
 		}
 	}

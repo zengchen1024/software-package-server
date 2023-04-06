@@ -27,7 +27,9 @@ func (t reviewComment) findSoftwarePkgReviews(pid string) (
 	var dos []SoftwarePkgReviewCommentDO
 
 	err := t.commentDBCli.GetRecords(
-		&SoftwarePkgReviewCommentDO{PkgId: pid},
+		[]postgresql.ColumnFilter{
+			postgresql.NewEqualFilter(fieldSoftwarePkgId, pid),
+		},
 		&dos,
 		postgresql.Pagination{},
 		[]postgresql.SortByColumn{

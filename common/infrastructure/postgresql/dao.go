@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -38,6 +39,32 @@ func (p Pagination) pagination() (limit, offset int) {
 	}
 
 	return
+}
+
+type ColumnFilter struct {
+	column string
+	symbol string
+	value  interface{}
+}
+
+func (q *ColumnFilter) condition() string {
+	return fmt.Sprintf("%s %s ?", q.column, q.symbol)
+}
+
+func NewEqualFilter(column string, value interface{}) ColumnFilter {
+	return ColumnFilter{
+		column: column,
+		symbol: "=",
+		value:  value,
+	}
+}
+
+func NewLikeFilter(column string, value string) ColumnFilter {
+	return ColumnFilter{
+		column: column,
+		symbol: "ilike",
+		value:  "%" + value + "%",
+	}
 }
 
 type dbTable struct {
@@ -80,10 +107,13 @@ func (t dbTable) InsertWithNot(filter, notFilter, result interface{}) error {
 }
 
 func (t dbTable) GetRecords(
-	filter, result interface{}, p Pagination,
+	filter []ColumnFilter, result interface{}, p Pagination,
 	sort []SortByColumn,
 ) (err error) {
-	query := db.Table(t.name).Where(filter)
+	query := db.Table(t.name)
+	for i := range filter {
+		query.Where(filter[i].condition(), filter[i].value)
+	}
 
 	var orders []string
 	for _, v := range sort {
@@ -103,9 +133,14 @@ func (t dbTable) GetRecords(
 	return
 }
 
-func (t dbTable) Count(filter interface{}) (int, error) {
+func (t dbTable) Count(filter []ColumnFilter) (int, error) {
 	var total int64
-	err := db.Table(t.name).Where(filter).Count(&total).Error
+	query := db.Table(t.name)
+	for i := range filter {
+		query.Where(filter[i].condition(), filter[i].value)
+	}
+
+	err := query.Count(&total).Error
 
 	return int(total), err
 }
