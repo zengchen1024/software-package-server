@@ -14,6 +14,7 @@ var instance *pkgCIImpl
 func Init(cfg *Config) {
 	instance = &pkgCIImpl{
 		cli:      utils.NewHttpClient(3),
+		service:  cfg.CIService,
 		endpoint: cfg.CIEndpoint,
 	}
 }
@@ -33,6 +34,7 @@ type softwarePkgInfo struct {
 // pkgCIImpl
 type pkgCIImpl struct {
 	cli      utils.HttpClient
+	service  string
 	endpoint string
 }
 
@@ -41,7 +43,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 	v := softwarePkgInfo{
 		PkgId:     info.Id,
 		PkgName:   info.PkgName.PackageName(),
-		Service:   "software-pkg-service",
+		Service:   impl.service,
 		SpecURL:   source.SpecURL.URL(),
 		SrcRPMURL: source.SrcRPMURL.URL(),
 	}
