@@ -28,7 +28,7 @@ func (cfg *Config) SetDefault() {
 	}
 
 	if cfg.MaxLengthOfPackageName <= 0 {
-		cfg.MaxLengthOfPackageName = 50
+		cfg.MaxLengthOfPackageName = 60
 	}
 
 	if cfg.MaxLengthOfPackageDesc <= 0 {

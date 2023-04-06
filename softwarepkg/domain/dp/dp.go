@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	reName = regexp.MustCompile("^[a-zA-Z0-9_-]+$")
+	reName = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 )
 
 // Account
