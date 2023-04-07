@@ -58,6 +58,8 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 		return err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	_, err = impl.cli.ForwardTo(req, nil)
 
 	return err
