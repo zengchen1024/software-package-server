@@ -14,6 +14,7 @@ WORKDIR /opt/app/
 COPY  --from=BUILDER /go/src/github.com/opensourceways/software-package-server/message-server/message-server /opt/app/message-server
 COPY  --from=BUILDER /go/src/github.com/opensourceways/software-package-server/download/download /opt/app/download
 
+COPY softwarepkg/infrastructure/pkgciimpl/clone_repo.sh /opt/app/clone_repo.sh
 COPY softwarepkg/infrastructure/pkgciimpl/pull_request.sh /opt/app/pull_request.sh
 
 RUN chmod +x /opt/app/pull_request.sh && apk update && apk add --no-cache git libc6-compat curl

@@ -47,7 +47,7 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 }
 
 func main() {
-	logrusutil.ComponentInit("xihe")
+	logrusutil.ComponentInit("software-package-server")
 	log := logrus.NewEntry(logrus.StandardLogger())
 
 	o := gatherOptions(
