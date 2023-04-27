@@ -8,9 +8,9 @@ import (
 type Config struct {
 	WorkDir      string  `json:"work_dir"       required:"true"`
 	GitUser      GitUser `json:"user"           required:"true"`
-	CIRepo       CIRepo  `json:"ci_repo"        required:"true"`
 	PRScript     string  `json:"pr_script"      required:"true"`
 	CloneScript  string  `json:"clone_script"   required:"true"`
+	CIRepo       CIRepo  `json:"ci_repo"        required:"true"`
 	CIComment    string  `json:"ci_comment"     required:"true"`
 	CIService    string  `json:"ci_service"     required:"true"`
 	TargetBranch string  `json:"target_branch"  required:"true"`

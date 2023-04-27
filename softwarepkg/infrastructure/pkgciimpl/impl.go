@@ -93,9 +93,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 
 func (impl *pkgCIImpl) createPRComment(id int32) error {
 	err := impl.cli.CreatePRComment(
-		impl.cfg.CIRepo.Org,
-		impl.cfg.CIRepo.Repo, id,
-		impl.cfg.CIComment,
+		impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, id, impl.cfg.CIComment,
 	)
 	if err != nil {
 		logrus.Errorf("create pr %d comment failed, err:%s", id, err.Error())
