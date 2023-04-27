@@ -4,19 +4,20 @@ set -euo pipefail
 
 repo_dir=$1
 git_token=$2
-branch_name=$3
-pkg_info_file=$4
-spec_url=$5
-src_rpm_url=$6
+master_branch=$3
+branch_name=$4
+pkg_info_file=$5
+spec_url=$6
+src_rpm_url=$7
 
 new_branch() {
     git checkout -- .
     git clean -fd
 
-    git checkout master
+    git checkout $master_branch
 
-    git fetch origin master
-    git rebase origin/master
+    git fetch origin $master_branch
+    git rebase origin/$master_branch
 
     set +e
     git rev-parse --verify $branch 2>/dev/null
@@ -52,7 +53,7 @@ commit() {
 
     git push origin "$branch_name"
 
-    git checkout master
+    git checkout $master_branch
 
     git branch -D "$branch_name"
 }

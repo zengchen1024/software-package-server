@@ -6,7 +6,7 @@ work_dir=$1
 git_user=$2
 git_email=$3
 repo_name=$4
-clone_link=$5
+clone_url=$5
 
 set +e
 test -d $work_dir || mkdir -p $work_dir
@@ -18,7 +18,7 @@ if [ -d "$repo_name" ]; then
     rm $repo_name
 fi
 
-git clone --depth=1 "$clone_link"
+git clone --depth=1 "$clone_url"
 
 cd "$repo_name"
 

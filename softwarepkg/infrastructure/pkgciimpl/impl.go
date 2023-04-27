@@ -21,7 +21,7 @@ func Init(cfg *Config) error {
 
 	instance = &pkgCIImpl{
 		cli: client.NewClient(func() []byte {
-			return []byte(cfg.CreateCIPRToken)
+			return []byte(cfg.GitUser.Token)
 		}),
 		cfg:         *cfg,
 		repoDir:     cfg.WorkDir + "/" + cfg.CIRepo.Repo,
@@ -81,7 +81,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 		info.PkgName.PackageName(),
 		info.PkgName.PackageName(),
 		impl.branch(info.PkgName),
-		impl.cfg.CreateBranch,
+		impl.cfg.TargetBranch,
 		true,
 	)
 	if err != nil {
@@ -95,7 +95,7 @@ func (impl *pkgCIImpl) createPRComment(id int32) error {
 	err := impl.cli.CreatePRComment(
 		impl.cfg.CIRepo.Org,
 		impl.cfg.CIRepo.Repo, id,
-		impl.cfg.Comment,
+		impl.cfg.CIComment,
 	)
 	if err != nil {
 		logrus.Errorf("create pr %d comment failed, err:%s", id, err.Error())
@@ -127,9 +127,10 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo) error {
 	cfg := &impl.cfg
 	code := &info.Application.SourceCode
 	params := []string{
-		cfg.CIScript,
+		cfg.PRScript,
 		impl.repoDir,
 		cfg.GitUser.Token,
+		cfg.TargetBranch,
 		impl.branch(info.PkgName),
 		impl.pkgInfoFile,
 		code.SpecURL.URL(),
