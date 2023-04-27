@@ -24,7 +24,7 @@ func Init(cfg *Config) error {
 			return []byte(cfg.GitUser.Token)
 		}),
 		cfg:         *cfg,
-		repoDir:     cfg.WorkDir + "/" + cfg.CIRepo.Repo,
+		ciRepoDir:   cfg.WorkDir + "/" + cfg.CIRepo.Repo,
 		pkgInfoFile: cfg.WorkDir + "/pkginfo.yaml",
 	}
 
@@ -66,7 +66,7 @@ func (s *softwarePkgInfo) toYaml() ([]byte, error) {
 type pkgCIImpl struct {
 	cli         client.Client
 	cfg         Config
-	repoDir     string
+	ciRepoDir   string
 	pkgInfoFile string
 }
 
@@ -128,7 +128,7 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo) error {
 	code := &info.Application.SourceCode
 	params := []string{
 		cfg.PRScript,
-		impl.repoDir,
+		impl.ciRepoDir,
 		cfg.GitUser.Token,
 		cfg.TargetBranch,
 		impl.branch(info.PkgName),
