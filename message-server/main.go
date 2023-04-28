@@ -47,7 +47,7 @@ func gatherOptions(fs *flag.FlagSet, args ...string) options {
 }
 
 func main() {
-	logrusutil.ComponentInit("xihe")
+	logrusutil.ComponentInit("software-package-server")
 	log := logrus.NewEntry(logrus.StandardLogger())
 
 	o := gatherOptions(
@@ -106,7 +106,11 @@ func main() {
 	}
 
 	// ci
-	pkgciimpl.Init(&cfg.PkgCI)
+	if err = pkgciimpl.Init(&cfg.PkgCI); err != nil {
+		logrus.Errorf("init pkg ci failed, err:%s", err.Error())
+
+		return
+	}
 
 	// mq
 	if err = kafka.Init(&cfg.Kafka, log); err != nil {
