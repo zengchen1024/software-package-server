@@ -20,7 +20,7 @@ new_branch() {
     git rebase origin/$master_branch
 
     set +e
-    git rev-parse --verify $branch 2>/dev/null
+    git rev-parse --verify "$branch_name" 2>/dev/null
     has=$?
     set -e
 

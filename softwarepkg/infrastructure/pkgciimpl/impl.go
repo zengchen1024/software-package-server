@@ -1,15 +1,16 @@
 package pkgciimpl
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
-	"github.com/opensourceways/server-common-lib/utils"
+	libutils "github.com/opensourceways/server-common-lib/utils"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 var instance *pkgCIImpl
@@ -43,7 +44,7 @@ func cloneRepo(cfg *Config) error {
 		cfg.CIRepo.cloneURL(user),
 	}
 
-	_, err, _ := utils.RunCmd(params...)
+	_, err, _ := libutils.RunCmd(params...)
 
 	return err
 }
@@ -71,7 +72,8 @@ type pkgCIImpl struct {
 }
 
 func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
-	if err := impl.createBranch(info); err != nil {
+	branch := fmt.Sprintf("%s-%d", info.PkgName.PackageName(), utils.Now())
+	if err := impl.createBranch(info, branch); err != nil {
 		return err
 	}
 
@@ -80,7 +82,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 		impl.cfg.CIRepo.Repo,
 		info.PkgName.PackageName(),
 		info.PkgName.PackageName(),
-		impl.branch(info.PkgName),
+		branch,
 		impl.cfg.TargetBranch,
 		true,
 	)
@@ -117,7 +119,7 @@ func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkgBasicInfo) error {
 	return ioutil.WriteFile(impl.pkgInfoFile, content, 0644)
 }
 
-func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo) error {
+func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo, branch string) error {
 	if err := impl.genPkgInfoFile(info); err != nil {
 		return err
 	}
@@ -129,7 +131,7 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo) error {
 		impl.ciRepoDir,
 		cfg.GitUser.Token,
 		cfg.TargetBranch,
-		impl.branch(info.PkgName),
+		branch,
 		impl.pkgInfoFile,
 		code.SpecURL.URL(),
 		code.SrcRPMURL.URL(),
@@ -139,7 +141,7 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo) error {
 }
 
 func (impl *pkgCIImpl) runcmd(params []string) error {
-	out, err, _ := utils.RunCmd(params...)
+	out, err, _ := libutils.RunCmd(params...)
 	if err != nil {
 		logrus.Errorf(
 			"run create pull request shell, err=%s, out=%s, params=%v",
@@ -148,8 +150,4 @@ func (impl *pkgCIImpl) runcmd(params []string) error {
 	}
 
 	return err
-}
-
-func (impl *pkgCIImpl) branch(pkg dp.PackageName) string {
-	return pkg.PackageName()
 }
