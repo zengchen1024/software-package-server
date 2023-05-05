@@ -40,6 +40,10 @@ type SoftwarePkgCI struct {
 	//startTime int64
 }
 
+func (ci *SoftwarePkgCI) isSuccess() bool {
+	return ci.Status != nil && ci.Status.IsCIPassed()
+}
+
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id          string
@@ -48,7 +52,6 @@ type SoftwarePkgBasicInfo struct {
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
 	CI          SoftwarePkgCI
-	Frozen      bool
 	AppliedAt   int64
 	Application SoftwarePkgApplication
 	ApprovedBy  []dp.Account
@@ -76,7 +79,7 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // send out the event
 // notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
-	if !entity.Phase.IsReviewing() || entity.Frozen {
+	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
 		return false, errors.New("can't do this")
 	}
 
@@ -170,8 +173,6 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, prNum int) err
 		return errors.New("can't do this")
 	}
 
-	entity.Frozen = !success
-
 	if success {
 		entity.CI.PRNum = prNum
 		entity.CI.Status = dp.PackageCIStatusPassed
@@ -244,7 +245,6 @@ func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication
 		Importer:    user.Importer,
 		Phase:       dp.PackagePhaseReviewing,
 		CI:          SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
-		Frozen:      true,
 		Application: *app,
 		AppliedAt:   utils.Now(),
 	}

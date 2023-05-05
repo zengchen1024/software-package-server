@@ -18,9 +18,6 @@ const (
 	fieldAppliedAt       = "applied_at"
 	fieldPackageName     = "package_name"
 	fieldPackagePlatform = "package_platform"
-
-	frozenStatus   = "frozen"
-	unfrozenStatus = "unfrozen"
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
@@ -50,12 +47,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		RejectedBy:      toStringArray(pkg.RejectedBy),
 	}
 
-	if pkg.Frozen {
-		do.Frozen = frozenStatus
-	} else {
-		do.Frozen = unfrozenStatus
-	}
-
 	if pkg.RepoLink != nil {
 		do.RepoLink = pkg.RepoLink.URL()
 	}
@@ -82,7 +73,6 @@ type SoftwarePkgBasicDO struct {
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
 	Sig             string                 `gorm:"column:sig"`
-	Frozen          string                 `gorm:"column:frozen"`
 	ReasonToImport  string                 `gorm:"column:reason_to_import"`
 	ApprovedBy      pq.StringArray         `gorm:"column:approvedby;type:text[];default:'{}'"`
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
@@ -137,8 +127,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	}
 
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
-
-	info.Frozen = do.Frozen == frozenStatus
 
 	return
 }
