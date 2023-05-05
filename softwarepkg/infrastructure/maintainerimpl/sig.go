@@ -28,8 +28,8 @@ func newSigMaintainers(maintainers []string) sigMaintainers {
 // sigData
 type sigData struct {
 	Data []struct {
-		Maintaines []string `json:"maintainers"`
-		SigName    string   `json:"sig_name"`
+		Maintainers []string `json:"maintainers"`
+		SigName     string   `json:"sig_name"`
 	} `json:"data"`
 
 	maintainers map[string]sigMaintainers
@@ -57,7 +57,7 @@ func (s *sigData) init(md5sum string) {
 	s.maintainers = make(map[string]sigMaintainers, len(items))
 
 	for i := range items {
-		s.maintainers[items[i].SigName] = newSigMaintainers(items[i].Maintaines)
+		s.maintainers[items[i].SigName] = newSigMaintainers(items[i].Maintainers)
 	}
 }
 

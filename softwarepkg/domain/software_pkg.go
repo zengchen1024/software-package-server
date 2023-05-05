@@ -2,6 +2,9 @@ package domain
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/utils"
@@ -48,6 +51,20 @@ func (ci *SoftwarePkgCI) isSuccess() bool {
 type SoftwarePkgApprover struct {
 	Account dp.Account
 	IsTC    bool
+}
+
+func (approver *SoftwarePkgApprover) String() string {
+	return fmt.Sprintf("%s/%v", approver.Account.Account(), approver.IsTC)
+}
+
+func StringToSoftwarePkgApprover(s string) (r SoftwarePkgApprover, err error) {
+	items := strings.Split(s, "/")
+
+	if r.Account, err = dp.NewAccount(items[0]); err == nil {
+		r.IsTC, _ = strconv.ParseBool(items[1])
+	}
+
+	return
 }
 
 // SoftwarePkgBasicInfo
