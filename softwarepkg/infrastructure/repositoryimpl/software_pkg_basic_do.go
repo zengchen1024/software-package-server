@@ -34,6 +34,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		Importer:        pkg.Importer.Account.Account(),
 		ImporterEmail:   email,
 		Phase:           pkg.Phase.PackagePhase(),
+		CIPRNum:         pkg.CI.PRNum,
 		CIStatus:        pkg.CI.Status.PackageCIStatus(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
@@ -66,6 +67,7 @@ type SoftwarePkgBasicDO struct {
 	ImporterEmail   string                 `gorm:"column:importer_email"`
 	RepoLink        string                 `gorm:"column:repo_link"`
 	Phase           string                 `gorm:"column:phase"`
+	CIPRNum         int                    `gorm:"column:ci_pr_num"`
 	CIStatus        string                 `gorm:"column:ci_status"`
 	SpecURL         string                 `gorm:"column:spec_url"`
 	SrcRPMURL       string                 `gorm:"column:src_rpm_url"`
@@ -125,6 +127,8 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	if info.CI.Status, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
 		return
 	}
+
+	info.CI.PRNum = do.CIPRNum
 
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
