@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 
@@ -107,16 +108,39 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		return
 	}
 
-	err = s.reviewServie.ApprovePkg(&pkg, &domain.SoftwarePkgApprover{
+	err = pkg.ApproveBy(&domain.SoftwarePkgApprover{
 		Account: user.Account,
 		IsTC:    isTC,
 	})
-
-	if err == nil {
-		err = s.repo.SaveSoftwarePkg(&pkg, version)
+	if err != nil {
+		return
 	}
 
+	if s.maintainer.HasPassedReview(&pkg) {
+		pkg.PassReview()
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return
+	}
+
+	s.notifyPkgApproved(&pkg)
+
 	return
+}
+
+func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkgBasicInfo) {
+	e := domain.NewSoftwarePkgApprovedEvent(pkg)
+	err := s.message.NotifyPkgApproved(&e)
+
+	msg := fmt.Sprintf(
+		"notify that a pkg:%s/%s was approved", pkg.Id, pkg.PkgName.PackageName(),
+	)
+	if err == nil {
+		logrus.Debugf("successfully to %s", msg)
+	} else {
+		logrus.Errorf("failed to %s, err:%s", msg, err.Error())
+	}
 }
 
 func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {

@@ -51,26 +51,24 @@ func NewSoftwarePkgService(
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return &softwarePkgService{
-		repo:         repo,
-		robot:        robot,
-		message:      message,
-		sensitive:    sensitive,
-		maintainer:   maintainer,
-		translation:  translation,
-		pkgService:   service.NewPkgService(manager, message),
-		reviewServie: service.NewReviewService(message),
+		repo:        repo,
+		robot:       robot,
+		message:     message,
+		sensitive:   sensitive,
+		maintainer:  maintainer,
+		translation: translation,
+		pkgService:  service.NewPkgService(manager, message),
 	}
 }
 
 type softwarePkgService struct {
-	repo         repository.SoftwarePkg
-	robot        dp.Account
-	message      message.SoftwarePkgMessage
-	sensitive    sensitivewords.SensitiveWords
-	maintainer   maintainer.Maintainer
-	translation  translation.Translation
-	pkgService   service.SoftwarePkgService
-	reviewServie service.SoftwarePkgReviewService
+	repo        repository.SoftwarePkg
+	robot       dp.Account
+	message     message.SoftwarePkgMessage
+	sensitive   sensitivewords.SensitiveWords
+	maintainer  maintainer.Maintainer
+	translation translation.Translation
+	pkgService  service.SoftwarePkgService
 }
 
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (

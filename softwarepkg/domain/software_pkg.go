@@ -101,21 +101,18 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // change the status of "creating repo"
 // send out the event
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) error {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
-		return false, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
 	entity.ApprovedBy = append(entity.ApprovedBy, *user)
 
-	approved := false
-	// only set the result once to avoid duplicate case.
-	if len(entity.ApprovedBy) == config.MinNumOfApprovers {
-		entity.Phase = dp.PackagePhaseCreatingRepo
-		approved = true
-	}
+	return nil
+}
 
-	return approved, nil
+func (entity *SoftwarePkgBasicInfo) PassReview() {
+	entity.Phase = dp.PackagePhaseCreatingRepo
 }
 
 // notify the importer
