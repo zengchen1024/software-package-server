@@ -26,7 +26,7 @@ func Init(cfg *Config) error {
 	}
 
 	instance.agent = v
-	instance.cfg = cfg.ConfigForPermission
+	instance.tcSig = cfg.TCSig
 
 	return err
 }
@@ -44,7 +44,7 @@ func Maintainer() *maintainerImpl {
 // maintainerImpl
 type maintainerImpl struct {
 	agent *cacheagent.Agent
-	cfg   ConfigForPermission
+	tcSig string
 }
 
 func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user *domain.User) (has bool, isTC bool) {
@@ -54,7 +54,7 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, use
 		return
 	}
 
-	if has = m.isSigMaintainer(user.GiteeID, impl.cfg.TCSig); has {
+	if has = m.isSigMaintainer(user.GiteeID, impl.tcSig); has {
 		isTC = true
 	} else {
 		has = m.isSigMaintainer(user.GiteeID,
@@ -63,30 +63,6 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, use
 	}
 
 	return
-}
-
-func (impl *maintainerImpl) HasPassedReview(info *domain.SoftwarePkgBasicInfo) bool {
-	sig := info.Application.ImportingPkgSig.ImportingPkgSig()
-	if sig == impl.cfg.EcoPkgSig {
-		return len(info.ApprovedBy) > 0
-	}
-
-	numApprovedByTc := 0
-	numApprovedBySigMaintainer := 0
-
-	for i := range info.ApprovedBy {
-		if info.ApprovedBy[i].IsTC {
-			numApprovedByTc++
-			numApprovedBySigMaintainer++
-		} else {
-			numApprovedBySigMaintainer++
-		}
-	}
-
-	c := numApprovedByTc >= impl.cfg.MinNumApprovedByTC
-	c1 := numApprovedBySigMaintainer >= impl.cfg.MinNumApprovedBySigMaintainer
-
-	return c && c1
 }
 
 func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {

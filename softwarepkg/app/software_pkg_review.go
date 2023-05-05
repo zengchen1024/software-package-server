@@ -103,12 +103,12 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		return
 	}
 
-	isTC := false
-	if isTC, code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC, code, err := s.checkPermission(&pkg, user)
+	if err != nil {
 		return
 	}
 
-	err = pkg.ApproveBy(&domain.SoftwarePkgApprover{
+	approved, err := pkg.ApproveBy(&domain.SoftwarePkgApprover{
 		Account: user.Account,
 		IsTC:    isTC,
 	})
@@ -116,15 +116,13 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		return
 	}
 
-	if s.maintainer.HasPassedReview(&pkg) {
-		pkg.PassReview()
-	}
-
 	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		return
 	}
 
-	s.notifyPkgApproved(&pkg)
+	if approved {
+		s.notifyPkgApproved(&pkg)
+	}
 
 	return
 }
@@ -151,8 +149,8 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		return
 	}
 
-	isTC := false
-	if isTC, code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC, code, err := s.checkPermission(&pkg, user)
+	if err != nil {
 		return
 	}
 

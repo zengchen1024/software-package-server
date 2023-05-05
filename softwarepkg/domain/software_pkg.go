@@ -87,7 +87,7 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 		return dp.PkgReviewResultRejected
 	}
 
-	if len(entity.ApprovedBy) >= config.MinNumOfApprovers {
+	if entity.hasPassedReview() {
 		return dp.PkgReviewResultApproved
 	}
 
@@ -101,18 +101,43 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // change the status of "creating repo"
 // send out the event
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) error {
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
-		return errors.New("can't do this")
+		return false, errors.New("can't do this")
 	}
 
 	entity.ApprovedBy = append(entity.ApprovedBy, *user)
 
-	return nil
+	b := entity.hasPassedReview()
+	if b {
+		entity.Phase = dp.PackagePhaseCreatingRepo
+	}
+
+	return b, nil
 }
 
-func (entity *SoftwarePkgBasicInfo) PassReview() {
-	entity.Phase = dp.PackagePhaseCreatingRepo
+func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
+	sig := entity.Application.ImportingPkgSig.ImportingPkgSig()
+	if sig == config.EcoPkgSig {
+		return len(entity.ApprovedBy) > 0
+	}
+
+	numApprovedByTc := 0
+	numApprovedBySigMaintainer := 0
+
+	for i := range entity.ApprovedBy {
+		if entity.ApprovedBy[i].IsTC {
+			numApprovedByTc++
+			numApprovedBySigMaintainer++
+		} else {
+			numApprovedBySigMaintainer++
+		}
+	}
+
+	c := numApprovedByTc >= config.MinNumApprovedByTC
+	c1 := numApprovedBySigMaintainer >= config.MinNumApprovedBySigMaintainer
+
+	return c && c1
 }
 
 // notify the importer
