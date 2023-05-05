@@ -32,6 +32,14 @@ type SoftwarePkgSourceCode struct {
 	SrcRPMURL dp.URL
 }
 
+// SoftwarePkgCI
+type SoftwarePkgCI struct {
+	PRNum  int
+	Status dp.PackageCIStatus
+	// TODO deal with the case that the ci is timeout
+	//startTime int64
+}
+
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id          string
@@ -39,7 +47,7 @@ type SoftwarePkgBasicInfo struct {
 	Importer    Importer
 	RepoLink    dp.URL
 	Phase       dp.PackagePhase
-	CIStatus    dp.PackageCIStatus
+	CI          SoftwarePkgCI
 	Frozen      bool
 	AppliedAt   int64
 	Application SoftwarePkgApplication
@@ -117,7 +125,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 }
 
 func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
-	b := entity.Phase.IsReviewing() && !entity.CIStatus.IsCIRunning()
+	b := entity.Phase.IsReviewing() && !entity.CI.Status.IsCIRunning()
 	if !b {
 		return errors.New("can't do this")
 	}
@@ -126,7 +134,7 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
 		return errorNotTheImporter
 	}
 
-	entity.CIStatus = dp.PackageCIStatusWaiting
+	entity.CI = SoftwarePkgCI{Status: dp.PackageCIStatusWaiting}
 
 	return nil
 }
@@ -146,27 +154,29 @@ func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplicatio
 }
 
 func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
-	b := entity.Phase.IsReviewing() && entity.CIStatus.IsCIWaiting()
+	b := entity.Phase.IsReviewing() && entity.CI.Status.IsCIWaiting()
 	if !b {
 		return errors.New("can't do this")
 	}
 
-	entity.CIStatus = dp.PackageCIStatusRunning
+	entity.CI.Status = dp.PackageCIStatusRunning
+	//entity.CI.startTime = utils.Now()
 
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool) error {
-	if !entity.Phase.IsReviewing() {
+func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, prNum int) error {
+	if !entity.Phase.IsReviewing() || entity.CI.PRNum != prNum {
 		return errors.New("can't do this")
 	}
 
 	entity.Frozen = !success
 
 	if success {
-		entity.CIStatus = dp.PackageCIStatusPassed
+		entity.CI.PRNum = prNum
+		entity.CI.Status = dp.PackageCIStatusPassed
 	} else {
-		entity.CIStatus = dp.PackageCIStatusFailed
+		entity.CI.Status = dp.PackageCIStatusFailed
 	}
 
 	return nil
@@ -233,7 +243,7 @@ func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication
 		PkgName:     name,
 		Importer:    user.Importer,
 		Phase:       dp.PackagePhaseReviewing,
-		CIStatus:    dp.PackageCIStatusWaiting,
+		CI:          SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
 		Frozen:      true,
 		Application: *app,
 		AppliedAt:   utils.Now(),

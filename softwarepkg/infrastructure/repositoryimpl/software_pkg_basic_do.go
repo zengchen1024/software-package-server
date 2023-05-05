@@ -37,7 +37,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		Importer:        pkg.Importer.Account.Account(),
 		ImporterEmail:   email,
 		Phase:           pkg.Phase.PackagePhase(),
-		CIStatus:        pkg.CIStatus.PackageCIStatus(),
+		CIStatus:        pkg.CI.Status.PackageCIStatus(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
@@ -132,7 +132,7 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		return
 	}
 
-	if info.CIStatus, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
+	if info.CI.Status, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
 		return
 	}
 

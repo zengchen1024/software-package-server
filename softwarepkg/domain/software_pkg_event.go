@@ -44,6 +44,7 @@ type softwarePkgApprovedEvent struct {
 	Platform          string `json:"platform"`
 	ImportingPkgSig   string `json:"sig"`
 	ReasonToImportPkg string `json:"reason_to_import"`
+	CIPRNum           int    `json:"ci_pr_num"`
 }
 
 func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
@@ -61,6 +62,7 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedE
 		PkgDesc:           app.PackageDesc.PackageDesc(),
 		SpecURL:           app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:         app.SourceCode.SrcRPMURL.URL(),
+		CIPRNum:           pkg.CI.PRNum,
 		Platform:          app.PackagePlatform.PackagePlatform(),
 		ImportingPkgSig:   app.ImportingPkgSig.ImportingPkgSig(),
 		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),

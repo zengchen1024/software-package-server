@@ -59,9 +59,12 @@ func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCICheck
 		return err
 	}
 
-	if err = s.ci.SendTest(&pkg); err != nil {
+	prNum, err := s.ci.SendTest(&pkg)
+	if err != nil {
 		return err
 	}
+
+	pkg.CI.PRNum = prNum
 
 	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
@@ -82,12 +85,12 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 
 	if err := s.ci.ClosePR(cmd.PRNumber); err != nil {
 		logrus.Errorf(
-			"failed to close pr when %s, err:%s",
+			"close pr failed when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
 	}
 
-	if err = pkg.HandleCIChecked(cmd.Success); err != nil {
+	if err := pkg.HandleCIChecked(cmd.Success, cmd.PRNumber); err != nil {
 		return err
 	}
 
