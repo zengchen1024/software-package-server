@@ -142,11 +142,11 @@ func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
 	}
 }
 
-func toAccounts(v []dp.Account) (r []string) {
+func toAccounts(v []domain.SoftwarePkgApprover) (r []string) {
 	if n := len(v); n > 0 {
 		r = make([]string, n)
 		for i := range v {
-			r[i] = v[i].Account()
+			r[i] = v[i].Account.Account()
 		}
 	}
 

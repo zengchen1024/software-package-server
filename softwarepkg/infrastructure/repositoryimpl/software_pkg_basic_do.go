@@ -2,6 +2,9 @@ package repositoryimpl
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -172,16 +175,18 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	return
 }
 
-func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
+func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []domain.SoftwarePkgApprover, err error) {
 	if len(v) == 0 {
 		return
 	}
 
-	r = make([]dp.Account, len(v))
+	r = make([]domain.SoftwarePkgApprover, len(v))
 	for i := range v {
-		if r[i], err = dp.NewAccount(v[i]); err != nil {
+		items := strings.Split(v[i], "/")
+		if r[i].Account, err = dp.NewAccount(items[0]); err != nil {
 			return
 		}
+		r[i].IsTC, _ = strconv.ParseBool(items[1])
 	}
 
 	return
@@ -213,10 +218,10 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgAp
 	return
 }
 
-func toStringArray(v []dp.Account) (arr pq.StringArray) {
+func toStringArray(v []domain.SoftwarePkgApprover) (arr pq.StringArray) {
 	arr = make(pq.StringArray, len(v))
-	for i, account := range v {
-		arr[i] = account.Account()
+	for i := range v {
+		arr[i] = fmt.Sprintf("%s/%v", v[i].Account.Account(), v[i].IsTC)
 	}
 
 	return

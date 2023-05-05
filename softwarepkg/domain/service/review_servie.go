@@ -10,7 +10,7 @@ import (
 )
 
 type SoftwarePkgReviewService interface {
-	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) error
+	ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.SoftwarePkgApprover) error
 }
 
 func NewReviewService(m message.SoftwarePkgMessage) SoftwarePkgReviewService {
@@ -21,7 +21,7 @@ type reviewService struct {
 	message message.SoftwarePkgMessage
 }
 
-func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) error {
+func (s *reviewService) ApprovePkg(pkg *domain.SoftwarePkgBasicInfo, user *domain.SoftwarePkgApprover) error {
 	if approved, err := pkg.ApproveBy(user); !approved {
 		return err
 	}

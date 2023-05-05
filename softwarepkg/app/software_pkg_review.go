@@ -102,11 +102,17 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		return
 	}
 
-	if code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC := false
+	if isTC, code, err = s.checkPermission(&pkg, user); err != nil {
 		return
 	}
 
-	if err = s.reviewServie.ApprovePkg(&pkg, user); err == nil {
+	err = s.reviewServie.ApprovePkg(&pkg, &domain.SoftwarePkgApprover{
+		Account: user.Account,
+		IsTC:    isTC,
+	})
+
+	if err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -121,11 +127,16 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		return
 	}
 
-	if code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC := false
+	if isTC, code, err = s.checkPermission(&pkg, user); err != nil {
 		return
 	}
 
-	if _, err = pkg.RejectBy(user); err == nil {
+	_, err = pkg.RejectBy(&domain.SoftwarePkgApprover{
+		Account: user.Account,
+		IsTC:    isTC,
+	})
+	if err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -197,11 +208,11 @@ func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
 }
 
 func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) (
-	string, error,
+	bool, string, error,
 ) {
-	if s.maintainer.HasPermission(pkg, user) {
-		return "", nil
+	if has, isTC := s.maintainer.HasPermission(pkg, user); has {
+		return isTC, "", nil
 	}
 
-	return errorSoftwarePkgNoPermission, errors.New("no permission")
+	return false, errorSoftwarePkgNoPermission, errors.New("no permission")
 }

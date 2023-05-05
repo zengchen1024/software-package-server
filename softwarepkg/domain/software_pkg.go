@@ -44,6 +44,12 @@ func (ci *SoftwarePkgCI) isSuccess() bool {
 	return ci.Status != nil && ci.Status.IsCIPassed()
 }
 
+// SoftwarePkgApprover
+type SoftwarePkgApprover struct {
+	Account dp.Account
+	IsTC    bool
+}
+
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id          string
@@ -54,8 +60,8 @@ type SoftwarePkgBasicInfo struct {
 	CI          SoftwarePkgCI
 	AppliedAt   int64
 	Application SoftwarePkgApplication
-	ApprovedBy  []dp.Account
-	RejectedBy  []dp.Account
+	ApprovedBy  []SoftwarePkgApprover
+	RejectedBy  []SoftwarePkgApprover
 	RelevantPR  dp.URL
 }
 
@@ -78,12 +84,12 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 // change the status of "creating repo"
 // send out the event
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
 		return false, errors.New("can't do this")
 	}
 
-	entity.ApprovedBy = append(entity.ApprovedBy, user.Account)
+	entity.ApprovedBy = append(entity.ApprovedBy, *user)
 
 	approved := false
 	// only set the result once to avoid duplicate case.
@@ -96,12 +102,12 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
 }
 
 // notify the importer
-func (entity *SoftwarePkgBasicInfo) RejectBy(user *User) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() {
 		return false, errors.New("can't do this")
 	}
 
-	entity.RejectedBy = append(entity.RejectedBy, user.Account)
+	entity.RejectedBy = append(entity.RejectedBy, *user)
 
 	rejected := false
 	// only set the result once to avoid duplicate case.
