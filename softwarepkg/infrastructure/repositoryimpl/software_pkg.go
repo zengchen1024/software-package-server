@@ -12,6 +12,8 @@ type softwarePkgImpl struct {
 
 	reviewComment
 
+	operationLog
+
 	translationComment
 }
 

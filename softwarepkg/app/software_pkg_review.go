@@ -124,6 +124,8 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		s.notifyPkgApproved(&pkg)
 	}
 
+	s.addOperationLog(user.Account, dp.PackageOpreationLogActionApprove, pid)
+
 	return
 }
 
@@ -158,8 +160,12 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		Account: user.Account,
 		IsTC:    isTC,
 	})
-	if err == nil {
-		err = s.repo.SaveSoftwarePkg(&pkg, version)
+	if err != nil {
+		return
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err == nil {
+		s.addOperationLog(user.Account, dp.PackageOpreationLogActionReject, pid)
 	}
 
 	return
@@ -179,6 +185,10 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
+	if err == nil {
+		s.addOperationLog(user.Account, dp.PackageOpreationLogActionAbandon, pid)
+	}
+
 	return
 }
 
@@ -190,14 +200,17 @@ func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string
 		return
 	}
 
-	if err = pkg.RerunCI(user); err != nil {
+	changed, err := pkg.RerunCI(user)
+	if err != nil {
 		code = domain.ParseErrorCode(err)
 
 		return
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		return
+	if changed {
+		if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+			return
+		}
 	}
 
 	e := domain.NewSoftwarePkgAppUpdatedEvent(&pkg)
@@ -212,6 +225,8 @@ func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string
 		)
 
 		s.addCommentToRerunCI(pid)
+
+		s.addOperationLog(user.Account, dp.PackageOpreationLogActionResunci, pid)
 	}
 
 	return

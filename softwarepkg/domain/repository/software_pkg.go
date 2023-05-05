@@ -40,4 +40,6 @@ type SoftwarePkg interface {
 
 	AddTranslatedReviewComment(pid string, comment *domain.SoftwarePkgTranslatedReviewComment) error
 	FindTranslatedReviewComment(*TranslatedReviewCommentIndex) (domain.SoftwarePkgTranslatedReviewComment, error)
+
+	AddOperationLog(*domain.SoftwarePkgOperationLog) error
 }

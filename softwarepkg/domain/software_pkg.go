@@ -163,19 +163,23 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) error {
+func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
 	b := entity.Phase.IsReviewing() && !entity.CI.Status.IsCIRunning()
 	if !b {
-		return errors.New("can't do this")
+		return false, errors.New("can't do this")
 	}
 
 	if !dp.IsSameAccount(user.Importer.Account, entity.Importer.Account) {
-		return errorNotTheImporter
+		return false, errorNotTheImporter
+	}
+
+	if entity.CI.Status.IsCIWaiting() {
+		return false, nil
 	}
 
 	entity.CI = SoftwarePkgCI{Status: dp.PackageCIStatusWaiting}
 
-	return nil
+	return true, nil
 }
 
 func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
