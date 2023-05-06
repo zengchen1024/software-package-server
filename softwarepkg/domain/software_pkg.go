@@ -2,6 +2,9 @@ package domain
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/utils"
@@ -44,6 +47,26 @@ func (ci *SoftwarePkgCI) isSuccess() bool {
 	return ci.Status != nil && ci.Status.IsCIPassed()
 }
 
+// SoftwarePkgApprover
+type SoftwarePkgApprover struct {
+	Account dp.Account
+	IsTC    bool
+}
+
+func (approver *SoftwarePkgApprover) String() string {
+	return fmt.Sprintf("%s/%v", approver.Account.Account(), approver.IsTC)
+}
+
+func StringToSoftwarePkgApprover(s string) (r SoftwarePkgApprover, err error) {
+	items := strings.Split(s, "/")
+
+	if r.Account, err = dp.NewAccount(items[0]); err == nil {
+		r.IsTC, _ = strconv.ParseBool(items[1])
+	}
+
+	return
+}
+
 // SoftwarePkgBasicInfo
 type SoftwarePkgBasicInfo struct {
 	Id          string
@@ -54,8 +77,8 @@ type SoftwarePkgBasicInfo struct {
 	CI          SoftwarePkgCI
 	AppliedAt   int64
 	Application SoftwarePkgApplication
-	ApprovedBy  []dp.Account
-	RejectedBy  []dp.Account
+	ApprovedBy  []SoftwarePkgApprover
+	RejectedBy  []SoftwarePkgApprover
 	RelevantPR  dp.URL
 }
 
@@ -64,7 +87,7 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 		return dp.PkgReviewResultRejected
 	}
 
-	if len(entity.ApprovedBy) >= config.MinNumOfApprovers {
+	if entity.hasPassedReview() {
 		return dp.PkgReviewResultApproved
 	}
 
@@ -75,42 +98,55 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
-// change the status of "creating repo"
-// send out the event
-// notify the importer
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user *User) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
 		return false, errors.New("can't do this")
 	}
 
-	entity.ApprovedBy = append(entity.ApprovedBy, user.Account)
+	entity.ApprovedBy = append(entity.ApprovedBy, *user)
 
-	approved := false
-	// only set the result once to avoid duplicate case.
-	if len(entity.ApprovedBy) == config.MinNumOfApprovers {
+	b := entity.hasPassedReview()
+	if b {
 		entity.Phase = dp.PackagePhaseCreatingRepo
-		approved = true
 	}
 
-	return approved, nil
+	return b, nil
 }
 
-// notify the importer
-func (entity *SoftwarePkgBasicInfo) RejectBy(user *User) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
+	sig := entity.Application.ImportingPkgSig.ImportingPkgSig()
+	if sig == config.EcopkgSig {
+		return len(entity.ApprovedBy) > 0
+	}
+
+	numApprovedByTc := 0
+	numApprovedBySigMaintainer := 0
+
+	for i := range entity.ApprovedBy {
+		if entity.ApprovedBy[i].IsTC {
+			numApprovedByTc++
+			numApprovedBySigMaintainer++
+		} else {
+			numApprovedBySigMaintainer++
+		}
+	}
+
+	c := numApprovedByTc >= config.MinNumApprovedByTC
+	c1 := numApprovedBySigMaintainer >= config.MinNumApprovedBySigMaintainer
+
+	return c && c1
+}
+
+func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) error {
 	if !entity.Phase.IsReviewing() {
-		return false, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
-	entity.RejectedBy = append(entity.RejectedBy, user.Account)
+	entity.RejectedBy = append(entity.RejectedBy, *user)
 
-	rejected := false
-	// only set the result once to avoid duplicate case.
-	if len(entity.RejectedBy) == 1 {
-		entity.Phase = dp.PackagePhaseClosed
-		rejected = true
-	}
+	entity.Phase = dp.PackagePhaseClosed
 
-	return rejected, nil
+	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {

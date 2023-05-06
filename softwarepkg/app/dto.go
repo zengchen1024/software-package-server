@@ -122,12 +122,18 @@ func toSoftwarePkgReviewCommentDTOs(v []domain.SoftwarePkgReviewComment) (r []So
 	return
 }
 
+// SoftwarePkgApproverDTO
+type SoftwarePkgApproverDTO struct {
+	Account string `json:"account"`
+	IsTC    bool   `json:"is_tc"`
+}
+
 // SoftwarePkgReviewDTO
 type SoftwarePkgReviewDTO struct {
 	SoftwarePkgBasicInfoDTO
 
-	ApprovedBy  []string                      `json:"approved_by"`
-	RejectedBy  []string                      `json:"rejected_by"`
+	ApprovedBy  []SoftwarePkgApproverDTO      `json:"approved_by"`
+	RejectedBy  []SoftwarePkgApproverDTO      `json:"rejected_by"`
 	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
 	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
@@ -135,18 +141,21 @@ type SoftwarePkgReviewDTO struct {
 func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
 	return SoftwarePkgReviewDTO{
 		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
-		ApprovedBy:              toAccounts(v.ApprovedBy),
-		RejectedBy:              toAccounts(v.RejectedBy),
+		ApprovedBy:              toSoftwarePkgApproverDTO(v.ApprovedBy),
+		RejectedBy:              toSoftwarePkgApproverDTO(v.RejectedBy),
 		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
 		Application:             toSoftwarePkgApplicationDTO(&v.Application),
 	}
 }
 
-func toAccounts(v []dp.Account) (r []string) {
+func toSoftwarePkgApproverDTO(v []domain.SoftwarePkgApprover) (r []SoftwarePkgApproverDTO) {
 	if n := len(v); n > 0 {
-		r = make([]string, n)
+		r = make([]SoftwarePkgApproverDTO, n)
 		for i := range v {
-			r[i] = v[i].Account()
+			r[i] = SoftwarePkgApproverDTO{
+				Account: v[i].Account.Account(),
+				IsTC:    v[i].IsTC,
+			}
 		}
 	}
 

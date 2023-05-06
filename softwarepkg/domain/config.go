@@ -7,11 +7,21 @@ func Init(cfg *Config) {
 }
 
 type Config struct {
-	MinNumOfApprovers int `json:"min_num_of_approvers"`
+	EcopkgSig                     string `json:"ecopkg_sig"`
+	MinNumApprovedByTC            int    `json:"min_num_approved_by_tc"`
+	MinNumApprovedBySigMaintainer int    `json:"min_num_approved_by_sig_maintainer"`
 }
 
 func (cfg *Config) SetDefault() {
-	if cfg.MinNumOfApprovers <= 0 {
-		cfg.MinNumOfApprovers = 1
+	if cfg.EcopkgSig == "" {
+		cfg.EcopkgSig = "ecopkg"
+	}
+
+	if cfg.MinNumApprovedByTC <= 0 {
+		cfg.MinNumApprovedByTC = 1
+	}
+
+	if cfg.MinNumApprovedBySigMaintainer <= 0 {
+		cfg.MinNumApprovedBySigMaintainer = 2
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-var instance *cacheagent.Agent
+var instance maintainerImpl
 
 func Init(cfg *Config) error {
 	v, err := cacheagent.NewCacheAgent(
@@ -21,35 +21,52 @@ func Init(cfg *Config) error {
 		cfg.IntervalDuration(),
 	)
 
-	if err == nil {
-		instance = v
+	if err != nil {
+		return err
 	}
+
+	instance.agent = v
+	instance.tcSig = cfg.TCSig
 
 	return err
 }
 
 func Exit() {
-	if instance != nil {
-		instance.Stop()
+	if instance.agent != nil {
+		instance.agent.Stop()
 	}
 }
 
-func Maintainer() maintainerImpl {
-	return maintainerImpl{instance}
+func Maintainer() *maintainerImpl {
+	return &instance
 }
 
 // maintainerImpl
 type maintainerImpl struct {
 	agent *cacheagent.Agent
+	tcSig string
 }
 
-func (impl maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user *domain.User) bool {
+func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user *domain.User) (
+	has bool, isTC bool,
+) {
 	v := impl.agent.GetData()
 	m, ok := v.(*sigData)
+	if !ok {
+		return
+	}
 
-	return ok && m.hasMaintainer(user.GiteeID)
+	if has = m.isSigMaintainer(user.GiteeID, impl.tcSig); has {
+		isTC = true
+	} else {
+		has = m.isSigMaintainer(
+			user.GiteeID, info.Application.ImportingPkgSig.ImportingPkgSig(),
+		)
+	}
+
+	return
 }
 
-func (impl maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
+func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
 	return nil, errors.New("unimplemented")
 }

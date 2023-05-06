@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 
@@ -102,15 +103,42 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 		return
 	}
 
-	if code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC, code, err := s.checkPermission(&pkg, user)
+	if err != nil {
 		return
 	}
 
-	if err = s.reviewServie.ApprovePkg(&pkg, user); err == nil {
-		err = s.repo.SaveSoftwarePkg(&pkg, version)
+	approved, err := pkg.ApproveBy(&domain.SoftwarePkgApprover{
+		Account: user.Account,
+		IsTC:    isTC,
+	})
+	if err != nil {
+		return
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return
+	}
+
+	if approved {
+		s.notifyPkgApproved(&pkg)
 	}
 
 	return
+}
+
+func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkgBasicInfo) {
+	e := domain.NewSoftwarePkgApprovedEvent(pkg)
+	err := s.message.NotifyPkgApproved(&e)
+
+	msg := fmt.Sprintf(
+		"notify that a pkg:%s/%s was approved", pkg.Id, pkg.PkgName.PackageName(),
+	)
+	if err == nil {
+		logrus.Debugf("successfully to %s", msg)
+	} else {
+		logrus.Errorf("failed to %s, err:%s", msg, err.Error())
+	}
 }
 
 func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {
@@ -121,11 +149,16 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		return
 	}
 
-	if code, err = s.checkPermission(&pkg, user); err != nil {
+	isTC, code, err := s.checkPermission(&pkg, user)
+	if err != nil {
 		return
 	}
 
-	if _, err = pkg.RejectBy(user); err == nil {
+	err = pkg.RejectBy(&domain.SoftwarePkgApprover{
+		Account: user.Account,
+		IsTC:    isTC,
+	})
+	if err == nil {
 		err = s.repo.SaveSoftwarePkg(&pkg, version)
 	}
 
@@ -197,11 +230,11 @@ func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
 }
 
 func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) (
-	string, error,
+	bool, string, error,
 ) {
-	if s.maintainer.HasPermission(pkg, user) {
-		return "", nil
+	if has, isTC := s.maintainer.HasPermission(pkg, user); has {
+		return isTC, "", nil
 	}
 
-	return errorSoftwarePkgNoPermission, errors.New("no permission")
+	return false, errorSoftwarePkgNoPermission, errors.New("no permission")
 }

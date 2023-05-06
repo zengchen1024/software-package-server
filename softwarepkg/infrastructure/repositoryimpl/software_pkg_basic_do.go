@@ -172,14 +172,14 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 	return
 }
 
-func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []dp.Account, err error) {
+func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []domain.SoftwarePkgApprover, err error) {
 	if len(v) == 0 {
 		return
 	}
 
-	r = make([]dp.Account, len(v))
+	r = make([]domain.SoftwarePkgApprover, len(v))
 	for i := range v {
-		if r[i], err = dp.NewAccount(v[i]); err != nil {
+		if r[i], err = domain.StringToSoftwarePkgApprover(v[i]); err != nil {
 			return
 		}
 	}
@@ -213,10 +213,10 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgAp
 	return
 }
 
-func toStringArray(v []dp.Account) (arr pq.StringArray) {
+func toStringArray(v []domain.SoftwarePkgApprover) (arr pq.StringArray) {
 	arr = make(pq.StringArray, len(v))
-	for i, account := range v {
-		arr[i] = account.Account()
+	for i := range v {
+		arr[i] = v[i].String()
 	}
 
 	return
