@@ -1,11 +1,11 @@
 package repositoryimpl
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 	"gorm.io/plugin/optimisticlock"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
@@ -65,29 +65,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 	return
 }
 
-func (do *SoftwarePkgBasicDO) arrayFieldToString(typ string) string {
-	var (
-		v   driver.Value
-		err error
-	)
-	switch typ {
-	case fieldApprovedby:
-		v, err = do.ApprovedBy.Value()
-	case fieldRejectedby:
-		v, err = do.RejectedBy.Value()
-	default:
-		return "{}"
-	}
-
-	if v != nil && err == nil {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-
-	return "{}"
-}
-
 type SoftwarePkgBasicDO struct {
 	// must set "uuid" as the name of column
 	Id              uuid.UUID              `gorm:"column:uuid;type:uuid"                           json:"-"`
@@ -117,12 +94,30 @@ func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	var res map[string]any
-	if err = json.Unmarshal(v, &res); err != nil {
+
+	var r map[string]any
+	if err = json.Unmarshal(v, &r); err != nil {
 		return nil, err
 	}
 
-	return res, err
+	// fieldVersion
+	r[fieldVersion] = gorm.Expr(fieldVersion+" + ?", 1)
+
+	// fieldApprovedby
+	s, err := marshalStringArray(do.ApprovedBy)
+	if err != nil {
+		return nil, err
+	}
+	r[fieldApprovedby] = s
+
+	// fieldRejectedby
+	s, err = marshalStringArray(do.RejectedBy)
+	if err != nil {
+		return nil, err
+	}
+	r[fieldRejectedby] = s
+
+	return r, err
 }
 
 func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
@@ -225,6 +220,21 @@ func toStringArray(v []dp.Account) (arr pq.StringArray) {
 	}
 
 	return
+}
+
+func marshalStringArray(sa pq.StringArray) (string, error) {
+	v, err := sa.Value()
+	if err != nil {
+		return "", err
+	}
+
+	if v != nil {
+		if s, ok := v.(string); ok {
+			return s, nil
+		}
+	}
+
+	return "{}", nil
 }
 
 func toEmailDO(e dp.Email) (string, error) {
