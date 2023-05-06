@@ -18,6 +18,8 @@ const (
 	fieldAppliedAt       = "applied_at"
 	fieldPackageName     = "package_name"
 	fieldPackagePlatform = "package_platform"
+
+	zeroPRNum = -1
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
@@ -46,6 +48,10 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		UpdatedAt:       pkg.AppliedAt,
 		ApprovedBy:      toStringArray(pkg.ApprovedBy),
 		RejectedBy:      toStringArray(pkg.RejectedBy),
+	}
+
+	if do.CIPRNum == 0 {
+		do.CIPRNum = zeroPRNum
 	}
 
 	if pkg.RepoLink != nil {
@@ -128,7 +134,9 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		return
 	}
 
-	info.CI.PRNum = do.CIPRNum
+	if do.CIPRNum != zeroPRNum {
+		info.CI.PRNum = do.CIPRNum
+	}
 
 	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
