@@ -14,6 +14,13 @@ definitions:
       src_rpm_url:
         type: string
     type: object
+  app.SoftwarePkgApproverDTO:
+    properties:
+      account:
+        type: string
+      is_tc:
+        type: boolean
+    type: object
   app.SoftwarePkgBasicInfoDTO:
     properties:
       applied_at:
@@ -58,7 +65,7 @@ definitions:
         type: string
       approved_by:
         items:
-          type: string
+          $ref: '#/definitions/app.SoftwarePkgApproverDTO'
         type: array
       ci_status:
         type: string
@@ -80,7 +87,7 @@ definitions:
         type: string
       rejected_by:
         items:
-          type: string
+          $ref: '#/definitions/app.SoftwarePkgApproverDTO'
         type: array
       repo_link:
         type: string

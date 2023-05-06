@@ -488,6 +488,17 @@ const docTemplate = `{
                 }
             }
         },
+        "app.SoftwarePkgApproverDTO": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "is_tc": {
+                    "type": "boolean"
+                }
+            }
+        },
         "app.SoftwarePkgBasicInfoDTO": {
             "type": "object",
             "properties": {
@@ -555,7 +566,7 @@ const docTemplate = `{
                 "approved_by": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/app.SoftwarePkgApproverDTO"
                     }
                 },
                 "ci_status": {
@@ -588,7 +599,7 @@ const docTemplate = `{
                 "rejected_by": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/app.SoftwarePkgApproverDTO"
                     }
                 },
                 "repo_link": {
