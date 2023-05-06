@@ -44,6 +44,15 @@ definitions:
       sig:
         type: string
     type: object
+  app.SoftwarePkgOperationLogDTO:
+    properties:
+      action:
+        type: string
+      time:
+        type: string
+      user:
+        type: string
+    type: object
   app.SoftwarePkgReviewCommentDTO:
     properties:
       author:
@@ -79,6 +88,10 @@ definitions:
         type: string
       importer:
         type: string
+      logs:
+        items:
+          $ref: '#/definitions/app.SoftwarePkgOperationLogDTO'
+        type: array
       phase:
         type: string
       pkg_name:

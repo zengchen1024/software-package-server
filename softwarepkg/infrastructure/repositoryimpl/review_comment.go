@@ -21,7 +21,7 @@ func (t reviewComment) AddReviewComment(pid string, comment *domain.SoftwarePkgR
 	return t.commentDBCli.Insert(&filter, &do)
 }
 
-func (t reviewComment) findSoftwarePkgReviews(pid string) (
+func (t reviewComment) findReviewComments(pid string) (
 	[]domain.SoftwarePkgReviewComment, error,
 ) {
 	var dos []SoftwarePkgReviewCommentDO

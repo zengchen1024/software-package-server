@@ -122,5 +122,22 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 		return domain.ParseErrorCode(err), err
 	}
 
-	return "", s.repo.SaveSoftwarePkg(&pkg, version)
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err == nil {
+		s.addOperationLog(cmd.Importer.Account, dp.PackageOpreationLogActionUpdate, cmd.PkgId)
+	}
+
+	return "", err
+}
+
+func (s *softwarePkgService) addOperationLog(
+	user dp.Account, action dp.PackageOpreationLogAction, pkgId string,
+) {
+	log := domain.NewSoftwarePkgOperationLog(user, action, pkgId)
+
+	if err := s.repo.AddOperationLog(&log); err != nil {
+		logrus.Errorf(
+			"add operation log failed, log:%s, err:%s",
+			log.String(), err.Error(),
+		)
+	}
 }

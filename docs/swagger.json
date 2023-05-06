@@ -522,6 +522,20 @@
                 }
             }
         },
+        "app.SoftwarePkgOperationLogDTO": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "app.SoftwarePkgReviewCommentDTO": {
             "type": "object",
             "properties": {
@@ -574,6 +588,12 @@
                 },
                 "importer": {
                     "type": "string"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgOperationLogDTO"
+                    }
                 },
                 "phase": {
                     "type": "string"

@@ -12,6 +12,8 @@ type softwarePkgImpl struct {
 
 	reviewComment
 
+	operationLog
+
 	translationComment
 }
 
@@ -37,7 +39,11 @@ func (impl softwarePkgImpl) FindSoftwarePkg(pid string) (
 		return
 	}
 
-	pkg.Comments, err = impl.findSoftwarePkgReviews(pid)
+	if pkg.Comments, err = impl.findReviewComments(pid); err != nil {
+		return
+	}
+
+	pkg.Logs, err = impl.findOperationLogs(pid)
 
 	return
 }
