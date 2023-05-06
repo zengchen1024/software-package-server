@@ -2,6 +2,7 @@ package repositoryimpl
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
@@ -17,25 +18,27 @@ type softwarePkgBasic struct {
 }
 
 func (s softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error {
-	u, err := uuid.Parse(pkg.Id)
-	if err != nil {
-		return err
-	}
-
 	filter := map[string]any{
 		fieldId:      pkg.Id,
 		fieldVersion: version,
 	}
 
 	var do SoftwarePkgBasicDO
-	if err = s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
+	if err := s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
 		return err
 	}
 
-	do.UpdatedAt = utils.Now()
-	do.Id = u
+	v, err := do.toMap()
+	if err != nil {
+		return err
+	}
 
-	if err = s.basicDBCli.UpdateRecord(filter, &do); err != nil && s.basicDBCli.IsRowNotFound(err) {
+	v[fieldVersion] = gorm.Expr(fieldVersion+" + ?", 1)
+	v[fieldUpdatedAt] = utils.Now()
+	v[fieldApprovedby] = do.arrayFieldToString(fieldApprovedby)
+	v[fieldRejectedby] = do.arrayFieldToString(fieldRejectedby)
+
+	if err = s.basicDBCli.UpdateRecord(filter, v); err != nil && s.basicDBCli.IsRowNotFound(err) {
 		return commonrepo.NewErrorConcurrentUpdating(err)
 	}
 
