@@ -43,7 +43,7 @@ type ExistingPkgDefaultInfo struct {
 
 func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
 	info.Phase = dp.PackagePhaseImported
-	info.CIStatus = dp.PackageCIStatusPassed
+	info.CI.Status = dp.PackageCIStatusPassed
 
 	// importer
 	importer := &info.Importer

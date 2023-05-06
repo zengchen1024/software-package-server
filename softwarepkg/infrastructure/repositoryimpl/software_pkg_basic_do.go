@@ -19,8 +19,7 @@ const (
 	fieldPackageName     = "package_name"
 	fieldPackagePlatform = "package_platform"
 
-	frozenStatus   = "frozen"
-	unfrozenStatus = "unfrozen"
+	zeroPRNum = -1
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
@@ -37,7 +36,8 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		Importer:        pkg.Importer.Account.Account(),
 		ImporterEmail:   email,
 		Phase:           pkg.Phase.PackagePhase(),
-		CIStatus:        pkg.CIStatus.PackageCIStatus(),
+		CIPRNum:         pkg.CI.PRNum,
+		CIStatus:        pkg.CI.Status.PackageCIStatus(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
@@ -50,10 +50,8 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		RejectedBy:      toStringArray(pkg.RejectedBy),
 	}
 
-	if pkg.Frozen {
-		do.Frozen = frozenStatus
-	} else {
-		do.Frozen = unfrozenStatus
+	if do.CIPRNum == 0 {
+		do.CIPRNum = zeroPRNum
 	}
 
 	if pkg.RepoLink != nil {
@@ -75,6 +73,7 @@ type SoftwarePkgBasicDO struct {
 	ImporterEmail   string                 `gorm:"column:importer_email"`
 	RepoLink        string                 `gorm:"column:repo_link"`
 	Phase           string                 `gorm:"column:phase"`
+	CIPRNum         int                    `gorm:"column:ci_pr_num"`
 	CIStatus        string                 `gorm:"column:ci_status"`
 	SpecURL         string                 `gorm:"column:spec_url"`
 	SrcRPMURL       string                 `gorm:"column:src_rpm_url"`
@@ -82,7 +81,6 @@ type SoftwarePkgBasicDO struct {
 	PackagePlatform string                 `gorm:"column:package_platform"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"`
 	Sig             string                 `gorm:"column:sig"`
-	Frozen          string                 `gorm:"column:frozen"`
 	ReasonToImport  string                 `gorm:"column:reason_to_import"`
 	ApprovedBy      pq.StringArray         `gorm:"column:approvedby;type:text[];default:'{}'"`
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"`
@@ -132,13 +130,15 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgB
 		return
 	}
 
-	if info.CIStatus, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
+	if info.CI.Status, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
 		return
 	}
 
-	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
+	if do.CIPRNum != zeroPRNum {
+		info.CI.PRNum = do.CIPRNum
+	}
 
-	info.Frozen = do.Frozen == frozenStatus
+	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	return
 }

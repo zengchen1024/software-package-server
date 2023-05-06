@@ -71,10 +71,10 @@ type pkgCIImpl struct {
 	pkgInfoFile string
 }
 
-func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
+func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) (int, error) {
 	branch := fmt.Sprintf("%s-%d", info.PkgName.PackageName(), utils.Now())
 	if err := impl.createBranch(info, branch); err != nil {
-		return err
+		return 0, err
 	}
 
 	pr, err := impl.cli.CreatePullRequest(
@@ -87,10 +87,14 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) error {
 		true,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return impl.createPRComment(pr.Number)
+	if err = impl.createPRComment(pr.Number); err != nil {
+		return 0, err
+	}
+
+	return int(pr.Number), nil
 }
 
 func (impl *pkgCIImpl) ClosePR(id int) error {

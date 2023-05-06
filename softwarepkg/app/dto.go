@@ -45,7 +45,7 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 		Id:        v.Id,
 		Sig:       app.ImportingPkgSig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
-		CIStatus:  v.CIStatus.PackageCIStatus(),
+		CIStatus:  v.CI.Status.PackageCIStatus(),
 		PkgDesc:   app.PackageDesc.PackageDesc(),
 		PkgName:   v.PkgName.PackageName(),
 		Platform:  app.PackagePlatform.PackagePlatform(),
