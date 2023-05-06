@@ -534,6 +534,20 @@ const docTemplate = `{
                 }
             }
         },
+        "app.SoftwarePkgOperationLogDTO": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
         "app.SoftwarePkgReviewCommentDTO": {
             "type": "object",
             "properties": {
@@ -586,6 +600,12 @@ const docTemplate = `{
                 },
                 "importer": {
                     "type": "string"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgOperationLogDTO"
+                    }
                 },
                 "phase": {
                     "type": "string"
