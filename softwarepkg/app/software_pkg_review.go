@@ -154,7 +154,7 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		return
 	}
 
-	_, err = pkg.RejectBy(&domain.SoftwarePkgApprover{
+	err = pkg.RejectBy(&domain.SoftwarePkgApprover{
 		Account: user.Account,
 		IsTC:    isTC,
 	})

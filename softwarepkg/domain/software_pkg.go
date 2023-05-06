@@ -98,9 +98,6 @@ func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
-// change the status of "creating repo"
-// send out the event
-// notify the importer
 func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
 		return false, errors.New("can't do this")
@@ -118,7 +115,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, 
 
 func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
 	sig := entity.Application.ImportingPkgSig.ImportingPkgSig()
-	if sig == config.EcoPkgSig {
+	if sig == config.EcopkgSig {
 		return len(entity.ApprovedBy) > 0
 	}
 
@@ -140,22 +137,16 @@ func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
 	return c && c1
 }
 
-// notify the importer
-func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) (bool, error) {
+func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) error {
 	if !entity.Phase.IsReviewing() {
-		return false, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
 	entity.RejectedBy = append(entity.RejectedBy, *user)
 
-	rejected := false
-	// only set the result once to avoid duplicate case.
-	if len(entity.RejectedBy) == 1 {
-		entity.Phase = dp.PackagePhaseClosed
-		rejected = true
-	}
+	entity.Phase = dp.PackagePhaseClosed
 
-	return rejected, nil
+	return nil
 }
 
 func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {

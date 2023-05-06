@@ -38,20 +38,20 @@ type sigData struct {
 
 func (s *sigData) isSigMaintainer(user, sig string) bool {
 	if s != nil && s.maintainers != nil {
-		if v, ok := s.maintainers[sig]; ok && v.isMaintainer(user) {
-			return true
-		}
+		v, ok := s.maintainers[sig]
+
+		return ok && v.isMaintainer(user)
 	}
 
 	return false
 }
 
 func (s *sigData) init(md5sum string) {
+	s.md5sum = md5sum
+
 	if len(s.Data) == 0 {
 		return
 	}
-
-	s.md5sum = md5sum
 
 	items := s.Data
 	s.maintainers = make(map[string]sigMaintainers, len(items))
