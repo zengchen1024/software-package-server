@@ -9,3 +9,7 @@ type operationLog struct {
 func (t operationLog) AddOperationLog(*domain.SoftwarePkgOperationLog) error {
 	return nil
 }
+
+func (t operationLog) findOperationLogs(pid string) ([]domain.SoftwarePkgOperationLog, error) {
+	return nil, nil
+}

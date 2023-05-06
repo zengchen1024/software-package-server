@@ -277,6 +277,8 @@ type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
 
 	Comments []SoftwarePkgReviewComment
+
+	Logs []SoftwarePkgOperationLog
 }
 
 func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {

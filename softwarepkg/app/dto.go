@@ -122,6 +122,32 @@ func toSoftwarePkgReviewCommentDTOs(v []domain.SoftwarePkgReviewComment) (r []So
 	return
 }
 
+// SoftwarePkgOperationLogDTO
+type SoftwarePkgOperationLogDTO struct {
+	User   string `json:"user"`
+	Time   string `json:"time"`
+	Action string `json:"action"`
+}
+
+func toSoftwarePkgOperationLogDTO(v *domain.SoftwarePkgOperationLog) SoftwarePkgOperationLogDTO {
+	return SoftwarePkgOperationLogDTO{
+		User:   v.User.Account(),
+		Time:   utils.ToDateTime(v.Time),
+		Action: v.Action.PackageOpreationLogAction(),
+	}
+}
+
+func toSoftwarePkgOperationLogDTOs(v []domain.SoftwarePkgOperationLog) (r []SoftwarePkgOperationLogDTO) {
+	if n := len(v); n > 0 {
+		r = make([]SoftwarePkgOperationLogDTO, n)
+		for i := range v {
+			r[i] = toSoftwarePkgOperationLogDTO(&v[i])
+		}
+	}
+
+	return
+}
+
 // SoftwarePkgApproverDTO
 type SoftwarePkgApproverDTO struct {
 	Account string `json:"account"`
@@ -132,18 +158,20 @@ type SoftwarePkgApproverDTO struct {
 type SoftwarePkgReviewDTO struct {
 	SoftwarePkgBasicInfoDTO
 
+	Logs        []SoftwarePkgOperationLogDTO  `json:"logs"`
+	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
 	ApprovedBy  []SoftwarePkgApproverDTO      `json:"approved_by"`
 	RejectedBy  []SoftwarePkgApproverDTO      `json:"rejected_by"`
-	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
 	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
 
 func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
 	return SoftwarePkgReviewDTO{
 		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
+		Logs:                    toSoftwarePkgOperationLogDTOs(v.Logs),
+		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
 		ApprovedBy:              toSoftwarePkgApproverDTO(v.ApprovedBy),
 		RejectedBy:              toSoftwarePkgApproverDTO(v.RejectedBy),
-		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
 		Application:             toSoftwarePkgApplicationDTO(&v.Application),
 	}
 }
