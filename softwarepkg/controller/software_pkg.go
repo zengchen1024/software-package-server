@@ -38,7 +38,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 // @Tags  SoftwarePkg
 // @Accept json
 // @Param	param  body	 softwarePkgRequest	 true	"body of applying a new software package"
-// @Success 201 {object} ResponseData
+// @Success 201 {object} app.NewSoftwarePkgDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg [post]
 func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {

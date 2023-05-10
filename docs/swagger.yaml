@@ -1,4 +1,9 @@
 definitions:
+  app.NewSoftwarePkgDTO:
+    properties:
+      id:
+        type: string
+    type: object
   app.SoftwarePkgApplicationDTO:
     properties:
       desc:
@@ -266,7 +271,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/controller.ResponseData'
+            $ref: '#/definitions/app.NewSoftwarePkgDTO'
         "400":
           description: Bad Request
           schema:
