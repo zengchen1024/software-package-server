@@ -25,6 +25,10 @@ type CmdToWriteSoftwarePkgReviewComment struct {
 	Content dp.ReviewComment
 }
 
+type NewSoftwarePkgDTO struct {
+	Id string `json:"id"`
+}
+
 // SoftwarePkgBasicInfoDTO
 type SoftwarePkgBasicInfoDTO struct {
 	Id        string `json:"id"`

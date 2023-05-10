@@ -18,7 +18,7 @@ import (
 )
 
 type SoftwarePkgService interface {
-	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
+	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, string, error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) (string, error)
@@ -72,7 +72,7 @@ type softwarePkgService struct {
 }
 
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
-	code string, err error,
+	dto NewSoftwarePkgDTO, code string, err error,
 ) {
 	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
 	if s.pkgService.IsPkgExisted(cmd.PkgName) {
@@ -87,6 +87,8 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 			code = errorSoftwarePkgExists
 		}
 	} else {
+		dto.Id = v.Id
+
 		e := domain.NewSoftwarePkgAppliedEvent(&v)
 		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
 			logrus.Errorf(

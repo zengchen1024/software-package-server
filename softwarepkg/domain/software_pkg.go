@@ -276,9 +276,8 @@ func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error 
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
 
+	Logs     []SoftwarePkgOperationLog
 	Comments []SoftwarePkgReviewComment
-
-	Logs []SoftwarePkgOperationLog
 }
 
 func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {

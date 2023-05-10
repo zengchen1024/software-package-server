@@ -137,7 +137,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
+                            "$ref": "#/definitions/app.NewSoftwarePkgDTO"
                         }
                     },
                     "400": {
@@ -465,6 +465,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "app.NewSoftwarePkgDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "app.SoftwarePkgApplicationDTO": {
             "type": "object",
             "properties": {
