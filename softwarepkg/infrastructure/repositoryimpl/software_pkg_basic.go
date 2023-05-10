@@ -125,10 +125,10 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 	return
 }
 
-func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
+func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) (string, error) {
 	var do SoftwarePkgBasicDO
 	if err := s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
-		return err
+		return "", err
 	}
 
 	pkg.Id = do.Id.String()
@@ -142,5 +142,5 @@ func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error
 		err = commonrepo.NewErrorDuplicateCreating(err)
 	}
 
-	return err
+	return pkg.Id, err
 }

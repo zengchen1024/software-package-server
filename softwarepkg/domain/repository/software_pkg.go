@@ -25,7 +25,7 @@ type SoftwarePkg interface {
 	HasSoftwarePkg(dp.PackageName) (bool, error)
 
 	// AddSoftwarePkg adds a new pkg
-	AddSoftwarePkg(*domain.SoftwarePkgBasicInfo) error
+	AddSoftwarePkg(*domain.SoftwarePkgBasicInfo) (string, error)
 
 	SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error
 

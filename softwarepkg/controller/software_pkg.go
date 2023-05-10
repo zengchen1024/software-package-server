@@ -63,10 +63,10 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
+	if r, code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
 		commonctl.SendFailedResp(ctx, code, err)
 	} else {
-		commonctl.SendRespOfCreate(ctx)
+		commonctl.SendRespOfPost(ctx, r)
 	}
 }
 

@@ -18,7 +18,7 @@ import (
 )
 
 type SoftwarePkgService interface {
-	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (string, error)
+	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, string, error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) (string, error)
@@ -72,7 +72,7 @@ type softwarePkgService struct {
 }
 
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
-	code string, err error,
+	dto NewSoftwarePkgDTO, code string, err error,
 ) {
 	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
 	if s.pkgService.IsPkgExisted(cmd.PkgName) {
@@ -82,7 +82,7 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 		return
 	}
 
-	if err = s.repo.AddSoftwarePkg(&v); err != nil {
+	if dto.Id, err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
 		}
