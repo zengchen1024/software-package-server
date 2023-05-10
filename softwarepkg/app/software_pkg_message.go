@@ -259,7 +259,7 @@ func (s softwarePkgMessageService) HandlePkgAlreadyExisted(cmd CmdToHandlePkgAlr
 		return err
 	}
 
-	if _, err = s.repo.AddSoftwarePkg(&v); err != nil {
+	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			return nil
 		}

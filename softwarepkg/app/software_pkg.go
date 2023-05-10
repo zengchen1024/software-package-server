@@ -82,11 +82,13 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 		return
 	}
 
-	if dto.Id, err = s.repo.AddSoftwarePkg(&v); err != nil {
+	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			code = errorSoftwarePkgExists
 		}
 	} else {
+		dto.Id = v.Id
+
 		e := domain.NewSoftwarePkgAppliedEvent(&v)
 		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
 			logrus.Errorf(
