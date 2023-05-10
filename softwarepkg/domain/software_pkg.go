@@ -164,9 +164,12 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 }
 
 func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
-	b := entity.Phase.IsReviewing() && !entity.CI.Status.IsCIRunning()
-	if !b {
+	if !entity.Phase.IsReviewing() {
 		return false, errors.New("can't do this")
+	}
+
+	if entity.CI.Status.IsCIRunning() {
+		return false, errorCIIsRunning
 	}
 
 	if !dp.IsSameAccount(user.Importer.Account, entity.Importer.Account) {
