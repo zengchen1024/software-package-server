@@ -13,6 +13,7 @@ const (
 
 type softwarePkgRequest struct {
 	SpecUrl         string `json:"spec_url"        binding:"required"`
+	Upstream        string `json:"upstream"        binding:"required"`
 	SrcRPMURL       string `json:"src_rpm_url"     binding:"required"`
 	PackageName     string `json:"pkg_name"        binding:"required"`
 	PackageDesc     string `json:"desc"            binding:"required"`
@@ -34,6 +35,11 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 	application := &cmd.Application
 
 	application.SourceCode.SpecURL, err = dp.NewURL(s.SpecUrl)
+	if err != nil {
+		return
+	}
+
+	application.SourceCode.Upstream, err = dp.NewURL(s.Upstream)
 	if err != nil {
 		return
 	}

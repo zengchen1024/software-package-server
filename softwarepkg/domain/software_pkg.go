@@ -32,6 +32,7 @@ type SoftwarePkgApplication struct {
 
 type SoftwarePkgSourceCode struct {
 	SpecURL   dp.URL
+	Upstream  dp.URL
 	SrcRPMURL dp.URL
 }
 
