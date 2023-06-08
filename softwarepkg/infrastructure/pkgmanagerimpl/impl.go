@@ -1,13 +1,16 @@
 package pkgmanagerimpl
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	sdk "github.com/opensourceways/go-gitee/gitee"
 	"github.com/opensourceways/robot-gitee-lib/client"
 	libutils "github.com/opensourceways/server-common-lib/utils"
+	"sigs.k8s.io/yaml"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -50,6 +53,7 @@ type service struct {
 	defaultPkg       domain.SoftwarePkgBasicInfo
 	orgOfPkgRepo     string
 	metaDataEndpoint string
+	metaDataRepo     metaDataRepo
 }
 
 func (s *service) IsPkgExisted(pkg dp.PackageName) bool {
@@ -69,13 +73,17 @@ func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo,
 		return
 	}
 
-	return s.toPkgBasicInfo(name, &repo, &meta)
+	upstream, err := s.getUpstream(name, meta.SigName)
+	if err != nil {
+		return
+	}
+
+	return s.toPkgBasicInfo(name, upstream, &repo, &meta)
 }
 
 func (s *service) toPkgBasicInfo(
-	name dp.PackageName, repo *sdk.Project, meta *pkgMetaData,
+	name dp.PackageName, upstream dp.URL, repo *sdk.Project, meta *pkgMetaData,
 ) (info domain.SoftwarePkgBasicInfo, err error) {
-
 	info = s.defaultPkg
 
 	info.PkgName = name
@@ -92,6 +100,10 @@ func (s *service) toPkgBasicInfo(
 	app := &info.Application
 	app.SourceCode.SrcRPMURL = url
 	app.SourceCode.SpecURL = url
+	app.SourceCode.Upstream = url
+	if upstream != nil {
+		app.SourceCode.Upstream = upstream
+	}
 
 	desc := repo.Description
 	if desc == "" {
@@ -132,4 +144,35 @@ func (s *service) getPkgMetaData(name dp.PackageName) (r pkgMetaData, err error)
 	}
 
 	return
+}
+
+func (s *service) getUpstream(name dp.PackageName, sig string) (dp.URL, error) {
+	cfg := s.metaDataRepo
+
+	str := name.PackageName()
+	c, err := s.cli.GetPathContent(
+		cfg.Owner, cfg.Repo, cfg.Branch,
+		fmt.Sprintf(
+			"sig/%s/src-openeuler/%s/%s.yaml",
+			sig, strings.ToLower(str[:1]), str,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := base64.StdEncoding.DecodeString(c.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	var v struct {
+		Upstream string `json:"upstream"`
+	}
+
+	if err = yaml.Unmarshal(b, &v); err != nil || v.Upstream == "" {
+		return nil, err
+	}
+
+	return dp.NewURL(v.Upstream)
 }

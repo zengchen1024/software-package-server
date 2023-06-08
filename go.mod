@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.33
 	github.com/lib/pq v1.10.7
+	github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96
 	github.com/opensourceways/kafka-lib v0.0.0-20230208095708-dcdb61015d05
 	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c
 	github.com/opensourceways/server-common-lib v0.0.0-20230208064916-61fc43dfb8db
@@ -65,7 +66,6 @@ require (
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect

@@ -481,6 +481,9 @@
                 },
                 "src_rpm_url": {
                     "type": "string"
+                },
+                "upstream": {
+                    "type": "string"
                 }
             }
         },
@@ -688,7 +691,8 @@
                 "reason",
                 "sig",
                 "spec_url",
-                "src_rpm_url"
+                "src_rpm_url",
+                "upstream"
             ],
             "properties": {
                 "desc": {
@@ -710,6 +714,9 @@
                     "type": "string"
                 },
                 "src_rpm_url": {
+                    "type": "string"
+                },
+                "upstream": {
                     "type": "string"
                 }
             }

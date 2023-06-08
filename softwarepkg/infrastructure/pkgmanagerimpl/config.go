@@ -22,14 +22,38 @@ func (cfg *Config) Token() func() []byte {
 
 // ExistingPkgsConfig
 type ExistingPkgsConfig struct {
-	MetaDataEndpoint string                 `json:"meta_data_endpoint"      required:"true"`
-	OrgOfPkgRepo     string                 `json:"org_of_pkg_repo"   required:"true"`
-	DefaultInfo      ExistingPkgDefaultInfo `json:"default_info"      required:"true"`
+	DefaultInfo      ExistingPkgDefaultInfo `json:"default_info"        required:"true"`
+	MetaDataRepo     metaDataRepo           `json:"meta_data_repo"      required:"true"`
+	OrgOfPkgRepo     string                 `json:"org_of_pkg_repo"     required:"true"`
+	MetaDataEndpoint string                 `json:"meta_data_endpoint"  required:"true"`
 }
 
 func (cfg *ExistingPkgsConfig) setDefault() {
 	if cfg.OrgOfPkgRepo == "" {
 		cfg.OrgOfPkgRepo = "src-openeuler"
+	}
+
+	cfg.MetaDataRepo.setDefault()
+}
+
+// metaDataRepo
+type metaDataRepo struct {
+	Owner  string `json:"owner"`
+	Repo   string `json:"repo"`
+	Branch string `json:"branch"`
+}
+
+func (cfg *metaDataRepo) setDefault() {
+	if cfg.Owner == "" {
+		cfg.Owner = "openeuler"
+	}
+
+	if cfg.Repo == "" {
+		cfg.Repo = "community"
+	}
+
+	if cfg.Branch == "" {
+		cfg.Branch = "master"
 	}
 }
 

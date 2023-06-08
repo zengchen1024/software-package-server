@@ -493,6 +493,9 @@ const docTemplate = `{
                 },
                 "src_rpm_url": {
                     "type": "string"
+                },
+                "upstream": {
+                    "type": "string"
                 }
             }
         },
@@ -700,7 +703,8 @@ const docTemplate = `{
                 "reason",
                 "sig",
                 "spec_url",
-                "src_rpm_url"
+                "src_rpm_url",
+                "upstream"
             ],
             "properties": {
                 "desc": {
@@ -722,6 +726,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "src_rpm_url": {
+                    "type": "string"
+                },
+                "upstream": {
                     "type": "string"
                 }
             }

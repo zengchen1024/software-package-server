@@ -44,6 +44,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo,
 		CIStatus:        pkg.CI.Status.PackageCIStatus(),
 		SpecURL:         app.SourceCode.SpecURL.URL(),
 		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
+		Upstream:        app.SourceCode.Upstream.URL(),
 		PackageDesc:     app.PackageDesc.PackageDesc(),
 		PackagePlatform: app.PackagePlatform.PackagePlatform(),
 		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
@@ -74,6 +75,7 @@ type SoftwarePkgBasicDO struct {
 	Importer        string                 `gorm:"column:importer"                                 json:"importer"`
 	RepoLink        string                 `gorm:"column:repo_link"                                json:"repo_link"`
 	CIStatus        string                 `gorm:"column:ci_status"                                json:"ci_status"`
+	Upstream        string                 `gorm:"column:upstream"                                 json:"upstream"`
 	SrcRPMURL       string                 `gorm:"column:src_rpm_url"                              json:"src_rpm_url"`
 	RelevantPR      string                 `gorm:"column:relevant_pr"                              json:"relevant_pr"`
 	PackageName     string                 `gorm:"column:package_name"                             json:"package_name"`
@@ -205,6 +207,10 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgAp
 	}
 
 	if app.SourceCode.SrcRPMURL, err = dp.NewURL(do.SrcRPMURL); err != nil {
+		return
+	}
+
+	if app.SourceCode.Upstream, err = dp.NewURL(do.Upstream); err != nil {
 		return
 	}
 

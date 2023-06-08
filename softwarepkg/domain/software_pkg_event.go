@@ -40,6 +40,7 @@ type softwarePkgApprovedEvent struct {
 	PkgName           string `json:"pkg_name"`
 	PkgDesc           string `json:"pkg_desc"`
 	SpecURL           string `json:"spec_url"`
+	Upstream          string `json:"upstream"`
 	SrcRPMURL         string `json:"src_rpm_url"`
 	Platform          string `json:"platform"`
 	ImportingPkgSig   string `json:"sig"`
@@ -61,6 +62,7 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedE
 		PkgName:           pkg.PkgName.PackageName(),
 		PkgDesc:           app.PackageDesc.PackageDesc(),
 		SpecURL:           app.SourceCode.SpecURL.URL(),
+		Upstream:          app.SourceCode.Upstream.URL(),
 		SrcRPMURL:         app.SourceCode.SrcRPMURL.URL(),
 		CIPRNum:           pkg.CI.PRNum,
 		Platform:          app.PackagePlatform.PackagePlatform(),

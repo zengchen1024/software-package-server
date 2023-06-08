@@ -78,6 +78,7 @@ func toSoftwarePkgBasicInfoDTOs(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePk
 // SoftwarePkgApplicationDTO
 type SoftwarePkgApplicationDTO struct {
 	SpecURL           string `json:"spec_url"`
+	Upstream          string `json:"upstream"`
 	SrcRPMURL         string `json:"src_rpm_url"`
 	PackageDesc       string `json:"desc"`
 	PackagePlatform   string `json:"platform"`
@@ -88,6 +89,7 @@ type SoftwarePkgApplicationDTO struct {
 func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgApplicationDTO {
 	return SoftwarePkgApplicationDTO{
 		SpecURL:           v.SourceCode.SpecURL.URL(),
+		Upstream:          v.SourceCode.Upstream.URL(),
 		SrcRPMURL:         v.SourceCode.SrcRPMURL.URL(),
 		PackageDesc:       v.PackageDesc.PackageDesc(),
 		PackagePlatform:   v.PackagePlatform.PackagePlatform(),
