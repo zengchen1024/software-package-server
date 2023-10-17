@@ -59,12 +59,35 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, use
 	if has = m.isSigMaintainer(user.GiteeID, impl.tcSig); has {
 		isTC = true
 	} else {
-		has = m.isSigMaintainer(
-			user.GiteeID, info.Application.ImportingPkgSig.ImportingPkgSig(),
-		)
+		has = m.isSigMaintainer(user.GiteeID, info.Sig())
 	}
 
 	return
+}
+
+func (impl *maintainerImpl) Reviewer(info *domain.SoftwarePkgBasicInfo, user *domain.User) domain.Reviewer {
+	v := impl.agent.GetData()
+
+	m, ok := v.(*sigData)
+	if !ok {
+		return domain.Reviewer{}
+	}
+
+	r := domain.Reviewer{
+		User: user.Account,
+	}
+
+	if m.isSigMaintainer(user.GiteeID, impl.tcSig) {
+		r.Role = append(r.Role, "tc")
+	}
+
+	if m.isSigMaintainer(user.GiteeID, info.Sig()) {
+		r.Role = append(r.Role, "sig maintainer")
+	}
+
+	// TODO committer
+
+	return r
 }
 
 func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {

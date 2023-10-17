@@ -151,16 +151,8 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 		return
 	}
 
-	isTC, code, err := s.checkPermission(&pkg, user)
-	if err != nil {
-		return
-	}
-
-	err = pkg.RejectBy(&domain.SoftwarePkgApprover{
-		Account: user.Account,
-		IsTC:    isTC,
-	})
-	if err != nil {
+	reviewer := s.maintainer.Reviewer(&pkg, user)
+	if err = pkg.RejectBy(&reviewer); err != nil {
 		return
 	}
 
