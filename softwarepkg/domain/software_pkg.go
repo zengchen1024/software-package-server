@@ -179,6 +179,13 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
 
 	entity.CI = SoftwarePkgCI{Status: dp.PackageCIStatusWaiting}
 
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionResunci, entity.Id,
+		),
+	)
+
 	return true, nil
 }
 
