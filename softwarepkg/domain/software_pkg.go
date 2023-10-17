@@ -81,6 +81,7 @@ type SoftwarePkgBasicInfo struct {
 	ApprovedBy  []SoftwarePkgApprover
 	RejectedBy  []SoftwarePkgApprover
 	RelevantPR  dp.URL
+	Logs        []SoftwarePkgOperationLog
 }
 
 func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
@@ -110,6 +111,13 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, 
 	if b {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
+
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionApprove, entity.Id,
+		),
+	)
 
 	return b, nil
 }
@@ -147,6 +155,13 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) error {
 
 	entity.Phase = dp.PackagePhaseClosed
 
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionReject, entity.Id,
+		),
+	)
+
 	return nil
 }
 
@@ -160,6 +175,13 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
+
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionAbandon, entity.Id,
+		),
+	)
 
 	return nil
 }
@@ -183,6 +205,13 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
 
 	entity.CI = SoftwarePkgCI{Status: dp.PackageCIStatusWaiting}
 
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionResunci, entity.Id,
+		),
+	)
+
 	return true, nil
 }
 
@@ -196,6 +225,13 @@ func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplicatio
 	}
 
 	entity.Application = *cmd
+
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionUpdate, entity.Id,
+		),
+	)
 
 	return nil
 }
@@ -280,7 +316,6 @@ func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error 
 type SoftwarePkg struct {
 	SoftwarePkgBasicInfo
 
-	Logs     []SoftwarePkgOperationLog
 	Comments []SoftwarePkgReviewComment
 }
 
