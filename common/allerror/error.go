@@ -11,9 +11,9 @@ const (
 	ErrorCodeTooManyRequest   = "too_many_request"
 	ErrorCodeSensitiveContent = "sensitive_content"
 
-	ErrorCodeNotImporter     = "software_pkg_not_importer"
-	ErrorCodeCIIsRunning     = "software_pkg_ci_is_running"
-	ErrorCodeNotCorrectPhase = "software_pkg_not_correct_phase"
+	ErrorCodeNotImporter    = "software_pkg_not_importer"
+	ErrorCodeCIIsRunning    = "software_pkg_ci_is_running"
+	ErrorCodeIncorrectPhase = "software_pkg_incorrect_phase"
 )
 
 // errorImpl

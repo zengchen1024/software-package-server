@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	notImporter     = allerror.New(allerror.ErrorCodeNotImporter, "not the importer")
-	notCorrectPhase = allerror.New(allerror.ErrorCodeNotCorrectPhase, "can't do this")
+	notImporter    = allerror.New(allerror.ErrorCodeNotImporter, "not the importer")
+	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
 )
 
 type User struct {
@@ -120,7 +120,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, 
 
 func (entity *SoftwarePkgBasicInfo) RejectBy(user *Reviewer) error {
 	if !entity.Phase.IsReviewing() {
-		return notCorrectPhase
+		return incorrectPhase
 	}
 
 	if !user.isTC() {
@@ -141,7 +141,7 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user *Reviewer) error {
 
 func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	if !entity.Phase.IsReviewing() {
-		return notCorrectPhase
+		return incorrectPhase
 	}
 
 	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
@@ -162,7 +162,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 
 func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() {
-		return false, notCorrectPhase
+		return false, incorrectPhase
 	}
 
 	if entity.CI.Status.IsCIRunning() {
