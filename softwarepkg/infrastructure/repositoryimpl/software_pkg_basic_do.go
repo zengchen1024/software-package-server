@@ -53,7 +53,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *Soft
 		ReasonToImport:  basic.Reason.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
-		ApprovedBy:      toStringArray(pkg.ApprovedBy),
 		RejectedBy:      toStringArray(pkg.RejectedBy),
 	}
 
@@ -85,7 +84,6 @@ type SoftwarePkgBasicDO struct {
 	AppliedAt       int64                  `gorm:"column:applied_at"                               json:"applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"                               json:"updated_at"`
 	Version         optimisticlock.Version `gorm:"column:version"                                  json:"-"`
-	ApprovedBy      pq.StringArray         `gorm:"column:approvedby;type:text[];default:'{}'"      json:"-"`
 	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"      json:"-"`
 }
 
@@ -103,15 +101,8 @@ func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
 	// fieldVersion
 	r[fieldVersion] = gorm.Expr(fieldVersion+" + ?", 1)
 
-	// fieldApprovedby
-	s, err := marshalStringArray(do.ApprovedBy)
-	if err != nil {
-		return nil, err
-	}
-	r[fieldApprovedby] = s
-
 	// fieldRejectedby
-	s, err = marshalStringArray(do.RejectedBy)
+	s, err := marshalStringArray(do.RejectedBy)
 	if err != nil {
 		return nil, err
 	}
@@ -146,10 +137,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 	}
 
 	info.AppliedAt = do.AppliedAt
-
-	if info.ApprovedBy, err = do.toAccounts(do.ApprovedBy); err != nil {
-		return
-	}
 
 	if info.CI.Status, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
 		return

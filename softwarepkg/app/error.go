@@ -1,10 +1,12 @@
 package app
 
-import commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
+import (
+	"github.com/opensourceways/software-package-server/allerror"
+	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
+)
 
 const (
 	errorSoftwarePkgExists          = "software_pkg_exists"
-	errorSoftwarePkgNotFound        = "software_pkg_not_found"
 	errorSoftwarePkgNoPermission    = "software_pkg_no_permission"
 	errorSoftwarePkgCannotComment   = "software_pkg_cannot_comment"
 	errorSoftwarePkgCommentIllegal  = "software_pkg_comment_illegal"
@@ -12,9 +14,14 @@ const (
 )
 
 func errorCodeForFindingPkg(err error) string {
+	// TODO no need and delete
+	return ""
+}
+
+func parseErrorForFindingPkg(err error) error {
 	if commonrepo.IsErrorResourceNotFound(err) {
-		return errorSoftwarePkgNotFound
+		return allerror.NewNotFound(allerror.ErrorCodePkgNotFound, err.Error())
 	}
 
-	return ""
+	return err
 }

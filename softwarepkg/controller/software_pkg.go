@@ -24,7 +24,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 	r.GET("/v1/softwarepkg/:id", ctl.Get)
 	r.PUT("/v1/softwarepkg/:id", m, ctl.UpdateApplication)
 
-	r.PUT("/v1/softwarepkg/:id/review/approve", m, ctl.Approve)
+	r.POST("/v1/softwarepkg/:id/review", m, ctl.Review)
 	r.PUT("/v1/softwarepkg/:id/review/reject", m, ctl.Reject)
 	r.PUT("/v1/softwarepkg/:id/review/abandon", m, ctl.Abandon)
 	r.PUT("/v1/softwarepkg/:id/review/rerunci", m, ctl.RerunCI)
@@ -121,16 +121,30 @@ func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 	}
 }
 
-// Approve
-// @Summary approve software package
-// @Description approve software package
+// Review
+// @Summary review software package
+// @Description review software package
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param	id  path	 string	 true	"id of software package"
-// @Success 202 {object} ResponseData
+// @Param  id     path   string         true  "id of software package"
+// @Param  param  body   reviewRequest  true  "body of reviewing a software package"
+// @Success 201 {object} ResponseData
 // @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/review/approve [put]
-func (ctl SoftwarePkgController) Approve(ctx *gin.Context) {
+// @Router /v1/softwarepkg/{id}/review [post]
+func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
+	var req reviewRequest
+
+	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+		commonctl.SendBadRequestBody(ctx, err)
+
+		return
+	}
+
+	info, err := req.toCmd()
+	if err != nil {
+		commonctl.SendBadRequestParam(ctx, err)
+	}
+
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
 		commonctl.SendFailedResp(ctx, "", err)
@@ -138,8 +152,8 @@ func (ctl SoftwarePkgController) Approve(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.Approve(ctx.Param("id"), &user); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
+	if err := ctl.service.Review(ctx.Param("id"), &user, info); err != nil {
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
 	}

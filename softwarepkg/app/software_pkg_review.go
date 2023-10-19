@@ -100,22 +100,15 @@ func (s *softwarePkgService) TranslateReviewComment(
 	return
 }
 
-func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string, err error) {
+func (s *softwarePkgService) Review(pid string, user *domain.User, reviews []domain.CheckItemReviewInfo) (err error) {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
-		code = errorCodeForFindingPkg(err)
-
-		return
+		return parseErrorForFindingPkg(err)
 	}
 
-	isTC, code, err := s.checkPermission(&pkg, user)
-	if err != nil {
-		return
-	}
-
-	approved, err := pkg.ApproveBy(&domain.SoftwarePkgApprover{
-		Account: user.Account,
-		IsTC:    isTC,
+	approved, err := pkg.AddReview(&domain.UserReview{
+		Reviewer: s.maintainer.Reviewer(&pkg, user),
+		Reviews:  reviews,
 	})
 	if err != nil {
 		return

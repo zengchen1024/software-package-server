@@ -164,7 +164,6 @@ type SoftwarePkgReviewDTO struct {
 
 	Logs        []SoftwarePkgOperationLogDTO  `json:"logs"`
 	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
-	ApprovedBy  []SoftwarePkgApproverDTO      `json:"approved_by"`
 	RejectedBy  []SoftwarePkgApproverDTO      `json:"rejected_by"`
 	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
@@ -174,7 +173,6 @@ func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg, comments []domain.SoftwarePkg
 		SoftwarePkgDTO: toSoftwarePkgDTO(v),
 		Logs:           toSoftwarePkgOperationLogDTOs(v.Logs),
 		Comments:       toSoftwarePkgReviewCommentDTOs(comments),
-		ApprovedBy:     toSoftwarePkgApproverDTO(v.ApprovedBy),
 		RejectedBy:     toSoftwarePkgApproverDTO(v.RejectedBy),
 		Application:    toSoftwarePkgApplicationDTO(v),
 	}

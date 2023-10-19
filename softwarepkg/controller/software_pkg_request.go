@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -140,4 +142,40 @@ func (t translationCommentRequest) toCmd(pkgId, commentId string) (cmd app.CmdTo
 	cmd.Language, err = dp.NewLanguage(t.Language)
 
 	return
+}
+
+type reviewRequest struct {
+	Reviews []checkItemReviewInfo `json:"reviews" binding:"required"`
+}
+
+func (req *reviewRequest) toCmd() (reviews []domain.CheckItemReviewInfo, err error) {
+	reviews = make([]domain.CheckItemReviewInfo, len(req.Reviews))
+
+	for i := range req.Reviews {
+		if reviews[i], err = req.Reviews[i].toInfo(); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+type checkItemReviewInfo struct {
+	Id      int    `json:"id"       binding:"required"`
+	Pass    bool   `json:"pass"`
+	Comment string `json:"comment"`
+}
+
+func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
+	if !req.Pass && req.Comment == "" {
+		return domain.CheckItemReviewInfo{}, errors.New(
+			"lack of reasons for failure",
+		)
+	}
+
+	return domain.CheckItemReviewInfo{
+		Id:      req.Id,
+		Pass:    req.Pass,
+		Comment: req.Comment,
+	}, nil
 }

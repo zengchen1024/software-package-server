@@ -28,7 +28,7 @@ definitions:
       is_tc:
         type: boolean
     type: object
-  app.SoftwarePkgBasicInfoDTO:
+  app.SoftwarePkgDTO:
     properties:
       applied_at:
         type: string
@@ -79,10 +79,6 @@ definitions:
         $ref: '#/definitions/app.SoftwarePkgApplicationDTO'
       applied_at:
         type: string
-      approved_by:
-        items:
-          $ref: '#/definitions/app.SoftwarePkgApproverDTO'
-        type: array
       ci_status:
         type: string
       comments:
@@ -118,7 +114,7 @@ definitions:
     properties:
       pkgs:
         items:
-          $ref: '#/definitions/app.SoftwarePkgBasicInfoDTO'
+          $ref: '#/definitions/app.SoftwarePkgDTO'
         type: array
       total:
         type: integer
@@ -136,6 +132,17 @@ definitions:
       msg:
         type: string
     type: object
+  controller.checkItemReviewInfo:
+    properties:
+      comment:
+        type: string
+      id:
+        type: integer
+      pass:
+        type: boolean
+    required:
+    - id
+    type: object
   controller.claSingedResp:
     properties:
       signed:
@@ -147,6 +154,15 @@ definitions:
         type: string
     required:
     - comment
+    type: object
+  controller.reviewRequest:
+    properties:
+      reviews:
+        items:
+          $ref: '#/definitions/controller.checkItemReviewInfo'
+        type: array
+    required:
+    - reviews
     type: object
   controller.softwarePkgRequest:
     properties:
@@ -336,6 +352,35 @@ paths:
       summary: get software package
       tags:
       - SoftwarePkg
+  /v1/softwarepkg/{id}/review:
+    post:
+      consumes:
+      - application/json
+      description: review software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: body of reviewing a software package
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/controller.reviewRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: review software package
+      tags:
+      - SoftwarePkg
   /v1/softwarepkg/{id}/review/abandon:
     put:
       consumes:
@@ -357,29 +402,6 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: abandon software package
-      tags:
-      - SoftwarePkg
-  /v1/softwarepkg/{id}/review/approve:
-    put:
-      consumes:
-      - application/json
-      description: approve software package
-      parameters:
-      - description: id of software package
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-      summary: approve software package
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/comment:

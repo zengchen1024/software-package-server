@@ -6,8 +6,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/utils"
+)
+
+var (
+	notImporter    = allerror.New(allerror.ErrorCodeNotImporter, "not the importer")
+	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
 )
 
 type User struct {
@@ -45,7 +51,11 @@ func (f *SoftwarePkgCodeFile) Name() string {
 type SoftwarePkgRepo struct {
 	Link       dp.URL
 	Platform   dp.PackagePlatform
-	Committers []string
+	Committers []dp.Account
+}
+
+func (r *SoftwarePkgRepo) isCommitter(u *User) bool {
+	return false
 }
 
 // SoftwarePkgCI
@@ -94,70 +104,46 @@ type SoftwarePkg struct {
 	Phase       dp.PackagePhase
 	Review      SoftwarePkgReview
 	AppliedAt   int64
-	ApprovedBy  []SoftwarePkgApprover
 	RejectedBy  []SoftwarePkgApprover
 	CommunityPR dp.URL
 }
 
-func (entity *SoftwarePkg) ReviewResult() dp.PackageReviewResult {
-	if len(entity.RejectedBy) > 0 {
-		return dp.PkgReviewResultRejected
-	}
-
-	if entity.hasPassedReview() {
-		return dp.PkgReviewResultApproved
-	}
-
-	return nil
+func (entity *SoftwarePkg) IsCommitter(user *User) bool {
+	return entity.Repo.isCommitter(user)
 }
 
 func (entity *SoftwarePkg) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
-func (entity *SoftwarePkg) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
-	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
-		return false, errors.New("can't do this")
+func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
+	if !entity.Phase.IsReviewing() {
+		return false, incorrectPhase
 	}
 
-	entity.ApprovedBy = append(entity.ApprovedBy, *user)
+	if !entity.CI.isSuccess() {
+		return false, allerror.New(
+			allerror.ErrorCodeCIIsNotReady, "ci is not successful yet",
+		)
+	}
 
-	b := entity.hasPassedReview()
-	if b {
-		entity.Phase = dp.PackagePhaseCreatingRepo
+	if err := entity.Review.add(ur); err != nil {
+		return false, err
 	}
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionApprove, entity.Id,
+			ur.User, dp.PackageOperationLogActionReview, entity.Id,
 		),
 	)
 
+	b := entity.Review.pass()
+	if b {
+		entity.Phase = dp.PackagePhaseCreatingRepo
+	}
+
 	return b, nil
-}
-
-func (entity *SoftwarePkg) hasPassedReview() bool {
-	if entity.Sig.ImportingPkgSig() == config.EcopkgSig {
-		return len(entity.ApprovedBy) > 0
-	}
-
-	numApprovedByTc := 0
-	numApprovedBySigMaintainer := 0
-
-	for i := range entity.ApprovedBy {
-		if entity.ApprovedBy[i].IsTC {
-			numApprovedByTc++
-			numApprovedBySigMaintainer++
-		} else {
-			numApprovedBySigMaintainer++
-		}
-	}
-
-	c := numApprovedByTc >= config.MinNumApprovedByTC
-	c1 := numApprovedBySigMaintainer >= config.MinNumApprovedBySigMaintainer
-
-	return c && c1
 }
 
 func (entity *SoftwarePkg) RejectBy(user *SoftwarePkgApprover) error {

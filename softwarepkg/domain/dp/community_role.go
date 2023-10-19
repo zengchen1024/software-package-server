@@ -3,13 +3,15 @@ package dp
 const (
 	communityRoleTC            = "tc"
 	communityRoleCommitter     = "committer"
+	communityRoleRepoMember    = "repo_member"
 	communityRoleSigMaintainer = "sig_maintainer"
 )
 
 var (
-	CheckItemTC            = communityRole(communityRoleTC)
-	CheckItemCommitter     = communityRole(communityRoleCommitter)
-	CheckItemSigMaintainer = communityRole(communityRoleSigMaintainer)
+	CommunityRoleTC            = communityRole(communityRoleTC)
+	CommunityRoleCommitter     = communityRole(communityRoleCommitter)
+	CommunityRoleRepoMember    = communityRole(communityRoleRepoMember)
+	CommunityRoleSigMaintainer = communityRole(communityRoleSigMaintainer)
 )
 
 type CommunityRole interface {

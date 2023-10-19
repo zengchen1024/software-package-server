@@ -1,11 +1,8 @@
 package maintainer
 
-import (
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-)
+import "github.com/opensourceways/software-package-server/softwarepkg/domain"
 
 type Maintainer interface {
 	HasPermission(*domain.SoftwarePkg, *domain.User) (bool, bool)
-	FindUser(string) (dp.Account, error)
+	Reviewer(*domain.SoftwarePkg, *domain.User) domain.Reviewer
 }
