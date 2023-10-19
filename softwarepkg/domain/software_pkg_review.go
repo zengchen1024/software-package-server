@@ -1,8 +1,7 @@
 package domain
 
 import (
-	"sort"
-
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
@@ -12,8 +11,14 @@ type SoftwarePkgReview struct {
 	Reviews []UserReview
 }
 
-func (r *SoftwarePkgReview) add(ur *UserReview) {
+func (r *SoftwarePkgReview) add(ur *UserReview) error {
+	if err := ur.validate(r.Items); err != nil {
+		return err
+	}
+
 	r.Reviews = append(r.Reviews, *ur)
+
+	return nil
 }
 
 func (r *SoftwarePkgReview) pass() bool {
@@ -41,15 +46,6 @@ func (r *SoftwarePkgReview) CheckItemReview(item *CheckItem) (rf CheckItemReview
 		}
 	}
 
-	if len(rs) > 0 {
-		sort.Slice(rs, func(i, j int) bool {
-			oi := item.isOwner(rs[i].Role)
-			oj := item.isOwner(rs[j].Role)
-
-			return oi == oj || oi
-		})
-	}
-
 	rf.Reviews = rs
 
 	return
@@ -57,12 +53,8 @@ func (r *SoftwarePkgReview) CheckItemReview(item *CheckItem) (rf CheckItemReview
 
 // Reviewer
 type Reviewer struct {
-	User dp.Account
-	Role []string
-}
-
-func (r *Reviewer) isTC() bool {
-	return false // TODO
+	User  dp.Account
+	Roles []dp.CommunityRole
 }
 
 // UserReview
@@ -72,9 +64,21 @@ type UserReview struct {
 	Reviews []CheckItemReviewInfo
 }
 
+func (r *UserReview) validate(items []CheckItem) error {
+	for i := range items {
+		_, exist := r.CheckItemReview(&items[i])
+
+		if exist && !items[i].canReview(&r.Reviewer) {
+			return allerror.NewNoPermission("not the owner")
+		}
+	}
+
+	return nil
+}
+
 func (r *UserReview) CheckItemReview(item *CheckItem) (info UserCheckItemReview, exist bool) {
 	for i := range r.Reviews {
-		if v := &r.Reviews[i]; v.Index == item.Index {
+		if v := &r.Reviews[i]; v.Id == item.Id {
 			exist = true
 
 			info.Reviewer = &r.Reviewer
@@ -101,7 +105,7 @@ func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
 	pass := false
 
 	for i := range r.Reviews {
-		if v := &r.Reviews[i]; r.Item.isOwner(v.Role) {
+		if v := &r.Reviews[i]; r.Item.isOwner(v.Reviewer) {
 			if !v.Pass {
 				return dp.CheckItemNotPass
 			}
@@ -125,27 +129,38 @@ type UserCheckItemReview struct {
 
 // CheckItemReviewInfo
 type CheckItemReviewInfo struct {
-	Index int
-	Pass  bool
-	Desc  string
+	Id   int
+	Pass bool
+	Desc string
 }
 
 // CheckItem
 type CheckItem struct {
-	Index  int
-	Item   string
-	Desc   string
-	Owners []string // TC, Sig maintainer, Committer
+	Id       int
+	Name     string
+	Desc     string
+	Owner    dp.CommunityRole
+	Category dp.CheckItemCategory
+
+	// if true, keep the review record of reviewer who is still the owner of this item
+	// else, clear all the records about this item
+	KeepOwnerReview bool
+
+	// if true, only the owner can review this item
+	// else, anyone can review.
+	OnlyOwnerCanReview bool
 }
 
-func (item *CheckItem) isOwner(Role []string) bool {
-	for _, role := range Role {
-		for _, owner := range item.Owners {
-			if role == owner {
-				return true
-			}
+func (item *CheckItem) isOwner(reviewer *Reviewer) bool {
+	for _, role := range reviewer.Roles {
+		if dp.IsSameCommunityRole(role, item.Owner) {
+			return true
 		}
 	}
 
 	return false
+}
+
+func (item *CheckItem) canReview(reviewer *Reviewer) bool {
+	return !item.OnlyOwnerCanReview || item.isOwner(reviewer)
 }

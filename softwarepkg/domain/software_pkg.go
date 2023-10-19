@@ -92,6 +92,7 @@ type SoftwarePkg struct {
 	CI          SoftwarePkgCI
 	Logs        []SoftwarePkgOperationLog
 	Phase       dp.PackagePhase
+	Review      SoftwarePkgReview
 	AppliedAt   int64
 	ApprovedBy  []SoftwarePkgApprover
 	RejectedBy  []SoftwarePkgApprover
