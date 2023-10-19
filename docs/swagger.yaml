@@ -341,6 +341,29 @@ paths:
       summary: get software package
       tags:
       - SoftwarePkg
+  /v1/softwarepkg/{id}/abandon:
+    put:
+      consumes:
+      - application/json
+      description: abandon software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: abandon software package
+      tags:
+      - SoftwarePkg
   /v1/softwarepkg/{id}/reject:
     put:
       consumes:
@@ -391,29 +414,6 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: review software package
-      tags:
-      - SoftwarePkg
-  /v1/softwarepkg/{id}/review/abandon:
-    put:
-      consumes:
-      - application/json
-      description: abandon software package
-      parameters:
-      - description: id of software package
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-      summary: abandon software package
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/comment:

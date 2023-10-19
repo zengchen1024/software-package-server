@@ -228,6 +228,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/softwarepkg/{id}/abandon": {
+            "put": {
+                "description": "abandon software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "abandon software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/softwarepkg/{id}/reject": {
             "put": {
                 "description": "reject software package",
@@ -294,41 +329,6 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/softwarepkg/{id}/review/abandon": {
-            "put": {
-                "description": "abandon software package",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SoftwarePkg"
-                ],
-                "summary": "abandon software package",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of software package",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/controller.ResponseData"
                         }
