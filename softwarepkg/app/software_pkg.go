@@ -47,6 +47,7 @@ func NewSoftwarePkgService(
 	sensitive sensitivewords.SensitiveWords,
 	maintainer maintainer.Maintainer,
 	translation translation.Translation,
+	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgService {
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
@@ -58,6 +59,7 @@ func NewSoftwarePkgService(
 		maintainer:  maintainer,
 		translation: translation,
 		pkgService:  service.NewPkgService(manager, message),
+		commentRepo: commentRepo,
 	}
 }
 
@@ -66,9 +68,10 @@ type softwarePkgService struct {
 	robot       dp.Account
 	message     message.SoftwarePkgMessage
 	sensitive   sensitivewords.SensitiveWords
+	pkgService  service.SoftwarePkgService
 	maintainer  maintainer.Maintainer
 	translation translation.Translation
-	pkgService  service.SoftwarePkgService
+	commentRepo repository.SoftwarePkgComment
 }
 
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
@@ -115,7 +118,7 @@ func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, erro
 }
 
 func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication) (string, error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return errorCodeForFindingPkg(err), err
 	}

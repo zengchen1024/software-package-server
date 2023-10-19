@@ -42,7 +42,7 @@ func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
 	interrupts.ListenAndServe(srv, timeout)
 }
 
-//setRouter init router
+// setRouter init router
 func setRouter(engine *gin.Engine, cfg *config.Config) {
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Title = "Software Package"
@@ -74,6 +74,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 			sensitivewordsimpl.Sensitive(),
 			maintainerimpl.Maintainer(),
 			translationimpl.Translation(),
+			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 		),
 	)
 }

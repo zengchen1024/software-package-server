@@ -6,7 +6,25 @@ import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
+
+type softwarePkgCommentImpl struct {
+	reviewComment
+
+	translationComment
+}
+
+func NewSoftwarePkgComment(cfg *Config) repository.SoftwarePkgComment {
+	return softwarePkgCommentImpl{
+		reviewComment: reviewComment{
+			postgresql.NewDBTable(cfg.Table.ReviewComment),
+		},
+		translationComment: translationComment{
+			postgresql.NewDBTable(cfg.Table.TranslationComment),
+		},
+	}
+}
 
 type reviewComment struct {
 	commentDBCli dbClient
@@ -21,7 +39,7 @@ func (t reviewComment) AddReviewComment(pid string, comment *domain.SoftwarePkgR
 	return t.commentDBCli.Insert(&filter, &do)
 }
 
-func (t reviewComment) findReviewComments(pid string) (
+func (t reviewComment) FindReviewComments(pid string) (
 	[]domain.SoftwarePkgReviewComment, error,
 ) {
 	var dos []SoftwarePkgReviewCommentDO

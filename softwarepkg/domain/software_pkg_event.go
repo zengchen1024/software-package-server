@@ -20,7 +20,7 @@ func (e *softwarePkgAppliedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgAppliedEvent {
+func NewSoftwarePkgAppliedEvent(pkg *SoftwarePkg) softwarePkgAppliedEvent {
 	return softwarePkgAppliedEvent{
 		PkgId: pkg.Id,
 	}
@@ -52,7 +52,7 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkgBasicInfo) softwarePkgApprovedEvent {
+func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
 	app := &pkg.Application
 
 	return softwarePkgApprovedEvent{

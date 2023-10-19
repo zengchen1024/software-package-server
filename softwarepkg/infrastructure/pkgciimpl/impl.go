@@ -71,7 +71,7 @@ type pkgCIImpl struct {
 	pkgInfoFile string
 }
 
-func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkgBasicInfo) (int, error) {
+func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkg) (int, error) {
 	branch := fmt.Sprintf("%s-%d", info.PkgName.PackageName(), utils.Now())
 	if err := impl.createBranch(info, branch); err != nil {
 		return 0, err
@@ -112,7 +112,7 @@ func (impl *pkgCIImpl) createPRComment(id int32) error {
 	return err
 }
 
-func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkgBasicInfo) error {
+func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkg) error {
 	v := &softwarePkgInfo{
 		PkgId:   info.Id,
 		PkgName: info.PkgName.PackageName(),
@@ -127,7 +127,7 @@ func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkgBasicInfo) error {
 	return ioutil.WriteFile(impl.pkgInfoFile, content, 0644)
 }
 
-func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkgBasicInfo, branch string) error {
+func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkg, branch string) error {
 	if err := impl.genPkgInfoFile(info); err != nil {
 		return err
 	}

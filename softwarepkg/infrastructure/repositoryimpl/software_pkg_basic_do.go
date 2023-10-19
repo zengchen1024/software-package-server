@@ -26,7 +26,7 @@ const (
 	fieldPackagePlatform = "package_platform"
 )
 
-func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkgBasicInfo, do *SoftwarePkgBasicDO) (err error) {
+func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *SoftwarePkgBasicDO) (err error) {
 	email, err := toEmailDO(pkg.Importer.Email)
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
 	return r, err
 }
 
-func (do *SoftwarePkgBasicDO) toSoftwarePkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
+func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err error) {
 	info.Id = do.Id.String()
 
 	if info.PkgName, err = dp.NewPackageName(do.PackageName); err != nil {

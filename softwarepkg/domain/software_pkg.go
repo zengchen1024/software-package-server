@@ -68,8 +68,8 @@ func StringToSoftwarePkgApprover(s string) (r SoftwarePkgApprover, err error) {
 	return
 }
 
-// SoftwarePkgBasicInfo
-type SoftwarePkgBasicInfo struct {
+// SoftwarePkg
+type SoftwarePkg struct {
 	Id          string
 	PkgName     dp.PackageName
 	Importer    Importer
@@ -84,7 +84,7 @@ type SoftwarePkgBasicInfo struct {
 	Logs        []SoftwarePkgOperationLog
 }
 
-func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
+func (entity *SoftwarePkg) ReviewResult() dp.PackageReviewResult {
 	if len(entity.RejectedBy) > 0 {
 		return dp.PkgReviewResultRejected
 	}
@@ -96,11 +96,11 @@ func (entity *SoftwarePkgBasicInfo) ReviewResult() dp.PackageReviewResult {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) CanAddReviewComment() bool {
+func (entity *SoftwarePkg) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
-func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
+func (entity *SoftwarePkg) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 	if !entity.Phase.IsReviewing() || !entity.CI.isSuccess() {
 		return false, errors.New("can't do this")
 	}
@@ -122,7 +122,7 @@ func (entity *SoftwarePkgBasicInfo) ApproveBy(user *SoftwarePkgApprover) (bool, 
 	return b, nil
 }
 
-func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
+func (entity *SoftwarePkg) hasPassedReview() bool {
 	sig := entity.Application.ImportingPkgSig.ImportingPkgSig()
 	if sig == config.EcopkgSig {
 		return len(entity.ApprovedBy) > 0
@@ -146,7 +146,7 @@ func (entity *SoftwarePkgBasicInfo) hasPassedReview() bool {
 	return c && c1
 }
 
-func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) error {
+func (entity *SoftwarePkg) RejectBy(user *SoftwarePkgApprover) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
@@ -165,7 +165,7 @@ func (entity *SoftwarePkgBasicInfo) RejectBy(user *SoftwarePkgApprover) error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
+func (entity *SoftwarePkg) Abandon(user *User) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
@@ -186,7 +186,7 @@ func (entity *SoftwarePkgBasicInfo) Abandon(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
+func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() {
 		return false, errors.New("can't do this")
 	}
@@ -215,7 +215,7 @@ func (entity *SoftwarePkgBasicInfo) RerunCI(user *User) (bool, error) {
 	return true, nil
 }
 
-func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
+func (entity *SoftwarePkg) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
@@ -236,7 +236,7 @@ func (entity *SoftwarePkgBasicInfo) UpdateApplication(cmd *SoftwarePkgApplicatio
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
+func (entity *SoftwarePkg) HandleCIChecking() error {
 	b := entity.Phase.IsReviewing() && entity.CI.Status.IsCIWaiting()
 	if !b {
 		return errors.New("can't do this")
@@ -248,7 +248,7 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecking() error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, prNum int) error {
+func (entity *SoftwarePkg) HandleCIChecked(success bool, prNum int) error {
 	if !entity.Phase.IsReviewing() || entity.CI.PRNum != prNum {
 		return errors.New("can't do this")
 	}
@@ -263,7 +263,7 @@ func (entity *SoftwarePkgBasicInfo) HandleCIChecked(success bool, prNum int) err
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandlePkgInitialized(pr dp.URL) error {
+func (entity *SoftwarePkg) HandlePkgInitialized(pr dp.URL) error {
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
 	}
@@ -273,7 +273,7 @@ func (entity *SoftwarePkgBasicInfo) HandlePkgInitialized(pr dp.URL) error {
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandlePkgAlreadyExisted() error {
+func (entity *SoftwarePkg) HandlePkgAlreadyExisted() error {
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
 	}
@@ -288,7 +288,7 @@ type RepoCreatedInfo struct {
 	RepoLink dp.URL
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) error {
+func (entity *SoftwarePkg) HandleRepoCreated(info RepoCreatedInfo) error {
 	if !entity.Phase.IsCreatingRepo() {
 		return errors.New("can't do this")
 	}
@@ -302,7 +302,7 @@ func (entity *SoftwarePkgBasicInfo) HandleRepoCreated(info RepoCreatedInfo) erro
 	return nil
 }
 
-func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error {
+func (entity *SoftwarePkg) HandleCodeSaved(info RepoCreatedInfo) error {
 	if err := entity.HandleRepoCreated(info); err != nil {
 		return err
 	}
@@ -312,15 +312,8 @@ func (entity *SoftwarePkgBasicInfo) HandleCodeSaved(info RepoCreatedInfo) error 
 	return nil
 }
 
-// SoftwarePkg
-type SoftwarePkg struct {
-	SoftwarePkgBasicInfo
-
-	Comments []SoftwarePkgReviewComment
-}
-
-func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkgBasicInfo {
-	return SoftwarePkgBasicInfo{
+func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkg {
+	return SoftwarePkg{
 		PkgName:     name,
 		Importer:    user.Importer,
 		Phase:       dp.PackagePhaseReviewing,

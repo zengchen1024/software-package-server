@@ -50,7 +50,7 @@ type pkgMetaData struct {
 type service struct {
 	cli              client.Client
 	httpCli          libutils.HttpClient
-	defaultPkg       domain.SoftwarePkgBasicInfo
+	defaultPkg       domain.SoftwarePkg
 	orgOfPkgRepo     string
 	metaDataEndpoint string
 	metaDataRepo     metaDataRepo
@@ -62,7 +62,7 @@ func (s *service) IsPkgExisted(pkg dp.PackageName) bool {
 	return err == nil
 }
 
-func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo, err error) {
+func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkg, err error) {
 	repo, err := s.cli.GetRepo(s.orgOfPkgRepo, name.PackageName())
 	if err != nil {
 		return
@@ -83,7 +83,7 @@ func (s *service) GetPkg(name dp.PackageName) (info domain.SoftwarePkgBasicInfo,
 
 func (s *service) toPkgBasicInfo(
 	name dp.PackageName, upstream dp.URL, repo *sdk.Project, meta *pkgMetaData,
-) (info domain.SoftwarePkgBasicInfo, err error) {
+) (info domain.SoftwarePkg, err error) {
 	info = s.defaultPkg
 
 	info.PkgName = name

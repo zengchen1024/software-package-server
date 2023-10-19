@@ -65,7 +65,7 @@ type ExistingPkgDefaultInfo struct {
 	ReasonToImport string `json:"reason_to_import"  required:"true"`
 }
 
-func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkgBasicInfo, err error) {
+func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, err error) {
 	info.Phase = dp.PackagePhaseImported
 	info.CI.Status = dp.PackageCIStatusPassed
 

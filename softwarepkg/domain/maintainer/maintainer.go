@@ -6,6 +6,6 @@ import (
 )
 
 type Maintainer interface {
-	HasPermission(*domain.SoftwarePkgBasicInfo, *domain.User) (bool, bool)
+	HasPermission(*domain.SoftwarePkg, *domain.User) (bool, bool)
 	FindUser(string) (dp.Account, error)
 }

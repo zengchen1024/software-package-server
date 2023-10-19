@@ -18,7 +18,12 @@ func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDT
 		return SoftwarePkgReviewDTO{}, errorCodeForFindingPkg(err), err
 	}
 
-	return toSoftwarePkgReviewDTO(&v), "", nil
+	comments, err := s.commentRepo.FindReviewComments(pid)
+	if err != nil {
+		return SoftwarePkgReviewDTO{}, "", err
+	}
+
+	return toSoftwarePkgReviewDTO(&v, comments), "", nil
 }
 
 func (s *softwarePkgService) NewReviewComment(
@@ -32,7 +37,7 @@ func (s *softwarePkgService) NewReviewComment(
 		return
 	}
 
-	pkg, _, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, _, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		code = errorCodeForFindingPkg(err)
 
@@ -48,7 +53,7 @@ func (s *softwarePkgService) NewReviewComment(
 
 	// TODO: there is a critical case that the comment can't be added now
 	comment := domain.NewSoftwarePkgReviewComment(cmd.Author, cmd.Content)
-	err = s.repo.AddReviewComment(pid, &comment)
+	err = s.commentRepo.AddReviewComment(pid, &comment)
 
 	return
 }
@@ -56,7 +61,7 @@ func (s *softwarePkgService) NewReviewComment(
 func (s *softwarePkgService) TranslateReviewComment(
 	cmd *CmdToTranslateReviewComment,
 ) (dto TranslatedReveiwCommentDTO, code string, err error) {
-	v, err := s.repo.FindTranslatedReviewComment(cmd)
+	v, err := s.commentRepo.FindTranslatedReviewComment(cmd)
 	if err == nil {
 		dto.Content = v.Content
 
@@ -68,7 +73,7 @@ func (s *softwarePkgService) TranslateReviewComment(
 	}
 
 	// translate it
-	comment, err := s.repo.FindReviewComment(cmd.PkgId, cmd.CommentId)
+	comment, err := s.commentRepo.FindReviewComment(cmd.PkgId, cmd.CommentId)
 	if err != nil {
 		if commonrepo.IsErrorResourceNotFound(err) {
 			code = errorSoftwarePkgCommentNotFound
@@ -90,13 +95,13 @@ func (s *softwarePkgService) TranslateReviewComment(
 	translated := domain.NewSoftwarePkgTranslatedReviewComment(
 		&comment, content, cmd.Language,
 	)
-	_ = s.repo.AddTranslatedReviewComment(cmd.PkgId, &translated)
+	_ = s.commentRepo.AddTranslatedReviewComment(cmd.PkgId, &translated)
 
 	return
 }
 
 func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string, err error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		code = errorCodeForFindingPkg(err)
 
@@ -127,7 +132,7 @@ func (s *softwarePkgService) Approve(pid string, user *domain.User) (code string
 	return
 }
 
-func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkgBasicInfo) {
+func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkg) {
 	e := domain.NewSoftwarePkgApprovedEvent(pkg)
 	err := s.message.NotifyPkgApproved(&e)
 
@@ -142,7 +147,7 @@ func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkgBasicInfo)
 }
 
 func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		code = errorCodeForFindingPkg(err)
 
@@ -168,7 +173,7 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string,
 }
 
 func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string, err error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		code = errorCodeForFindingPkg(err)
 
@@ -185,7 +190,7 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string
 }
 
 func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string, err error) {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(pid)
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		code = errorCodeForFindingPkg(err)
 
@@ -226,7 +231,7 @@ func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
 	content, _ := dp.NewReviewComment("The CI will rerun now.")
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
-	if err := s.repo.AddReviewComment(pkgId, &comment); err != nil {
+	if err := s.commentRepo.AddReviewComment(pkgId, &comment); err != nil {
 		logrus.Errorf(
 			"failed to add a comment when reruns ci for pkg:%s, err:%s",
 			pkgId, err.Error(),
@@ -234,7 +239,7 @@ func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
 	}
 }
 
-func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkgBasicInfo, user *domain.User) (
+func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkg, user *domain.User) (
 	bool, string, error,
 ) {
 	if has, isTC := s.maintainer.HasPermission(pkg, user); has {

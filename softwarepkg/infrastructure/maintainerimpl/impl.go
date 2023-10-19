@@ -47,7 +47,7 @@ type maintainerImpl struct {
 	tcSig string
 }
 
-func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkgBasicInfo, user *domain.User) (
+func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkg, user *domain.User) (
 	has bool, isTC bool,
 ) {
 	v := impl.agent.GetData()

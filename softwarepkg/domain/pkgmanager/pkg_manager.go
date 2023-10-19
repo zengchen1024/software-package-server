@@ -7,5 +7,5 @@ import (
 
 type PkgManager interface {
 	IsPkgExisted(dp.PackageName) bool
-	GetPkg(dp.PackageName) (domain.SoftwarePkgBasicInfo, error)
+	GetPkg(dp.PackageName) (domain.SoftwarePkg, error)
 }

@@ -10,23 +10,13 @@ import (
 type softwarePkgImpl struct {
 	softwarePkgBasic
 
-	reviewComment
-
 	operationLog
-
-	translationComment
 }
 
 func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
 	return softwarePkgImpl{
 		softwarePkgBasic: softwarePkgBasic{
 			postgresql.NewDBTable(cfg.Table.SoftwarePkgBasic),
-		},
-		reviewComment: reviewComment{
-			postgresql.NewDBTable(cfg.Table.ReviewComment),
-		},
-		translationComment: translationComment{
-			postgresql.NewDBTable(cfg.Table.TranslationComment),
 		},
 		operationLog: operationLog{
 			postgresql.NewDBTable(cfg.Table.OperationLog),
@@ -37,12 +27,8 @@ func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
 func (impl softwarePkgImpl) FindSoftwarePkg(pid string) (
 	pkg domain.SoftwarePkg, version int, err error,
 ) {
-	pkg.SoftwarePkgBasicInfo, version, err = impl.softwarePkgBasic.FindSoftwarePkgBasicInfo(pid)
+	pkg, version, err = impl.softwarePkgBasic.FindSoftwarePkg(pid)
 	if err != nil {
-		return
-	}
-
-	if pkg.Comments, err = impl.findReviewComments(pid); err != nil {
 		return
 	}
 
