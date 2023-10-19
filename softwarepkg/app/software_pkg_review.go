@@ -147,28 +147,24 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) error {
 
 	reviewer := s.maintainer.Reviewer(&pkg, user)
 
-	if err := pkg.RejectBy(&reviewer); err != nil {
+	if err = pkg.RejectBy(&reviewer); err != nil {
 		return err
 	}
 
 	return s.repo.SaveSoftwarePkg(&pkg, version)
 }
 
-func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string, err error) {
+func (s *softwarePkgService) Abandon(pid string, user *domain.User) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
-		code = errorCodeForFindingPkg(err)
-
-		return
+		return parseErrorForFindingPkg(err)
 	}
 
 	if err = pkg.Abandon(user); err != nil {
-		code = domain.ParseErrorCode(err)
-	} else {
-		err = s.repo.SaveSoftwarePkg(&pkg, version)
+		return err
 	}
 
-	return
+	return s.repo.SaveSoftwarePkg(&pkg, version)
 }
 
 func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string, err error) {

@@ -174,11 +174,11 @@ func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 
 func (entity *SoftwarePkg) Abandon(user *User) error {
 	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
 	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return errorNotTheImporter
+		return notImporter
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
