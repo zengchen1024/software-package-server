@@ -24,11 +24,13 @@ type SoftwarePkgBasicInfo struct {
 	Upstream dp.URL
 }
 
+// SoftwarePkgCode
 type SoftwarePkgCode struct {
 	Spec SoftwarePkgCodeFile
 	SRPM SoftwarePkgCodeFile
 }
 
+// SoftwarePkgCodeFile
 type SoftwarePkgCodeFile struct {
 	Src  dp.URL // Src is the url user inputed
 	Path dp.URL // Path is the url that the actual storage address of the file
@@ -322,14 +324,14 @@ func NewSoftwarePkg(
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
 	code *SoftwarePkgCode,
+	basic *SoftwarePkgBasicInfo,
 	importer *User,
-	basicInfo *SoftwarePkgBasicInfo,
 ) SoftwarePkg {
 	return SoftwarePkg{
 		Sig:      sig,
 		Repo:     *repo,
 		Code:     *code,
-		Basic:    *basicInfo,
+		Basic:    *basic,
 		Importer: *importer,
 
 		CI:        SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
