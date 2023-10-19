@@ -139,30 +139,19 @@ func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkg) {
 	}
 }
 
-func (s *softwarePkgService) Reject(pid string, user *domain.User) (code string, err error) {
+func (s *softwarePkgService) Reject(pid string, user *domain.User) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
-		code = errorCodeForFindingPkg(err)
-
-		return
+		return parseErrorForFindingPkg(err)
 	}
 
-	isTC, code, err := s.checkPermission(&pkg, user)
-	if err != nil {
-		return
+	reviewer := s.maintainer.Reviewer(&pkg, user)
+
+	if err := pkg.RejectBy(&reviewer); err != nil {
+		return err
 	}
 
-	err = pkg.RejectBy(&domain.SoftwarePkgApprover{
-		Account: user.Account,
-		IsTC:    isTC,
-	})
-	if err != nil {
-		return
-	}
-
-	err = s.repo.SaveSoftwarePkg(&pkg, version)
-
-	return
+	return s.repo.SaveSoftwarePkg(&pkg, version)
 }
 
 func (s *softwarePkgService) Abandon(pid string, user *domain.User) (code string, err error) {

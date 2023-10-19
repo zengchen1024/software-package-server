@@ -53,7 +53,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *Soft
 		ReasonToImport:  basic.Reason.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
-		RejectedBy:      toStringArray(pkg.RejectedBy),
 	}
 
 	if pkg.CommunityPR != nil {
@@ -84,7 +83,6 @@ type SoftwarePkgBasicDO struct {
 	AppliedAt       int64                  `gorm:"column:applied_at"                               json:"applied_at"`
 	UpdatedAt       int64                  `gorm:"column:updated_at"                               json:"updated_at"`
 	Version         optimisticlock.Version `gorm:"column:version"                                  json:"-"`
-	RejectedBy      pq.StringArray         `gorm:"column:rejectedby;type:text[];default:'{}'"      json:"-"`
 }
 
 func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
@@ -100,13 +98,6 @@ func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
 
 	// fieldVersion
 	r[fieldVersion] = gorm.Expr(fieldVersion+" + ?", 1)
-
-	// fieldRejectedby
-	s, err := marshalStringArray(do.RejectedBy)
-	if err != nil {
-		return nil, err
-	}
-	r[fieldRejectedby] = s
 
 	return r, err
 }
@@ -143,8 +134,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 	}
 
 	info.CI.PRNum = do.CIPRNum
-
-	info.RejectedBy, err = do.toAccounts(do.RejectedBy)
 
 	return
 }

@@ -21,13 +21,6 @@ definitions:
       upstream:
         type: string
     type: object
-  app.SoftwarePkgApproverDTO:
-    properties:
-      account:
-        type: string
-      is_tc:
-        type: boolean
-    type: object
   app.SoftwarePkgDTO:
     properties:
       applied_at:
@@ -101,10 +94,6 @@ definitions:
         type: string
       platform:
         type: string
-      rejected_by:
-        items:
-          $ref: '#/definitions/app.SoftwarePkgApproverDTO'
-        type: array
       repo_link:
         type: string
       sig:
@@ -352,6 +341,29 @@ paths:
       summary: get software package
       tags:
       - SoftwarePkg
+  /v1/softwarepkg/{id}/reject:
+    put:
+      consumes:
+      - application/json
+      description: reject software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: reject software package
+      tags:
+      - SoftwarePkg
   /v1/softwarepkg/{id}/review:
     post:
       consumes:
@@ -465,29 +477,6 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: translate review comment
-      tags:
-      - SoftwarePkg
-  /v1/softwarepkg/{id}/review/reject:
-    put:
-      consumes:
-      - application/json
-      description: reject software package
-      parameters:
-      - description: id of software package
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-      summary: reject software package
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/rerunci:

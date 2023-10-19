@@ -228,6 +228,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/softwarepkg/{id}/reject": {
+            "put": {
+                "description": "reject software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "reject software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/softwarepkg/{id}/review": {
             "post": {
                 "description": "review software package",
@@ -402,41 +437,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/softwarepkg/{id}/review/reject": {
-            "put": {
-                "description": "reject software package",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SoftwarePkg"
-                ],
-                "summary": "reject software package",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of software package",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/softwarepkg/{id}/review/rerunci": {
             "put": {
                 "description": "rerun ci of software package",
@@ -505,17 +505,6 @@ const docTemplate = `{
                 },
                 "upstream": {
                     "type": "string"
-                }
-            }
-        },
-        "app.SoftwarePkgApproverDTO": {
-            "type": "object",
-            "properties": {
-                "account": {
-                    "type": "string"
-                },
-                "is_tc": {
-                    "type": "boolean"
                 }
             }
         },
@@ -629,12 +618,6 @@ const docTemplate = `{
                 },
                 "platform": {
                     "type": "string"
-                },
-                "rejected_by": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgApproverDTO"
-                    }
                 },
                 "repo_link": {
                     "type": "string"
