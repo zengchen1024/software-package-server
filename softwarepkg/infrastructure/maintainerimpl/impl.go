@@ -70,3 +70,30 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkg, user *domain
 func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
 	return nil, errors.New("unimplemented")
 }
+
+func (impl *maintainerImpl) Reviewer(pkg *domain.SoftwarePkg, user *domain.User) domain.Reviewer {
+	r := domain.Reviewer{
+		User: user.Account,
+	}
+
+	if pkg.IsCommitter(user) {
+		r.Roles = append(r.Roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
+	}
+
+	v := impl.agent.GetData()
+
+	m, ok := v.(*sigData)
+	if !ok {
+		return r
+	}
+
+	if m.isSigMaintainer(user.GiteeID, impl.tcSig) {
+		r.Roles = append(r.Roles, dp.CommunityRoleTC)
+	}
+
+	if m.isSigMaintainer(user.GiteeID, pkg.Sig.ImportingPkgSig()) {
+		r.Roles = append(r.Roles, dp.CommunityRoleSigMaintainer, dp.CommunityRoleRepoMember)
+	}
+
+	return r
+}

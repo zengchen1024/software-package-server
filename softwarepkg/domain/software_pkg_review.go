@@ -129,9 +129,9 @@ type UserCheckItemReview struct {
 
 // CheckItemReviewInfo
 type CheckItemReviewInfo struct {
-	Id   int
-	Pass bool
-	Desc string
+	Id      int
+	Pass    bool
+	Comment string
 }
 
 // CheckItem

@@ -43,3 +43,9 @@ func SendFailedResp(ctx *gin.Context, code string, err error) {
 		)
 	}
 }
+
+func SendError(ctx *gin.Context, err error) {
+	sc, code := httpError(err)
+
+	ctx.JSON(sc, newResponseCodeMsg(code, err.Error()))
+}

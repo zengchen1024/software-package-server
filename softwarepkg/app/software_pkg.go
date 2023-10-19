@@ -23,7 +23,7 @@ type SoftwarePkgService interface {
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) (string, error)
 
-	Approve(string, *domain.User) (string, error)
+	Review(pid string, user *domain.User, reviews []domain.CheckItemReviewInfo) (err error)
 	Reject(string, *domain.User) (string, error)
 	Abandon(string, *domain.User) (string, error)
 	RerunCI(string, *domain.User) (string, error)

@@ -3,7 +3,7 @@ package dp
 const (
 	packageOperationLogActionUpdate  = "update"
 	packageOperationLogActionReject  = "reject"
-	packageOperationLogActionApprove = "approve"
+	packageOperationLogActionReview  = "review"
 	packageOperationLogActionAbandon = "abandon"
 	packageOperationLogActionRerunci = "rerunci"
 )
@@ -11,7 +11,7 @@ const (
 var (
 	PackageOperationLogActionUpdate  = packageOperationLogAction(packageOperationLogActionUpdate)
 	PackageOperationLogActionReject  = packageOperationLogAction(packageOperationLogActionReject)
-	PackageOperationLogActionApprove = packageOperationLogAction(packageOperationLogActionApprove)
+	PackageOperationLogActionReview  = packageOperationLogAction(packageOperationLogActionReview)
 	PackageOperationLogActionAbandon = packageOperationLogAction(packageOperationLogActionAbandon)
 	PackageOperationLogActionResunci = packageOperationLogAction(packageOperationLogActionRerunci)
 )

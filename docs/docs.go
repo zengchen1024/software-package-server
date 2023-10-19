@@ -228,16 +228,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/softwarepkg/{id}/review/abandon": {
-            "put": {
-                "description": "abandon software package",
+        "/v1/softwarepkg/{id}/review": {
+            "post": {
+                "description": "review software package",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
                     "SoftwarePkg"
                 ],
-                "summary": "abandon software package",
+                "summary": "review software package",
                 "parameters": [
                     {
                         "type": "string",
@@ -245,11 +245,20 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "body of reviewing a software package",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.reviewRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/controller.ResponseData"
                         }
@@ -263,16 +272,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/softwarepkg/{id}/review/approve": {
+        "/v1/softwarepkg/{id}/review/abandon": {
             "put": {
-                "description": "approve software package",
+                "description": "abandon software package",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
                     "SoftwarePkg"
                 ],
-                "summary": "approve software package",
+                "summary": "abandon software package",
                 "parameters": [
                     {
                         "type": "string",
@@ -510,7 +519,7 @@ const docTemplate = `{
                 }
             }
         },
-        "app.SoftwarePkgBasicInfoDTO": {
+        "app.SoftwarePkgDTO": {
             "type": "object",
             "properties": {
                 "applied_at": {
@@ -588,12 +597,6 @@ const docTemplate = `{
                 "applied_at": {
                     "type": "string"
                 },
-                "approved_by": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgApproverDTO"
-                    }
-                },
                 "ci_status": {
                     "type": "string"
                 },
@@ -647,7 +650,7 @@ const docTemplate = `{
                 "pkgs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgBasicInfoDTO"
+                        "$ref": "#/definitions/app.SoftwarePkgDTO"
                     }
                 },
                 "total": {
@@ -675,6 +678,23 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.checkItemReviewInfo": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "pass": {
+                    "type": "boolean"
+                }
+            }
+        },
         "controller.claSingedResp": {
             "type": "object",
             "properties": {
@@ -691,6 +711,20 @@ const docTemplate = `{
             "properties": {
                 "comment": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.reviewRequest": {
+            "type": "object",
+            "required": [
+                "reviews"
+            ],
+            "properties": {
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controller.checkItemReviewInfo"
+                    }
                 }
             }
         },
