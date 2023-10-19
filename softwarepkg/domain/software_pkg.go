@@ -55,6 +55,12 @@ type SoftwarePkgRepo struct {
 }
 
 func (r *SoftwarePkgRepo) isCommitter(u *User) bool {
+	for i := range r.Committers {
+		if dp.IsSameAccount(r.Committers[i], u.Account) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -104,7 +110,6 @@ type SoftwarePkg struct {
 	Phase       dp.PackagePhase
 	Review      SoftwarePkgReview
 	AppliedAt   int64
-	RejectedBy  []SoftwarePkgApprover
 	CommunityPR dp.URL
 }
 
@@ -146,19 +151,21 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 	return b, nil
 }
 
-func (entity *SoftwarePkg) RejectBy(user *SoftwarePkgApprover) error {
+func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
-	entity.RejectedBy = append(entity.RejectedBy, *user)
+	if !user.isTC() {
+		return allerror.NewNoPermission("not the tc")
+	}
 
 	entity.Phase = dp.PackagePhaseClosed
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionReject, entity.Id,
+			user.User, dp.PackageOperationLogActionReject, entity.Id,
 		),
 	)
 

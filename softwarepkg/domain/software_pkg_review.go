@@ -57,6 +57,16 @@ type Reviewer struct {
 	Roles []dp.CommunityRole
 }
 
+func (r *Reviewer) isTC() bool {
+	for i := range r.Roles {
+		if r.Roles[i].IsTC() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // UserReview
 type UserReview struct {
 	Reviewer

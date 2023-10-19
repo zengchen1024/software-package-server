@@ -24,7 +24,7 @@ type SoftwarePkgService interface {
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) (string, error)
 
 	Review(pid string, user *domain.User, reviews []domain.CheckItemReviewInfo) (err error)
-	Reject(string, *domain.User) (string, error)
+	Reject(string, *domain.User) error
 	Abandon(string, *domain.User) (string, error)
 	RerunCI(string, *domain.User) (string, error)
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
