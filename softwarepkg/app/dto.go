@@ -11,8 +11,8 @@ type CmdToApplyNewSoftwarePkg struct {
 	Sig      dp.ImportingPkgSig
 	Repo     domain.SoftwarePkgRepo
 	Code     domain.SoftwarePkgCode
-	Importer domain.User
 	Basic    domain.SoftwarePkgBasicInfo
+	Importer domain.User
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
