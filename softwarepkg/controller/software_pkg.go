@@ -27,7 +27,7 @@ func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.Softwar
 	r.POST("/v1/softwarepkg/:id/review", m, ctl.Review)
 	r.PUT("/v1/softwarepkg/:id/reject", m, ctl.Reject)
 	r.PUT("/v1/softwarepkg/:id/abandon", m, ctl.Abandon)
-	r.PUT("/v1/softwarepkg/:id/review/rerunci", m, ctl.RerunCI)
+	r.PUT("/v1/softwarepkg/:id/rerunci", m, ctl.RerunCI)
 	r.POST("/v1/softwarepkg/:id/review/comment", m, ctl.NewReviewComment)
 	r.POST("/v1/softwarepkg/:id/review/comment/:cid/translate", m, ctl.TranslateReviewComment)
 }
@@ -332,7 +332,7 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 // @Param	id  path	 string	 true	"id of software package"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/review/rerunci [put]
+// @Router /v1/softwarepkg/{id}/rerunci [put]
 func (ctl SoftwarePkgController) RerunCI(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
@@ -341,8 +341,8 @@ func (ctl SoftwarePkgController) RerunCI(ctx *gin.Context) {
 		return
 	}
 
-	if code, err := ctl.service.RerunCI(ctx.Param("id"), &user); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
+	if err := ctl.service.RerunCI(ctx.Param("id"), &user); err != nil {
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
 	}

@@ -387,6 +387,29 @@ paths:
       summary: reject software package
       tags:
       - SoftwarePkg
+  /v1/softwarepkg/{id}/rerunci:
+    put:
+      consumes:
+      - application/json
+      description: rerun ci of software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: rerun ci of software package
+      tags:
+      - SoftwarePkg
   /v1/softwarepkg/{id}/review:
     post:
       consumes:
@@ -477,29 +500,6 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: translate review comment
-      tags:
-      - SoftwarePkg
-  /v1/softwarepkg/{id}/review/rerunci:
-    put:
-      consumes:
-      - application/json
-      description: rerun ci of software package
-      parameters:
-      - description: id of software package
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-      summary: rerun ci of software package
       tags:
       - SoftwarePkg
 swagger: "2.0"

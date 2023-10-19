@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	notImporter    = allerror.New(allerror.ErrorCodeNotImporter, "not the importer")
+	notImporter    = allerror.NewNoPermission("not the importer")
 	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
 )
 
@@ -195,15 +195,15 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 
 func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 	if !entity.Phase.IsReviewing() {
-		return false, errors.New("can't do this")
+		return false, incorrectPhase
 	}
 
 	if entity.CI.Status.IsCIRunning() {
-		return false, errorCIIsRunning
+		return false, allerror.New(allerror.ErrorCodeCIIsRunning, "ci is running")
 	}
 
 	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return false, errorNotTheImporter
+		return false, notImporter
 	}
 
 	if entity.CI.Status.IsCIWaiting() {

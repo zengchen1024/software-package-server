@@ -167,42 +167,31 @@ func (s *softwarePkgService) Abandon(pid string, user *domain.User) error {
 	return s.repo.SaveSoftwarePkg(&pkg, version)
 }
 
-func (s *softwarePkgService) RerunCI(pid string, user *domain.User) (code string, err error) {
+func (s *softwarePkgService) RerunCI(pid string, user *domain.User) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
-		code = errorCodeForFindingPkg(err)
-
-		return
+		return parseErrorForFindingPkg(err)
 	}
 
 	changed, err := pkg.RerunCI(user)
 	if err != nil {
-		code = domain.ParseErrorCode(err)
-
-		return
+		return err
 	}
 
 	if changed {
 		if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-			return
+			return err
 		}
 	}
 
 	e := domain.NewSoftwarePkgAppUpdatedEvent(&pkg)
 	if err = s.message.NotifyPkgToRerunCI(&e); err != nil {
-		logrus.Errorf(
-			"failed to notify re-running ci for pkg:%s, err:%s",
-			pkg.Id, err.Error(),
-		)
-	} else {
-		logrus.Debugf(
-			"successfully to notify re-running ci for pkg:%s", pkg.Id,
-		)
-
-		s.addCommentToRerunCI(pid)
+		return err
 	}
 
-	return
+	s.addCommentToRerunCI(pid)
+
+	return nil
 }
 
 func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
