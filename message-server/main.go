@@ -127,6 +127,7 @@ func main() {
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		pkgmanagerimpl.Instance(),
 		&producer{topics: cfg.TopicsToNotify},
+		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 	)
 
 	// run

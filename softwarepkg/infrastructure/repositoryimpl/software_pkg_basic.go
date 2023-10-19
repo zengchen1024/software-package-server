@@ -16,7 +16,7 @@ type softwarePkgBasic struct {
 	basicDBCli dbClient
 }
 
-func (s softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, version int) error {
+func (s softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkg, version int) error {
 	filter := map[string]any{
 		fieldId:      pkg.Id,
 		fieldVersion: version,
@@ -42,8 +42,8 @@ func (s softwarePkgBasic) SaveSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo, vers
 	return err
 }
 
-func (s softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
-	info domain.SoftwarePkgBasicInfo, version int, err error,
+func (s softwarePkgBasic) FindSoftwarePkg(pid string) (
+	info domain.SoftwarePkg, version int, err error,
 ) {
 	v, err := uuid.Parse(pid)
 	if err != nil {
@@ -59,14 +59,14 @@ func (s softwarePkgBasic) FindSoftwarePkgBasicInfo(pid string) (
 	} else {
 		version = int(do.Version.Int64)
 
-		info, err = do.toSoftwarePkgBasicInfo()
+		info, err = do.toSoftwarePkg()
 	}
 
 	return
 }
 
 func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
-	r []domain.SoftwarePkgBasicInfo, total int, err error,
+	r []domain.SoftwarePkg, total int, err error,
 ) {
 
 	var filter []postgresql.ColumnFilter
@@ -115,9 +115,9 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 		return
 	}
 
-	r = make([]domain.SoftwarePkgBasicInfo, len(dos))
+	r = make([]domain.SoftwarePkg, len(dos))
 	for i := range dos {
-		if r[i], err = dos[i].toSoftwarePkgBasicInfo(); err != nil {
+		if r[i], err = dos[i].toSoftwarePkg(); err != nil {
 			return
 		}
 	}
@@ -125,7 +125,7 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 	return
 }
 
-func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkgBasicInfo) error {
+func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkg) error {
 	var do SoftwarePkgBasicDO
 	if err := s.toSoftwarePkgBasicDO(pkg, &do); err != nil {
 		return err

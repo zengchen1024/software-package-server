@@ -28,29 +28,32 @@ func NewSoftwarePkgMessageService(
 	repo repository.SoftwarePkg,
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgIndirectMessage,
+	commentRepo repository.SoftwarePkgComment,
 ) softwarePkgMessageService {
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return softwarePkgMessageService{
-		ci:      ci,
-		repo:    repo,
-		robot:   robot,
-		manager: manager,
-		message: message,
+		ci:          ci,
+		repo:        repo,
+		robot:       robot,
+		manager:     manager,
+		message:     message,
+		commentRepo: commentRepo,
 	}
 }
 
 type softwarePkgMessageService struct {
-	ci      pkgci.PkgCI
-	repo    repository.SoftwarePkg
-	robot   dp.Account
-	manager pkgmanager.PkgManager
-	message message.SoftwarePkgIndirectMessage
+	ci          pkgci.PkgCI
+	repo        repository.SoftwarePkg
+	robot       dp.Account
+	manager     pkgmanager.PkgManager
+	message     message.SoftwarePkgIndirectMessage
+	commentRepo repository.SoftwarePkgComment
 }
 
 // HandlePkgCIChecking
 func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -78,7 +81,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCICheck
 
 // HandlePkgCIChecked
 func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -110,7 +113,7 @@ func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIChecked) {
 	content, _ := dp.NewReviewComment(cmd.Detail)
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
-	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
+	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(
 			"failed to add a comment when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -129,7 +132,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCr
 		return nil
 	}
 
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -159,7 +162,7 @@ func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSave
 		return nil
 	}
 
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -180,7 +183,7 @@ func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSave
 
 // HandlePkgInitialized
 func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error {
-	pkg, version, err := s.repo.FindSoftwarePkgBasicInfo(cmd.PkgId)
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -218,7 +221,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 }
 
 func (s softwarePkgMessageService) notifyPkgInitialized(
-	pkg *domain.SoftwarePkgBasicInfo, cmd *CmdToHandlePkgInitialized,
+	pkg *domain.SoftwarePkg, cmd *CmdToHandlePkgInitialized,
 ) {
 	e := domain.NewSoftwarePkgInitializedEvent(pkg)
 
@@ -238,7 +241,7 @@ func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgIn
 	content, _ := dp.NewReviewComment(str)
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
-	if err := s.repo.AddReviewComment(cmd.PkgId, &comment); err != nil {
+	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(
 			"failed to add a comment when %s, err:%s",
 			cmd.logString(), err.Error(),

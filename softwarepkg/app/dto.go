@@ -29,8 +29,8 @@ type NewSoftwarePkgDTO struct {
 	Id string `json:"id"`
 }
 
-// SoftwarePkgBasicInfoDTO
-type SoftwarePkgBasicInfoDTO struct {
+// SoftwarePkgDTO
+type SoftwarePkgDTO struct {
 	Id        string `json:"id"`
 	Importer  string `json:"importer"`
 	PkgName   string `json:"pkg_name"`
@@ -43,9 +43,9 @@ type SoftwarePkgBasicInfoDTO struct {
 	Platform  string `json:"platform"`
 }
 
-func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicInfoDTO {
+func toSoftwarePkgDTO(v *domain.SoftwarePkg) SoftwarePkgDTO {
 	app := &v.Application
-	dto := SoftwarePkgBasicInfoDTO{
+	dto := SoftwarePkgDTO{
 		Id:        v.Id,
 		Sig:       app.ImportingPkgSig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
@@ -64,11 +64,11 @@ func toSoftwarePkgBasicInfoDTO(v *domain.SoftwarePkgBasicInfo) SoftwarePkgBasicI
 	return dto
 }
 
-func toSoftwarePkgBasicInfoDTOs(v []domain.SoftwarePkgBasicInfo) (r []SoftwarePkgBasicInfoDTO) {
+func toSoftwarePkgDTOs(v []domain.SoftwarePkg) (r []SoftwarePkgDTO) {
 	if n := len(v); n > 0 {
-		r = make([]SoftwarePkgBasicInfoDTO, n)
+		r = make([]SoftwarePkgDTO, n)
 		for i := range v {
-			r[i] = toSoftwarePkgBasicInfoDTO(&v[i])
+			r[i] = toSoftwarePkgDTO(&v[i])
 		}
 	}
 
@@ -162,7 +162,7 @@ type SoftwarePkgApproverDTO struct {
 
 // SoftwarePkgReviewDTO
 type SoftwarePkgReviewDTO struct {
-	SoftwarePkgBasicInfoDTO
+	SoftwarePkgDTO
 
 	Logs        []SoftwarePkgOperationLogDTO  `json:"logs"`
 	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
@@ -171,14 +171,14 @@ type SoftwarePkgReviewDTO struct {
 	Application SoftwarePkgApplicationDTO     `json:"application"`
 }
 
-func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg) SoftwarePkgReviewDTO {
+func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg, comments []domain.SoftwarePkgReviewComment) SoftwarePkgReviewDTO {
 	return SoftwarePkgReviewDTO{
-		SoftwarePkgBasicInfoDTO: toSoftwarePkgBasicInfoDTO(&v.SoftwarePkgBasicInfo),
-		Logs:                    toSoftwarePkgOperationLogDTOs(v.Logs),
-		Comments:                toSoftwarePkgReviewCommentDTOs(v.Comments),
-		ApprovedBy:              toSoftwarePkgApproverDTO(v.ApprovedBy),
-		RejectedBy:              toSoftwarePkgApproverDTO(v.RejectedBy),
-		Application:             toSoftwarePkgApplicationDTO(&v.Application),
+		SoftwarePkgDTO: toSoftwarePkgDTO(v),
+		Logs:           toSoftwarePkgOperationLogDTOs(v.Logs),
+		Comments:       toSoftwarePkgReviewCommentDTOs(comments),
+		ApprovedBy:     toSoftwarePkgApproverDTO(v.ApprovedBy),
+		RejectedBy:     toSoftwarePkgApproverDTO(v.RejectedBy),
+		Application:    toSoftwarePkgApplicationDTO(&v.Application),
 	}
 }
 
@@ -198,13 +198,13 @@ func toSoftwarePkgApproverDTO(v []domain.SoftwarePkgApprover) (r []SoftwarePkgAp
 
 // SoftwarePkgsDTO
 type SoftwarePkgsDTO struct {
-	Pkgs  []SoftwarePkgBasicInfoDTO `json:"pkgs"`
-	Total int                       `json:"total"`
+	Pkgs  []SoftwarePkgDTO `json:"pkgs"`
+	Total int              `json:"total"`
 }
 
-func toSoftwarePkgsDTO(v []domain.SoftwarePkgBasicInfo, total int) SoftwarePkgsDTO {
+func toSoftwarePkgsDTO(v []domain.SoftwarePkg, total int) SoftwarePkgsDTO {
 	return SoftwarePkgsDTO{
-		Pkgs:  toSoftwarePkgBasicInfoDTOs(v),
+		Pkgs:  toSoftwarePkgDTOs(v),
 		Total: total,
 	}
 }
