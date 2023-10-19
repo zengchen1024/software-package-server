@@ -12,7 +12,6 @@ const (
 	ErrorCodeSensitiveContent = "sensitive_content"
 
 	ErrorCodePkgNotFound    = "software_pkg_not_found"
-	ErrorCodeNotImporter    = "software_pkg_not_importer"
 	ErrorCodeCIIsRunning    = "software_pkg_ci_is_running"
 	ErrorCodeCIIsNotReady   = "software_pkg_ci_is_not_ready"
 	ErrorCodeIncorrectPhase = "software_pkg_incorrect_phase"
