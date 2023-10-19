@@ -193,7 +193,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 			return err
 		}
 
-		if !pkg.Application.PackagePlatform.IsLocalPlatform() {
+		if !pkg.Repo.Platform.IsLocalPlatform() {
 			s.notifyPkgInitialized(&pkg, &cmd)
 		}
 	} else {

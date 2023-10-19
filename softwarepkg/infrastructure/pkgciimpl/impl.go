@@ -72,7 +72,8 @@ type pkgCIImpl struct {
 }
 
 func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkg) (int, error) {
-	branch := fmt.Sprintf("%s-%d", info.PkgName.PackageName(), utils.Now())
+	name := info.Basic.Name.PackageName()
+	branch := fmt.Sprintf("%s-%d", name, utils.Now())
 	if err := impl.createBranch(info, branch); err != nil {
 		return 0, err
 	}
@@ -80,8 +81,7 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkg) (int, error) {
 	pr, err := impl.cli.CreatePullRequest(
 		impl.cfg.CIRepo.Org,
 		impl.cfg.CIRepo.Repo,
-		info.PkgName.PackageName(),
-		info.PkgName.PackageName(),
+		name, name,
 		branch,
 		impl.cfg.TargetBranch,
 		true,
@@ -115,7 +115,7 @@ func (impl *pkgCIImpl) createPRComment(id int32) error {
 func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkg) error {
 	v := &softwarePkgInfo{
 		PkgId:   info.Id,
-		PkgName: info.PkgName.PackageName(),
+		PkgName: info.Basic.Name.PackageName(),
 		Service: impl.cfg.CIService,
 	}
 
@@ -133,7 +133,7 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkg, branch string) err
 	}
 
 	cfg := &impl.cfg
-	code := &info.Application.SourceCode
+	code := &info.Code
 	params := []string{
 		cfg.PRScript,
 		impl.ciRepoDir,
@@ -141,8 +141,8 @@ func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkg, branch string) err
 		cfg.TargetBranch,
 		branch,
 		impl.pkgInfoFile,
-		code.SpecURL.URL(),
-		code.SrcRPMURL.URL(),
+		code.Spec.Src.URL(),
+		code.SRPM.Src.URL(),
 	}
 
 	return impl.runcmd(params)

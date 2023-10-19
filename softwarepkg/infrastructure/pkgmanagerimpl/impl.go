@@ -86,7 +86,7 @@ func (s *service) toPkgBasicInfo(
 ) (info domain.SoftwarePkg, err error) {
 	info = s.defaultPkg
 
-	info.PkgName = name
+	info.Basic.Name = name
 	info.AppliedAt = utils.Now()
 
 	url, err := dp.NewURL(repo.GetHtmlUrl())
@@ -94,15 +94,15 @@ func (s *service) toPkgBasicInfo(
 		return
 	}
 
-	info.RepoLink = url
-	info.RelevantPR = url
+	info.Repo.Link = url
+	info.CommunityPR = url
 
-	app := &info.Application
-	app.SourceCode.SrcRPMURL = url
-	app.SourceCode.SpecURL = url
-	app.SourceCode.Upstream = url
+	code := &info.Code
+	code.SRPM.Src = url
+	code.Spec.Src = url
+	info.Basic.Upstream = url
 	if upstream != nil {
-		app.SourceCode.Upstream = upstream
+		info.Basic.Upstream = upstream
 	}
 
 	desc := repo.Description
@@ -110,11 +110,11 @@ func (s *service) toPkgBasicInfo(
 		desc = fmt.Sprintf("importing software package: %s", name.PackageName())
 	}
 
-	if app.PackageDesc, err = dp.NewPackageDesc(desc); err != nil {
+	if info.Basic.Desc, err = dp.NewPackageDesc(desc); err != nil {
 		return
 	}
 
-	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(meta.SigName); err != nil {
+	if info.Sig, err = dp.NewImportingPkgSig(meta.SigName); err != nil {
 		return
 	}
 

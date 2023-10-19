@@ -77,8 +77,10 @@ type softwarePkgService struct {
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	dto NewSoftwarePkgDTO, code string, err error,
 ) {
-	v := domain.NewSoftwarePkg(&cmd.Importer, cmd.PkgName, &cmd.Application)
-	if s.pkgService.IsPkgExisted(cmd.PkgName) {
+	v := domain.NewSoftwarePkg(
+		cmd.Sig, &cmd.Repo, &cmd.Code, &cmd.Importer, &cmd.Basic,
+	)
+	if s.pkgService.IsPkgExisted(cmd.Basic.Name) {
 		err = errors.New("software package already existed")
 		code = errorSoftwarePkgExists
 
@@ -123,7 +125,8 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 		return errorCodeForFindingPkg(err), err
 	}
 
-	if err = pkg.UpdateApplication(&cmd.Application, &cmd.Importer); err != nil {
+	err = pkg.UpdateApplication(&cmd.Basic, cmd.Sig, &cmd.Repo, &cmd.Importer)
+	if err != nil {
 		return domain.ParseErrorCode(err), err
 	}
 

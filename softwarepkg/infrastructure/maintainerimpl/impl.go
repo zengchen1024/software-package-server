@@ -60,7 +60,7 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkg, user *domain
 		isTC = true
 	} else {
 		has = m.isSigMaintainer(
-			user.GiteeID, info.Application.ImportingPkgSig.ImportingPkgSig(),
+			user.GiteeID, info.Sig.ImportingPkgSig(),
 		)
 	}
 

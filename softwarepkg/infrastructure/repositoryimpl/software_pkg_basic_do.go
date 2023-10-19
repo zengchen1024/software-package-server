@@ -32,35 +32,33 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *Soft
 		return err
 	}
 
-	app := &pkg.Application
+	code := &pkg.Code
+	basic := &pkg.Basic
 
 	*do = SoftwarePkgBasicDO{
 		Id:              uuid.New(),
-		PackageName:     pkg.PkgName.PackageName(),
+		PackageName:     basic.Name.PackageName(),
 		Importer:        pkg.Importer.Account.Account(),
 		ImporterEmail:   email,
 		Phase:           pkg.Phase.PackagePhase(),
 		CIPRNum:         pkg.CI.PRNum,
 		CIStatus:        pkg.CI.Status.PackageCIStatus(),
-		SpecURL:         app.SourceCode.SpecURL.URL(),
-		SrcRPMURL:       app.SourceCode.SrcRPMURL.URL(),
-		Upstream:        app.SourceCode.Upstream.URL(),
-		PackageDesc:     app.PackageDesc.PackageDesc(),
-		PackagePlatform: app.PackagePlatform.PackagePlatform(),
-		Sig:             app.ImportingPkgSig.ImportingPkgSig(),
-		ReasonToImport:  app.ReasonToImportPkg.ReasonToImportPkg(),
+		SpecURL:         code.Spec.Src.URL(),
+		SrcRPMURL:       code.SRPM.Path.URL(),
+		Upstream:        basic.Upstream.URL(),
+		PackageDesc:     basic.Desc.PackageDesc(),
+		PackagePlatform: pkg.Repo.Platform.PackagePlatform(),
+		RepoLink:        pkg.Repo.Link.URL(),
+		Sig:             pkg.Sig.ImportingPkgSig(),
+		ReasonToImport:  basic.Reason.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
 		ApprovedBy:      toStringArray(pkg.ApprovedBy),
 		RejectedBy:      toStringArray(pkg.RejectedBy),
 	}
 
-	if pkg.RepoLink != nil {
-		do.RepoLink = pkg.RepoLink.URL()
-	}
-
-	if pkg.RelevantPR != nil {
-		do.RelevantPR = pkg.RelevantPR.URL()
+	if pkg.CommunityPR != nil {
+		do.RelevantPR = pkg.CommunityPR.URL()
 	}
 
 	return
@@ -125,18 +123,12 @@ func (do *SoftwarePkgBasicDO) toMap() (map[string]any, error) {
 func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err error) {
 	info.Id = do.Id.String()
 
-	if info.PkgName, err = dp.NewPackageName(do.PackageName); err != nil {
+	if err = do.toSoftwarePkgApplication(&info); err != nil {
 		return
 	}
 
-	if do.RepoLink != "" {
-		if info.RepoLink, err = dp.NewURL(do.RepoLink); err != nil {
-			return
-		}
-	}
-
 	if do.RelevantPR != "" {
-		if info.RelevantPR, err = dp.NewURL(do.RelevantPR); err != nil {
+		if info.CommunityPR, err = dp.NewURL(do.RelevantPR); err != nil {
 			return
 		}
 	}
@@ -154,10 +146,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 	}
 
 	info.AppliedAt = do.AppliedAt
-
-	if err = do.toSoftwarePkgApplication(&info.Application); err != nil {
-		return
-	}
 
 	if info.ApprovedBy, err = do.toAccounts(do.ApprovedBy); err != nil {
 		return
@@ -189,32 +177,43 @@ func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []domain.SoftwarePkgAppr
 	return
 }
 
-func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(app *domain.SoftwarePkgApplication) (err error) {
-	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(do.ReasonToImport); err != nil {
+func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) (err error) {
+	basic := &pkg.Basic
+
+	if basic.Name, err = dp.NewPackageName(do.PackageName); err != nil {
 		return
 	}
 
-	if app.PackageDesc, err = dp.NewPackageDesc(do.PackageDesc); err != nil {
+	if basic.Reason, err = dp.NewReasonToImportPkg(do.ReasonToImport); err != nil {
 		return
 	}
 
-	if app.PackagePlatform, err = dp.NewPackagePlatform(do.PackagePlatform); err != nil {
+	if basic.Desc, err = dp.NewPackageDesc(do.PackageDesc); err != nil {
 		return
 	}
 
-	if app.ImportingPkgSig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
+	if basic.Upstream, err = dp.NewURL(do.Upstream); err != nil {
 		return
 	}
 
-	if app.SourceCode.SrcRPMURL, err = dp.NewURL(do.SrcRPMURL); err != nil {
+	if pkg.Repo.Platform, err = dp.NewPackagePlatform(do.PackagePlatform); err != nil {
 		return
 	}
 
-	if app.SourceCode.Upstream, err = dp.NewURL(do.Upstream); err != nil {
+	if pkg.Repo.Link, err = dp.NewURL(do.RepoLink); err != nil {
 		return
 	}
 
-	app.SourceCode.SpecURL, err = dp.NewURL(do.SpecURL)
+	if pkg.Sig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
+		return
+	}
+
+	code := &pkg.Code
+	if code.SRPM.Src, err = dp.NewURL(do.SrcRPMURL); err != nil {
+		return
+	}
+
+	code.Spec.Src, err = dp.NewURL(do.SpecURL)
 
 	return
 }
