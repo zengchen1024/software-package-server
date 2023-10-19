@@ -8,9 +8,11 @@ import (
 )
 
 type CmdToApplyNewSoftwarePkg struct {
-	PkgName     dp.PackageName
-	Importer    domain.User
-	Application domain.SoftwarePkgApplication
+	Sig      dp.ImportingPkgSig
+	Repo     domain.SoftwarePkgRepo
+	Code     domain.SoftwarePkgCode
+	Importer domain.User
+	Basic    domain.SoftwarePkgBasicInfo
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
@@ -44,21 +46,17 @@ type SoftwarePkgDTO struct {
 }
 
 func toSoftwarePkgDTO(v *domain.SoftwarePkg) SoftwarePkgDTO {
-	app := &v.Application
 	dto := SoftwarePkgDTO{
 		Id:        v.Id,
-		Sig:       app.ImportingPkgSig.ImportingPkgSig(),
+		Sig:       v.Sig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
 		CIStatus:  v.CI.Status.PackageCIStatus(),
-		PkgDesc:   app.PackageDesc.PackageDesc(),
-		PkgName:   v.PkgName.PackageName(),
-		Platform:  app.PackagePlatform.PackagePlatform(),
+		PkgDesc:   v.Basic.Desc.PackageDesc(),
+		PkgName:   v.Basic.Name.PackageName(),
+		Platform:  v.Repo.Platform.PackagePlatform(),
+		RepoLink:  v.Repo.Link.URL(),
 		Importer:  v.Importer.Account.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
-	}
-
-	if v.RepoLink != nil {
-		dto.RepoLink = v.RepoLink.URL()
 	}
 
 	return dto
@@ -86,15 +84,15 @@ type SoftwarePkgApplicationDTO struct {
 	ReasonToImportPkg string `json:"reason"`
 }
 
-func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkgApplication) SoftwarePkgApplicationDTO {
+func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkg) SoftwarePkgApplicationDTO {
 	return SoftwarePkgApplicationDTO{
-		SpecURL:           v.SourceCode.SpecURL.URL(),
-		Upstream:          v.SourceCode.Upstream.URL(),
-		SrcRPMURL:         v.SourceCode.SrcRPMURL.URL(),
-		PackageDesc:       v.PackageDesc.PackageDesc(),
-		PackagePlatform:   v.PackagePlatform.PackagePlatform(),
-		ImportingPkgSig:   v.ImportingPkgSig.ImportingPkgSig(),
-		ReasonToImportPkg: v.ReasonToImportPkg.ReasonToImportPkg(),
+		SpecURL:           v.Code.Spec.Src.URL(),
+		Upstream:          v.Basic.Upstream.URL(),
+		SrcRPMURL:         v.Code.SRPM.Src.URL(),
+		PackageDesc:       v.Basic.Desc.PackageDesc(),
+		PackagePlatform:   v.Repo.Platform.PackagePlatform(),
+		ImportingPkgSig:   v.Sig.ImportingPkgSig(),
+		ReasonToImportPkg: v.Basic.Reason.ReasonToImportPkg(),
 	}
 }
 
@@ -178,7 +176,7 @@ func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg, comments []domain.SoftwarePkg
 		Comments:       toSoftwarePkgReviewCommentDTOs(comments),
 		ApprovedBy:     toSoftwarePkgApproverDTO(v.ApprovedBy),
 		RejectedBy:     toSoftwarePkgApproverDTO(v.RejectedBy),
-		Application:    toSoftwarePkgApplicationDTO(&v.Application),
+		Application:    toSoftwarePkgApplicationDTO(v),
 	}
 }
 

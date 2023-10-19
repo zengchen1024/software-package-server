@@ -81,13 +81,11 @@ func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, er
 	}
 
 	// application
-	app := &info.Application
-
-	if app.PackagePlatform, err = dp.NewPackagePlatform(cfg.Platform); err != nil {
+	if info.Repo.Platform, err = dp.NewPackagePlatform(cfg.Platform); err != nil {
 		return
 	}
 
-	if app.ReasonToImportPkg, err = dp.NewReasonToImportPkg(cfg.ReasonToImport); err != nil {
+	if info.Basic.Reason, err = dp.NewReasonToImportPkg(cfg.ReasonToImport); err != nil {
 		return
 	}
 

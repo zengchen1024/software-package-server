@@ -137,7 +137,7 @@ func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkg) {
 	err := s.message.NotifyPkgApproved(&e)
 
 	msg := fmt.Sprintf(
-		"notify that a pkg:%s/%s was approved", pkg.Id, pkg.PkgName.PackageName(),
+		"notify that a pkg:%s/%s was approved", pkg.Id, pkg.Basic.Name.PackageName(),
 	)
 	if err == nil {
 		logrus.Debugf("successfully to %s", msg)

@@ -10,30 +10,40 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-type Importer struct {
+type User struct {
 	Email   dp.Email
 	Account dp.Account
-}
-
-type User struct {
-	Importer
 
 	GiteeID string
 }
 
-// SoftwarePkgApplication
-type SoftwarePkgApplication struct {
-	SourceCode        SoftwarePkgSourceCode
-	PackageDesc       dp.PackageDesc
-	PackagePlatform   dp.PackagePlatform
-	ImportingPkgSig   dp.ImportingPkgSig
-	ReasonToImportPkg dp.ReasonToImportPkg
+type SoftwarePkgBasicInfo struct {
+	Name     dp.PackageName
+	Desc     dp.PackageDesc
+	Reason   dp.ReasonToImportPkg
+	Upstream dp.URL
 }
 
-type SoftwarePkgSourceCode struct {
-	SpecURL   dp.URL
-	Upstream  dp.URL
-	SrcRPMURL dp.URL
+type SoftwarePkgCode struct {
+	Spec SoftwarePkgCodeFile
+	SRPM SoftwarePkgCodeFile
+}
+
+type SoftwarePkgCodeFile struct {
+	Src  dp.URL // Src is the url user inputed
+	Path dp.URL // Path is the url that the actual storage address of the file
+}
+
+func (f *SoftwarePkgCodeFile) Name() string {
+	// TODO
+	return ""
+}
+
+// SoftwarePkgRepo
+type SoftwarePkgRepo struct {
+	Link       dp.URL
+	Platform   dp.PackagePlatform
+	Committers []string
 }
 
 // SoftwarePkgCI
@@ -70,18 +80,20 @@ func StringToSoftwarePkgApprover(s string) (r SoftwarePkgApprover, err error) {
 
 // SoftwarePkg
 type SoftwarePkg struct {
-	Id          string
-	PkgName     dp.PackageName
-	Importer    Importer
-	RepoLink    dp.URL
-	Phase       dp.PackagePhase
+	Id       string
+	Sig      dp.ImportingPkgSig
+	Repo     SoftwarePkgRepo
+	Code     SoftwarePkgCode
+	Basic    SoftwarePkgBasicInfo
+	Importer User
+
 	CI          SoftwarePkgCI
+	Logs        []SoftwarePkgOperationLog
+	Phase       dp.PackagePhase
 	AppliedAt   int64
-	Application SoftwarePkgApplication
 	ApprovedBy  []SoftwarePkgApprover
 	RejectedBy  []SoftwarePkgApprover
-	RelevantPR  dp.URL
-	Logs        []SoftwarePkgOperationLog
+	CommunityPR dp.URL
 }
 
 func (entity *SoftwarePkg) ReviewResult() dp.PackageReviewResult {
@@ -123,8 +135,7 @@ func (entity *SoftwarePkg) ApproveBy(user *SoftwarePkgApprover) (bool, error) {
 }
 
 func (entity *SoftwarePkg) hasPassedReview() bool {
-	sig := entity.Application.ImportingPkgSig.ImportingPkgSig()
-	if sig == config.EcopkgSig {
+	if entity.Sig.ImportingPkgSig() == config.EcopkgSig {
 		return len(entity.ApprovedBy) > 0
 	}
 
@@ -195,7 +206,7 @@ func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 		return false, errorCIIsRunning
 	}
 
-	if !dp.IsSameAccount(user.Importer.Account, entity.Importer.Account) {
+	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
 		return false, errorNotTheImporter
 	}
 
@@ -215,7 +226,12 @@ func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 	return true, nil
 }
 
-func (entity *SoftwarePkg) UpdateApplication(cmd *SoftwarePkgApplication, user *User) error {
+func (entity *SoftwarePkg) UpdateApplication(
+	basic *SoftwarePkgBasicInfo,
+	sig dp.ImportingPkgSig,
+	repo *SoftwarePkgRepo,
+	user *User,
+) error {
 	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
@@ -224,7 +240,7 @@ func (entity *SoftwarePkg) UpdateApplication(cmd *SoftwarePkgApplication, user *
 		return errorNotTheImporter
 	}
 
-	entity.Application = *cmd
+	// TODO
 
 	entity.Logs = append(
 		entity.Logs,
@@ -268,7 +284,7 @@ func (entity *SoftwarePkg) HandlePkgInitialized(pr dp.URL) error {
 		return errors.New("can't do this")
 	}
 
-	entity.RelevantPR = pr
+	entity.CommunityPR = pr
 
 	return nil
 }
@@ -289,16 +305,6 @@ type RepoCreatedInfo struct {
 }
 
 func (entity *SoftwarePkg) HandleRepoCreated(info RepoCreatedInfo) error {
-	if !entity.Phase.IsCreatingRepo() {
-		return errors.New("can't do this")
-	}
-
-	if !dp.IsSamePlatform(entity.Application.PackagePlatform, info.Platform) {
-		return errors.New("ignore unmached platform")
-	}
-
-	entity.RepoLink = info.RepoLink
-
 	return nil
 }
 
@@ -312,13 +318,22 @@ func (entity *SoftwarePkg) HandleCodeSaved(info RepoCreatedInfo) error {
 	return nil
 }
 
-func NewSoftwarePkg(user *User, name dp.PackageName, app *SoftwarePkgApplication) SoftwarePkg {
+func NewSoftwarePkg(
+	sig dp.ImportingPkgSig,
+	repo *SoftwarePkgRepo,
+	code *SoftwarePkgCode,
+	importer *User,
+	basicInfo *SoftwarePkgBasicInfo,
+) SoftwarePkg {
 	return SoftwarePkg{
-		PkgName:     name,
-		Importer:    user.Importer,
-		Phase:       dp.PackagePhaseReviewing,
-		CI:          SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
-		Application: *app,
-		AppliedAt:   utils.Now(),
+		Sig:      sig,
+		Repo:     *repo,
+		Code:     *code,
+		Basic:    *basicInfo,
+		Importer: *importer,
+
+		CI:        SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
+		Phase:     dp.PackagePhaseReviewing,
+		AppliedAt: utils.Now(),
 	}
 }

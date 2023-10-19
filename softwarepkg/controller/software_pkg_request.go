@@ -27,44 +27,44 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 ) {
 	cmd.Importer = *importer
 
-	cmd.PkgName, err = dp.NewPackageName(s.PackageName)
+	basic := &cmd.Basic
+
+	basic.Name, err = dp.NewPackageName(s.PackageName)
 	if err != nil {
 		return
 	}
 
-	application := &cmd.Application
-
-	application.SourceCode.SpecURL, err = dp.NewURL(s.SpecUrl)
+	cmd.Code.Spec.Src, err = dp.NewURL(s.SpecUrl)
 	if err != nil {
 		return
 	}
 
-	application.SourceCode.Upstream, err = dp.NewURL(s.Upstream)
+	basic.Upstream, err = dp.NewURL(s.Upstream)
 	if err != nil {
 		return
 	}
 
-	application.SourceCode.SrcRPMURL, err = dp.NewURL(s.SrcRPMURL)
+	cmd.Code.SRPM.Src, err = dp.NewURL(s.SrcRPMURL)
 	if err != nil {
 		return
 	}
 
-	application.ImportingPkgSig, err = dp.NewImportingPkgSig(s.PackageSig)
+	cmd.Sig, err = dp.NewImportingPkgSig(s.PackageSig)
 	if err != nil {
 		return
 	}
 
-	application.ReasonToImportPkg, err = dp.NewReasonToImportPkg(s.PackageReason)
+	basic.Reason, err = dp.NewReasonToImportPkg(s.PackageReason)
 	if err != nil {
 		return
 	}
 
-	application.PackageDesc, err = dp.NewPackageDesc(s.PackageDesc)
+	basic.Desc, err = dp.NewPackageDesc(s.PackageDesc)
 	if err != nil {
 		return
 	}
 
-	application.PackagePlatform, err = dp.NewPackagePlatform(s.PackagePlatform)
+	cmd.Repo.Platform, err = dp.NewPackagePlatform(s.PackagePlatform)
 
 	return
 }

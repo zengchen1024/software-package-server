@@ -53,21 +53,22 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 }
 
 func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
-	app := &pkg.Application
+	basic := &pkg.Basic
+	code := &pkg.Code
 
 	return softwarePkgApprovedEvent{
 		Importer:          pkg.Importer.Account.Account(),
 		ImporterEmail:     pkg.Importer.Email.Email(),
 		PkgId:             pkg.Id,
-		PkgName:           pkg.PkgName.PackageName(),
-		PkgDesc:           app.PackageDesc.PackageDesc(),
-		SpecURL:           app.SourceCode.SpecURL.URL(),
-		Upstream:          app.SourceCode.Upstream.URL(),
-		SrcRPMURL:         app.SourceCode.SrcRPMURL.URL(),
+		PkgName:           basic.Name.PackageName(),
+		PkgDesc:           basic.Desc.PackageDesc(),
+		SpecURL:           code.Spec.Src.URL(),
+		Upstream:          basic.Upstream.URL(),
+		SrcRPMURL:         code.SRPM.Src.URL(),
 		CIPRNum:           pkg.CI.PRNum,
-		Platform:          app.PackagePlatform.PackagePlatform(),
-		ImportingPkgSig:   app.ImportingPkgSig.ImportingPkgSig(),
-		ReasonToImportPkg: app.ReasonToImportPkg.ReasonToImportPkg(),
+		Platform:          pkg.Repo.Platform.PackagePlatform(),
+		ImportingPkgSig:   pkg.Sig.ImportingPkgSig(),
+		ReasonToImportPkg: basic.Reason.ReasonToImportPkg(),
 	}
 }
 
