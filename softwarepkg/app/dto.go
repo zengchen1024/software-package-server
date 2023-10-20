@@ -16,8 +16,11 @@ type CmdToApplyNewSoftwarePkg struct {
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
-	PkgId string
-	CmdToApplyNewSoftwarePkg
+	PkgId    string
+	Sig      dp.ImportingPkgSig
+	Repo     domain.SoftwarePkgRepo
+	Basic    domain.SoftwarePkgBasicInfo
+	Importer domain.User
 }
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs

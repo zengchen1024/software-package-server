@@ -71,6 +71,53 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 	return
 }
 
+type reqToUpdateSoftwarePkgApplication struct {
+	Upstream        string `json:"upstream"        binding:"required"`
+	PackageSig      string `json:"sig"             binding:"required"`
+	PackageName     string `json:"pkg_name"        binding:"required"`
+	PackageDesc     string `json:"desc"            binding:"required"`
+	PackageReason   string `json:"reason"          binding:"required"`
+	PackagePlatform string `json:"platform"        binding:"required"`
+}
+
+func (s *reqToUpdateSoftwarePkgApplication) toCmd(pkgId string, importer *domain.User) (
+	cmd app.CmdToUpdateSoftwarePkgApplication, err error,
+) {
+	cmd.PkgId = pkgId
+	cmd.Importer = *importer
+
+	basic := &cmd.Basic
+
+	basic.Name, err = dp.NewPackageName(s.PackageName)
+	if err != nil {
+		return
+	}
+
+	basic.Upstream, err = dp.NewURL(s.Upstream)
+	if err != nil {
+		return
+	}
+
+	cmd.Sig, err = dp.NewImportingPkgSig(s.PackageSig)
+	if err != nil {
+		return
+	}
+
+	basic.Reason, err = dp.NewReasonToImportPkg(s.PackageReason)
+	if err != nil {
+		return
+	}
+
+	basic.Desc, err = dp.NewPackageDesc(s.PackageDesc)
+	if err != nil {
+		return
+	}
+
+	cmd.Repo.Platform, err = dp.NewPackagePlatform(s.PackagePlatform)
+
+	return
+}
+
 type softwarePkgListQuery struct {
 	Phase        string `json:"phase"          form:"phase"`
 	PkgName      string `json:"pkg_name"       form:"pkg_name"`

@@ -1,21 +1,23 @@
 package dp
 
 const (
-	checkItemCategorySig          = "sig"
-	checkItemCategoryCode         = "code"
-	checkItemCategoryPkgName      = "pkg_name"
-	checkItemCategoryUpstream     = "upstream"
-	checkItemCategoryCommitter    = "committer"
-	checkItemCategoryDescOrReason = "desc_or_reason"
+	checkItemCategorySig       = "sig"
+	checkItemCategoryCode      = "code"
+	checkItemCategoryPkgName   = "pkg_name"
+	checkItemCategoryPkgDesc   = "pkg_desc"
+	checkItemCategoryUpstream  = "upstream"
+	checkItemCategoryPkgReason = "pkg_reason"
+	checkItemCategoryCommitter = "committer"
 )
 
 var (
-	CheckItemCategorySig          = checkItemCategory(checkItemCategorySig)
-	CheckItemCategoryCode         = checkItemCategory(checkItemCategoryCode)
-	CheckItemCategoryPkgName      = checkItemCategory(checkItemCategoryPkgName)
-	CheckItemCategoryUpstream     = checkItemCategory(checkItemCategoryUpstream)
-	CheckItemCategoryCommitter    = checkItemCategory(checkItemCategoryCommitter)
-	CheckItemCategoryDescOrReason = checkItemCategory(checkItemCategoryDescOrReason)
+	CheckItemCategorySig       = checkItemCategory(checkItemCategorySig)
+	CheckItemCategoryCode      = checkItemCategory(checkItemCategoryCode)
+	CheckItemCategoryPkgName   = checkItemCategory(checkItemCategoryPkgName)
+	CheckItemCategoryPkgDesc   = checkItemCategory(checkItemCategoryPkgDesc)
+	CheckItemCategoryUpstream  = checkItemCategory(checkItemCategoryUpstream)
+	CheckItemCategoryPkgReason = checkItemCategory(checkItemCategoryPkgReason)
+	CheckItemCategoryCommitter = checkItemCategory(checkItemCategoryCommitter)
 )
 
 type CheckItemCategory interface {
