@@ -82,10 +82,6 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
-	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config)
-	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
-
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Errorf("init db, err:%s", err.Error())
@@ -141,6 +137,11 @@ func main() {
 	}
 
 	defer maintainerimpl.Exit()
+
+	// Domain
+	domain.Init(&cfg.SoftwarePkg.Config, maintainerimpl.Maintainer())
+
+	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	middleware.Init(&cfg.Middleware)
 

@@ -30,3 +30,7 @@ type packageName string
 func (v packageName) PackageName() string {
 	return string(v)
 }
+
+func IsSamePkgName(n1, n2 PackageName) bool {
+	return n1 != nil && n2 != nil && n1.PackageName() == n2.PackageName()
+}

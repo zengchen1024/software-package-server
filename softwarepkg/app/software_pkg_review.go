@@ -107,8 +107,8 @@ func (s *softwarePkgService) Review(pid string, user *domain.User, reviews []dom
 	}
 
 	approved, err := pkg.AddReview(&domain.UserReview{
-		Reviewer: s.maintainer.Reviewer(&pkg, user),
-		Reviews:  reviews,
+		User:    *user,
+		Reviews: reviews,
 	})
 	if err != nil {
 		return
@@ -145,9 +145,7 @@ func (s *softwarePkgService) Reject(pid string, user *domain.User) error {
 		return parseErrorForFindingPkg(err)
 	}
 
-	reviewer := s.maintainer.Reviewer(&pkg, user)
-
-	if err = pkg.RejectBy(&reviewer); err != nil {
+	if err = pkg.RejectBy(user); err != nil {
 		return err
 	}
 
@@ -204,14 +202,4 @@ func (s *softwarePkgService) addCommentToRerunCI(pkgId string) {
 			pkgId, err.Error(),
 		)
 	}
-}
-
-func (s *softwarePkgService) checkPermission(pkg *domain.SoftwarePkg, user *domain.User) (
-	bool, string, error,
-) {
-	if has, isTC := s.maintainer.HasPermission(pkg, user); has {
-		return isTC, "", nil
-	}
-
-	return false, errorSoftwarePkgNoPermission, errors.New("no permission")
 }

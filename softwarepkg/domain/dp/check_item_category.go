@@ -27,3 +27,7 @@ type checkItemCategory string
 func (v checkItemCategory) CheckItemCategory() string {
 	return string(v)
 }
+
+func IsSameCheckItemCategory(c1, c2 CheckItemCategory) bool {
+	return c1 != nil && c2 != nil && c1.CheckItemCategory() == c2.CheckItemCategory()
+}

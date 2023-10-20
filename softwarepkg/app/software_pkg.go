@@ -8,7 +8,6 @@ import (
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/maintainer"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
@@ -45,7 +44,6 @@ func NewSoftwarePkgService(
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgMessage,
 	sensitive sensitivewords.SensitiveWords,
-	maintainer maintainer.Maintainer,
 	translation translation.Translation,
 	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgService {
@@ -56,7 +54,6 @@ func NewSoftwarePkgService(
 		robot:       robot,
 		message:     message,
 		sensitive:   sensitive,
-		maintainer:  maintainer,
 		translation: translation,
 		pkgService:  service.NewPkgService(manager, message),
 		commentRepo: commentRepo,
@@ -69,7 +66,6 @@ type softwarePkgService struct {
 	message     message.SoftwarePkgMessage
 	sensitive   sensitivewords.SensitiveWords
 	pkgService  service.SoftwarePkgService
-	maintainer  maintainer.Maintainer
 	translation translation.Translation
 	commentRepo repository.SoftwarePkgComment
 }
@@ -125,9 +121,9 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 		return errorCodeForFindingPkg(err), err
 	}
 
-	err = pkg.UpdateApplication(&cmd.Basic, cmd.Sig, &cmd.Repo, &cmd.Importer)
+	err = pkg.UpdateApplication(cmd.Sig, &cmd.Repo, &cmd.Importer, &cmd.Basic)
 	if err != nil {
-		return domain.ParseErrorCode(err), err
+		return "", err
 	}
 
 	err = s.repo.SaveSoftwarePkg(&pkg, version)

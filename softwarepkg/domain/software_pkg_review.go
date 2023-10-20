@@ -5,15 +5,31 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+type maintainer interface {
+	Roles(*SoftwarePkg, *User) []dp.CommunityRole
+}
+
+var maintainerInstance maintainer
+
 // SoftwarePkgReview
 type SoftwarePkgReview struct {
 	Items   []CheckItem
 	Reviews []UserReview
 }
 
-func (r *SoftwarePkgReview) add(ur *UserReview) error {
-	if err := ur.validate(r.Items); err != nil {
+func (r *SoftwarePkgReview) add(pkg *SoftwarePkg, ur *UserReview) error {
+	uri := ur.internal(pkg)
+
+	if err := uri.validate(r.Items); err != nil {
 		return err
+	}
+
+	for i := range r.Reviews {
+		if dp.IsSameAccount(r.Reviews[i].User.Account, ur.User.Account) {
+			r.Reviews[i] = *ur
+
+			return nil
+		}
 	}
 
 	r.Reviews = append(r.Reviews, *ur)
@@ -21,9 +37,17 @@ func (r *SoftwarePkgReview) add(ur *UserReview) error {
 	return nil
 }
 
-func (r *SoftwarePkgReview) pass() bool {
+func (r *SoftwarePkgReview) pass(pkg *SoftwarePkg) bool {
+	reviews := make([]userReview, len(r.Reviews))
+
+	for i := range r.Reviews {
+		reviews[i] = r.Reviews[i].internal(pkg)
+	}
+
 	for i := range r.Items {
-		if rf := r.CheckItemReview(&r.Items[i]); !dp.IsCheckItemPass(rf.Result()) {
+		rf := checkItemReview(&r.Items[i], reviews)
+
+		if !dp.IsCheckItemPass(rf.Result()) {
 			return false
 		}
 	}
@@ -31,17 +55,34 @@ func (r *SoftwarePkgReview) pass() bool {
 	return true
 }
 
-func (r *SoftwarePkgReview) CheckItemReview(item *CheckItem) (rf CheckItemReview) {
-	rf.Item = item
+func (r *SoftwarePkgReview) clear(pkg *SoftwarePkg, category dp.CheckItemCategory) {
+	var item *CheckItem
 
-	if len(r.Reviews) == 0 {
+	for i := range r.Items {
+		if v := &r.Items[i]; dp.IsSameCheckItemCategory(v.Category, category) {
+			item = v
+
+			break
+		}
+	}
+
+	if item == nil {
 		return
 	}
 
-	rs := make([]UserCheckItemReview, 0, len(r.Reviews))
+}
 
-	for i := range r.Reviews {
-		if v, exist := r.Reviews[i].CheckItemReview(item); exist {
+func checkItemReview(item *CheckItem, reviews []userReview) (rf CheckItemReview) {
+	rf.Item = item
+
+	if len(reviews) == 0 {
+		return
+	}
+
+	rs := make([]UserCheckItemReview, 0, len(reviews))
+
+	for i := range reviews {
+		if v, exist := reviews[i].userCheckItemReview(item); exist {
 			rs = append(rs, v)
 		}
 	}
@@ -51,34 +92,42 @@ func (r *SoftwarePkgReview) CheckItemReview(item *CheckItem) (rf CheckItemReview
 	return
 }
 
-// Reviewer
-type Reviewer struct {
-	User  dp.Account
-	Roles []dp.CommunityRole
-}
-
-func (r *Reviewer) isTC() bool {
-	for i := range r.Roles {
-		if r.Roles[i].IsTC() {
-			return true
-		}
-	}
-
-	return false
-}
-
 // UserReview
 type UserReview struct {
-	Reviewer
+	User
 
 	Reviews []CheckItemReviewInfo
 }
 
-func (r *UserReview) validate(items []CheckItem) error {
-	for i := range items {
-		_, exist := r.CheckItemReview(&items[i])
+func (r *UserReview) internal(pkg *SoftwarePkg) userReview {
+	return userReview{
+		UserReview: r,
+		roles:      maintainerInstance.Roles(pkg, &r.User),
+	}
+}
 
-		if exist && !items[i].canReview(&r.Reviewer) {
+func (r *UserReview) checkItemReviewInfo(item *CheckItem) *CheckItemReviewInfo {
+	for i := range r.Reviews {
+		if v := &r.Reviews[i]; v.Id == item.Id {
+			return v
+		}
+	}
+
+	return nil
+}
+
+// userReview
+type userReview struct {
+	*UserReview
+
+	roles []dp.CommunityRole
+}
+
+func (r *userReview) validate(items []CheckItem) error {
+	for i := range items {
+		info := r.checkItemReviewInfo(&items[i])
+
+		if info != nil && !items[i].canReview(r.roles) {
 			return allerror.NewNoPermission("not the owner")
 		}
 	}
@@ -86,19 +135,35 @@ func (r *UserReview) validate(items []CheckItem) error {
 	return nil
 }
 
-func (r *UserReview) CheckItemReview(item *CheckItem) (info UserCheckItemReview, exist bool) {
+func (r *userReview) clear(pkg *SoftwarePkg, item *CheckItem) {
+	if item.KeepOwnerReview && item.isOwner(r.roles) {
+		return
+	}
+
 	for i := range r.Reviews {
 		if v := &r.Reviews[i]; v.Id == item.Id {
-			exist = true
-
-			info.Reviewer = &r.Reviewer
-			info.CheckItemReviewInfo = v
+			n := len(r.Reviews) - 1
+			if i != n {
+				r.Reviews[i] = r.Reviews[n]
+			}
+			r.Reviews = r.Reviews[:n]
 
 			return
 		}
 	}
+}
 
-	return
+func (r *userReview) userCheckItemReview(item *CheckItem) (UserCheckItemReview, bool) {
+	info := r.checkItemReviewInfo(item)
+	if info == nil {
+		return UserCheckItemReview{}, false
+	}
+
+	return UserCheckItemReview{
+		User:                &r.User,
+		Roles:               r.roles,
+		CheckItemReviewInfo: info,
+	}, true
 }
 
 // CheckItemReview
@@ -115,7 +180,7 @@ func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
 	pass := false
 
 	for i := range r.Reviews {
-		if v := &r.Reviews[i]; r.Item.isOwner(v.Reviewer) {
+		if v := &r.Reviews[i]; r.Item.isOwner(v.Roles) {
 			if !v.Pass {
 				return dp.CheckItemNotPass
 			}
@@ -133,8 +198,10 @@ func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
 
 // UserCheckItemReview
 type UserCheckItemReview struct {
-	*Reviewer
+	*User
 	*CheckItemReviewInfo
+
+	Roles []dp.CommunityRole
 }
 
 // CheckItemReviewInfo
@@ -161,8 +228,8 @@ type CheckItem struct {
 	OnlyOwnerCanReview bool
 }
 
-func (item *CheckItem) isOwner(reviewer *Reviewer) bool {
-	for _, role := range reviewer.Roles {
+func (item *CheckItem) isOwner(roles []dp.CommunityRole) bool {
+	for _, role := range roles {
 		if dp.IsSameCommunityRole(role, item.Owner) {
 			return true
 		}
@@ -171,6 +238,6 @@ func (item *CheckItem) isOwner(reviewer *Reviewer) bool {
 	return false
 }
 
-func (item *CheckItem) canReview(reviewer *Reviewer) bool {
-	return !item.OnlyOwnerCanReview || item.isOwner(reviewer)
+func (item *CheckItem) canReview(roles []dp.CommunityRole) bool {
+	return !item.OnlyOwnerCanReview || item.isOwner(roles)
 }

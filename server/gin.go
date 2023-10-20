@@ -16,7 +16,6 @@ import (
 	softwarepkgapp "github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/controller"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
@@ -72,7 +71,6 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 			pkgmanagerimpl.Instance(),
 			messageimpl.Producer(),
 			sensitivewordsimpl.Sensitive(),
-			maintainerimpl.Maintainer(),
 			translationimpl.Translation(),
 			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 		),

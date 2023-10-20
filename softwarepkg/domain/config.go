@@ -2,8 +2,9 @@ package domain
 
 var config Config
 
-func Init(cfg *Config) {
+func Init(cfg *Config, m maintainer) {
 	config = *cfg
+	maintainerInstance = m
 }
 
 type Config struct {

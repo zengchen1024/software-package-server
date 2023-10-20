@@ -71,29 +71,25 @@ func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
 	return nil, errors.New("unimplemented")
 }
 
-func (impl *maintainerImpl) Reviewer(pkg *domain.SoftwarePkg, user *domain.User) domain.Reviewer {
-	r := domain.Reviewer{
-		User: user.Account,
-	}
-
+func (impl *maintainerImpl) Roles(pkg *domain.SoftwarePkg, user *domain.User) (roles []dp.CommunityRole) {
 	if pkg.IsCommitter(user) {
-		r.Roles = append(r.Roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
+		roles = append(roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
 	}
 
 	v := impl.agent.GetData()
 
 	m, ok := v.(*sigData)
 	if !ok {
-		return r
+		return
 	}
 
 	if m.isSigMaintainer(user.GiteeID, impl.tcSig) {
-		r.Roles = append(r.Roles, dp.CommunityRoleTC)
+		roles = append(roles, dp.CommunityRoleTC)
 	}
 
 	if m.isSigMaintainer(user.GiteeID, pkg.Sig.ImportingPkgSig()) {
-		r.Roles = append(r.Roles, dp.CommunityRoleSigMaintainer, dp.CommunityRoleRepoMember)
+		roles = append(roles, dp.CommunityRoleSigMaintainer, dp.CommunityRoleRepoMember)
 	}
 
-	return r
+	return
 }
