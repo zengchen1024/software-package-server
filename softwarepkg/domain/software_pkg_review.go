@@ -55,21 +55,20 @@ func (r *SoftwarePkgReview) pass(pkg *SoftwarePkg) bool {
 	return true
 }
 
-func (r *SoftwarePkgReview) clear(pkg *SoftwarePkg, category dp.CheckItemCategory) {
-	var item *CheckItem
+func (r *SoftwarePkgReview) clear(pkg *SoftwarePkg, categories []dp.CheckItemCategory) {
+	reviews := make([]userReview, len(r.Reviews))
+
+	for i := range r.Reviews {
+		reviews[i] = r.Reviews[i].internal(pkg)
+	}
 
 	for i := range r.Items {
-		if v := &r.Items[i]; dp.IsSameCheckItemCategory(v.Category, category) {
-			item = v
-
-			break
+		if v := &r.Items[i]; v.isCategory(categories) {
+			for j := range reviews {
+				reviews[j].clear(v)
+			}
 		}
 	}
-
-	if item == nil {
-		return
-	}
-
 }
 
 func checkItemReview(item *CheckItem, reviews []userReview) (rf CheckItemReview) {
@@ -135,7 +134,7 @@ func (r *userReview) validate(items []CheckItem) error {
 	return nil
 }
 
-func (r *userReview) clear(pkg *SoftwarePkg, item *CheckItem) {
+func (r *userReview) clear(item *CheckItem) {
 	if item.KeepOwnerReview && item.isOwner(r.roles) {
 		return
 	}
@@ -240,4 +239,14 @@ func (item *CheckItem) isOwner(roles []dp.CommunityRole) bool {
 
 func (item *CheckItem) canReview(roles []dp.CommunityRole) bool {
 	return !item.OnlyOwnerCanReview || item.isOwner(roles)
+}
+
+func (item *CheckItem) isCategory(categories []dp.CheckItemCategory) bool {
+	for i := range categories {
+		if dp.IsSameCheckItemCategory(item.Category, categories[i]) {
+			return true
+		}
+	}
+
+	return false
 }

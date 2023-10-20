@@ -31,6 +31,32 @@ type SoftwarePkgBasicInfo struct {
 	Upstream dp.URL
 }
 
+func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgBasicInfo) []dp.CheckItemCategory {
+	categories := []dp.CheckItemCategory{}
+
+	if basic.Name.PackageName() != info.Name.PackageName() {
+		categories = append(categories, dp.CheckItemCategoryPkgName)
+	}
+
+	if basic.Desc.PackageDesc() != info.Desc.PackageDesc() {
+		categories = append(categories, dp.CheckItemCategoryPkgDesc)
+	}
+
+	if basic.Reason.ReasonToImportPkg() != info.Reason.ReasonToImportPkg() {
+		categories = append(categories, dp.CheckItemCategoryPkgReason)
+	}
+
+	if basic.Upstream.URL() != info.Upstream.URL() {
+		categories = append(categories, dp.CheckItemCategoryUpstream)
+	}
+
+	if len(categories) > 0 {
+		*basic = *info
+	}
+
+	return categories
+}
+
 // SoftwarePkgCode
 type SoftwarePkgCode struct {
 	Spec SoftwarePkgCodeFile
@@ -63,6 +89,53 @@ func (r *SoftwarePkgRepo) isCommitter(u *User) bool {
 	}
 
 	return false
+}
+
+func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) []dp.CheckItemCategory {
+	b := false
+	categories := []dp.CheckItemCategory{}
+
+	if r.Link.URL() != r1.Link.URL() {
+		b = true
+	}
+
+	if !r.isSameCommitters(r1) {
+		categories = append(categories, dp.CheckItemCategoryCommitter)
+
+		b = true
+	}
+
+	if b {
+		*r = *r1
+	}
+
+	return categories
+}
+
+func (r *SoftwarePkgRepo) isSameCommitters(r1 *SoftwarePkgRepo) bool {
+	if len(r.Committers) != len(r1.Committers) {
+		return false
+	}
+
+	m := r.committersMap()
+
+	for i := range r1.Committers {
+		if !m[r1.Committers[i].Account()] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r *SoftwarePkgRepo) committersMap() map[string]bool {
+	m := map[string]bool{}
+
+	for i := range r.Committers {
+		m[r.Committers[i].Account()] = true
+	}
+
+	return m
 }
 
 // SoftwarePkgCI
@@ -168,7 +241,7 @@ func (entity *SoftwarePkg) RejectBy(user *User) error {
 		}
 	}
 
-	if isTC {
+	if !isTC {
 		return allerror.NewNoPermission("not the tc")
 	}
 
@@ -235,9 +308,9 @@ func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 }
 
 func (entity *SoftwarePkg) UpdateApplication(
+	user *User,
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
-	user *User,
 	basic *SoftwarePkgBasicInfo,
 ) error {
 	if !entity.Phase.IsReviewing() {
@@ -248,23 +321,20 @@ func (entity *SoftwarePkg) UpdateApplication(
 		return notImporter
 	}
 
-	// TODO
+	categories := entity.Basic.update(basic)
 
-	entity.Logs = append(
-		entity.Logs,
-		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionUpdate, entity.Id,
-		),
-	)
+	if entity.Sig.ImportingPkgSig() != sig.ImportingPkgSig() {
+		categories = append(categories, dp.CheckItemCategorySig)
 
-	return nil
-}
+		entity.Sig = sig
+	}
 
-func (entity *SoftwarePkg) updateBasic(user *User, info *SoftwarePkgBasicInfo) error {
-	basic := &entity.Basic
+	if v := entity.Repo.update(repo); len(v) > 0 {
+		categories = append(categories, v...)
+	}
 
-	if !dp.IsSamePkgName(basic.Name, info.Name) {
-
+	if len(categories) > 0 {
+		entity.Review.clear(entity, categories)
 	}
 
 	entity.Logs = append(

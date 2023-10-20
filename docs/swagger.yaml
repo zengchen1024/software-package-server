@@ -137,6 +137,28 @@ definitions:
       signed:
         type: boolean
     type: object
+  controller.reqToUpdateSoftwarePkgApplication:
+    properties:
+      desc:
+        type: string
+      pkg_name:
+        type: string
+      platform:
+        type: string
+      reason:
+        type: string
+      sig:
+        type: string
+      upstream:
+        type: string
+    required:
+    - desc
+    - pkg_name
+    - platform
+    - reason
+    - sig
+    - upstream
+    type: object
   controller.reviewCommentRequest:
     properties:
       comment:
@@ -305,7 +327,7 @@ paths:
         name: param
         required: true
         schema:
-          $ref: '#/definitions/controller.softwarePkgRequest'
+          $ref: '#/definitions/controller.reqToUpdateSoftwarePkgApplication'
       responses:
         "202":
           description: Accepted
