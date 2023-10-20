@@ -20,7 +20,8 @@ type User struct {
 	Email   dp.Email
 	Account dp.Account
 
-	GiteeID string
+	GiteeID  string
+	GithubID string
 }
 
 type SoftwarePkgBasicInfo struct {
@@ -132,18 +133,18 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 		)
 	}
 
-	if err := entity.Review.add(ur); err != nil {
+	if err := entity.Review.add(entity, ur); err != nil {
 		return false, err
 	}
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			ur.User, dp.PackageOperationLogActionReview, entity.Id,
+			ur.User.Account, dp.PackageOperationLogActionReview, entity.Id,
 		),
 	)
 
-	b := entity.Review.pass()
+	b := entity.Review.pass(entity)
 	if b {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
@@ -151,12 +152,23 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 	return b, nil
 }
 
-func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
+func (entity *SoftwarePkg) RejectBy(user *User) error {
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
 	}
 
-	if !user.isTC() {
+	roles := maintainerInstance.Roles(entity, user)
+
+	isTC := false
+
+	for i := range roles {
+		if roles[i].IsTC() {
+			isTC = true
+			break
+		}
+	}
+
+	if isTC {
 		return allerror.NewNoPermission("not the tc")
 	}
 
@@ -165,7 +177,7 @@ func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.User, dp.PackageOperationLogActionReject, entity.Id,
+			user.Account, dp.PackageOperationLogActionReject, entity.Id,
 		),
 	)
 
@@ -223,20 +235,37 @@ func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 }
 
 func (entity *SoftwarePkg) UpdateApplication(
-	basic *SoftwarePkgBasicInfo,
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
 	user *User,
+	basic *SoftwarePkgBasicInfo,
 ) error {
 	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
 	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return errorNotTheImporter
+		return notImporter
 	}
 
 	// TODO
+
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			user.Account, dp.PackageOperationLogActionUpdate, entity.Id,
+		),
+	)
+
+	return nil
+}
+
+func (entity *SoftwarePkg) updateBasic(user *User, info *SoftwarePkgBasicInfo) error {
+	basic := &entity.Basic
+
+	if !dp.IsSamePkgName(basic.Name, info.Name) {
+
+	}
 
 	entity.Logs = append(
 		entity.Logs,
