@@ -81,7 +81,7 @@ func main() {
 	defer sigvalidatorimpl.Exit()
 
 	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config)
+	domain.Init(&cfg.SoftwarePkg.Config, nil)
 	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	// Pkg manager

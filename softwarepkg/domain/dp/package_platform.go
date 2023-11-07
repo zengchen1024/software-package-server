@@ -5,6 +5,7 @@ import "errors"
 type PackagePlatform interface {
 	PackagePlatform() string
 	IsLocalPlatform() bool
+	RepoLink(PackageName) URL
 }
 
 func NewPackagePlatform(v string) (PackagePlatform, error) {
@@ -23,6 +24,10 @@ func (v packagePlatform) PackagePlatform() string {
 
 func (v packagePlatform) IsLocalPlatform() bool {
 	return string(v) == config.LocalPlatform
+}
+
+func (v packagePlatform) RepoLink(name PackageName) URL {
+	return dpURL(config.SupportedPlatforms[string(v)] + name.PackageName())
 }
 
 func IsSamePlatform(a, b PackagePlatform) bool {

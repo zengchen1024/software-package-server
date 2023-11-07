@@ -13,13 +13,14 @@ func Init(cfg *Config, sv SigValidator) {
 }
 
 type Config struct {
-	SupportedLanguages           []string `json:"supported_languages"       required:"true"`
-	SupportedPlatforms           []string `json:"supported_platforms"       required:"true"`
-	LocalPlatform                string   `json:"local_platform"            required:"true"`
-	MaxLengthOfPackageName       int      `json:"max_length_of_pkg_name"`
-	MaxLengthOfPackageDesc       int      `json:"max_length_of_pkg_desc"`
-	MaxLengthOfReviewComment     int      `json:"max_length_of_review_comment"`
-	MaxLengthOfReasonToImportPkg int      `json:"max_length_of_reason_to_import_pkg"`
+	// map platform -> community address. such as gitee -> https://gitee.com/src-openeuler/
+	SupportedPlatforms           map[string]string `json:"supported_platforms"       required:"true"`
+	SupportedLanguages           []string          `json:"supported_languages"       required:"true"`
+	LocalPlatform                string            `json:"local_platform"            required:"true"`
+	MaxLengthOfPackageName       int               `json:"max_length_of_pkg_name"`
+	MaxLengthOfPackageDesc       int               `json:"max_length_of_pkg_desc"`
+	MaxLengthOfReviewComment     int               `json:"max_length_of_review_comment"`
+	MaxLengthOfReasonToImportPkg int               `json:"max_length_of_reason_to_import_pkg"`
 }
 
 func (cfg *Config) SetDefault() {
@@ -46,7 +47,17 @@ func (cfg *Config) SetDefault() {
 
 func (cfg *Config) Validate() error {
 	cfg.toLower(cfg.SupportedLanguages)
-	cfg.toLower(cfg.SupportedPlatforms)
+
+	m := map[string]string{}
+	for k, v := range cfg.SupportedPlatforms {
+		if !strings.HasSuffix(v, "/") {
+			v += "/"
+		}
+
+		m[strings.ToLower(k)] = v
+	}
+
+	cfg.SupportedPlatforms = m
 
 	if !cfg.isValidPlatform(cfg.LocalPlatform) {
 		return errors.New("unkonw local platform")
@@ -66,7 +77,7 @@ func (cfg *Config) isValidLanguage(v string) bool {
 }
 
 func (cfg *Config) isValidPlatform(v string) bool {
-	return cfg.has(strings.ToLower(v), cfg.SupportedPlatforms)
+	return cfg.SupportedPlatforms[strings.ToLower(v)] != ""
 }
 
 func (cfg *Config) has(v string, items []string) bool {

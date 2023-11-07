@@ -42,7 +42,6 @@ type SoftwarePkgDTO struct {
 	Phase     string `json:"phase"`
 	CIStatus  string `json:"ci_status"`
 	AppliedAt string `json:"applied_at"`
-	RepoLink  string `json:"repo_link"`
 	PkgDesc   string `json:"desc"`
 	Sig       string `json:"sig"`
 	Platform  string `json:"platform"`
@@ -57,7 +56,6 @@ func toSoftwarePkgDTO(v *domain.SoftwarePkg) SoftwarePkgDTO {
 		PkgDesc:   v.Basic.Desc.PackageDesc(),
 		PkgName:   v.Basic.Name.PackageName(),
 		Platform:  v.Repo.Platform.PackagePlatform(),
-		RepoLink:  v.Repo.Link.URL(),
 		Importer:  v.Importer.Account.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
 	}

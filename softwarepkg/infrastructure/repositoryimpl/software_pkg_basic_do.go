@@ -48,7 +48,6 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *Soft
 		Upstream:        basic.Upstream.URL(),
 		PackageDesc:     basic.Desc.PackageDesc(),
 		PackagePlatform: pkg.Repo.Platform.PackagePlatform(),
-		RepoLink:        pkg.Repo.Link.URL(),
 		Sig:             pkg.Sig.ImportingPkgSig(),
 		ReasonToImport:  basic.Reason.ReasonToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
@@ -69,7 +68,6 @@ type SoftwarePkgBasicDO struct {
 	Phase           string                 `gorm:"column:phase"                                    json:"phase"`
 	SpecURL         string                 `gorm:"column:spec_url"                                 json:"spec_url"`
 	Importer        string                 `gorm:"column:importer"                                 json:"importer"`
-	RepoLink        string                 `gorm:"column:repo_link"                                json:"repo_link"`
 	CIStatus        string                 `gorm:"column:ci_status"                                json:"ci_status"`
 	Upstream        string                 `gorm:"column:upstream"                                 json:"upstream"`
 	SrcRPMURL       string                 `gorm:"column:src_rpm_url"                              json:"src_rpm_url"`
@@ -173,10 +171,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) 
 	}
 
 	if pkg.Repo.Platform, err = dp.NewPackagePlatform(do.PackagePlatform); err != nil {
-		return
-	}
-
-	if pkg.Repo.Link, err = dp.NewURL(do.RepoLink); err != nil {
 		return
 	}
 
