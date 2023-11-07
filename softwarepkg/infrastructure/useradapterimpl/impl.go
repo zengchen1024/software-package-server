@@ -1,4 +1,4 @@
-package maintainerimpl
+package useradapterimpl
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-var instance maintainerImpl
+var instance userAdapterImpl
 
 func Init(cfg *Config) error {
 	v, err := cacheagent.NewCacheAgent(
@@ -37,17 +37,17 @@ func Exit() {
 	}
 }
 
-func Maintainer() *maintainerImpl {
+func UserAdapter() *userAdapterImpl {
 	return &instance
 }
 
-// maintainerImpl
-type maintainerImpl struct {
+// userAdapterImpl
+type userAdapterImpl struct {
 	agent *cacheagent.Agent
 	tcSig string
 }
 
-func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkg, user *domain.User) (
+func (impl *userAdapterImpl) HasPermission(info *domain.SoftwarePkg, user *domain.User) (
 	has bool, isTC bool,
 ) {
 	v := impl.agent.GetData()
@@ -67,11 +67,11 @@ func (impl *maintainerImpl) HasPermission(info *domain.SoftwarePkg, user *domain
 	return
 }
 
-func (impl *maintainerImpl) FindUser(giteeAccount string) (dp.Account, error) {
-	return nil, errors.New("unimplemented")
+func (impl *userAdapterImpl) Find(giteeAccount string) (domain.User, error) {
+	return domain.User{}, errors.New("unimplemented")
 }
 
-func (impl *maintainerImpl) Roles(pkg *domain.SoftwarePkg, user *domain.User) (roles []dp.CommunityRole) {
+func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.User) (roles []dp.CommunityRole) {
 	if pkg.IsCommitter(user) {
 		roles = append(roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
 	}

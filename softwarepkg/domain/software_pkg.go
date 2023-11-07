@@ -24,6 +24,20 @@ type User struct {
 	GithubID string
 }
 
+func (u *User) ApplyTo(p dp.PackagePlatform) bool {
+	v := p.PackagePlatform()
+
+	if v == "gitee" && u.GiteeID != "" {
+		return true
+	}
+
+	if v == "github" && u.GithubID != "" {
+		return true
+	}
+
+	return false
+}
+
 type SoftwarePkgBasicInfo struct {
 	Name     dp.PackageName
 	Desc     dp.PackageDesc
@@ -76,7 +90,6 @@ func (f *SoftwarePkgCodeFile) Name() string {
 
 // SoftwarePkgRepo
 type SoftwarePkgRepo struct {
-	Link       dp.URL
 	Platform   dp.PackagePlatform
 	Committers []dp.Account
 }
@@ -95,7 +108,7 @@ func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) []dp.CheckItemCategory {
 	b := false
 	categories := []dp.CheckItemCategory{}
 
-	if r.Link.URL() != r1.Link.URL() {
+	if r.Platform.PackagePlatform() != r1.Platform.PackagePlatform() {
 		b = true
 	}
 

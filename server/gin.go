@@ -22,6 +22,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
 )
 
 func StartWebServer(port int, timeout time.Duration, cfg *config.Config) {
@@ -74,6 +75,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 			translationimpl.Translation(),
 			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 		),
+		useradapterimpl.UserAdapter(),
 	)
 }
 

@@ -15,12 +15,12 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
 	"github.com/opensourceways/software-package-server/utils"
 )
 
@@ -130,16 +130,16 @@ func main() {
 	defer messageimpl.Exit()
 
 	// Maintainer
-	if err := maintainerimpl.Init(&cfg.Maintainer); err != nil {
+	if err := useradapterimpl.Init(&cfg.User); err != nil {
 		logrus.Errorf("init maintainer failed, err:%s", err.Error())
 
 		return
 	}
 
-	defer maintainerimpl.Exit()
+	defer useradapterimpl.Exit()
 
 	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config, maintainerimpl.Maintainer())
+	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter())
 
 	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 

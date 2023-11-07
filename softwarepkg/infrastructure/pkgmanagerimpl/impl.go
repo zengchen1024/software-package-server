@@ -94,7 +94,7 @@ func (s *service) toPkgBasicInfo(
 		return
 	}
 
-	info.Repo.Link = url
+	// TODO set info.Repo
 	info.CommunityPR = url
 
 	code := &info.Code

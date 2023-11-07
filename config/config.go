@@ -8,13 +8,13 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/maintainerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
 	localutils "github.com/opensourceways/software-package-server/utils"
 )
 
@@ -55,11 +55,11 @@ type postgresqlConfig struct {
 type Config struct {
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
 	CLA            clavalidatorimpl.Config   `json:"cla"                  required:"true"`
+	User           useradapterimpl.Config    `json:"user"                 required:"true"`
 	Encryption     localutils.Config         `json:"encryption"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
 	Postgresql     postgresqlConfig          `json:"postgresql"           required:"true"`
-	Maintainer     maintainerimpl.Config     `json:"maintainer"           required:"true"`
 	SoftwarePkg    domainConfig              `json:"software_pkg"         required:"true"`
 	Translation    translationimpl.Config    `json:"translation"          required:"true"`
 	SigValidator   sigvalidatorimpl.Config   `json:"sig"                  required:"true"`
@@ -71,6 +71,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.MQ,
 		&cfg.Encryption,
 		&cfg.CLA,
+		&cfg.User,
 		&cfg.PkgManager,
 		&cfg.SensitiveWords,
 		&cfg.Middleware,
@@ -78,7 +79,6 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Postgresql.Config,
 		&cfg.SoftwarePkg.Config,
 		&cfg.SoftwarePkg.DomainPrimitive,
-		&cfg.Maintainer,
 		&cfg.Translation,
 		&cfg.SigValidator,
 	}

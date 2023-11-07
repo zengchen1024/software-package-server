@@ -7,15 +7,22 @@ import (
 	commonctl "github.com/opensourceways/software-package-server/common/controller"
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/useradapter"
 )
 
 type SoftwarePkgController struct {
-	service app.SoftwarePkgService
+	service     app.SoftwarePkgService
+	userAdapter useradapter.UserAdapter
 }
 
-func AddRouteForSoftwarePkgController(r *gin.RouterGroup, pkgService app.SoftwarePkgService) {
+func AddRouteForSoftwarePkgController(
+	r *gin.RouterGroup,
+	s app.SoftwarePkgService,
+	u useradapter.UserAdapter,
+) {
 	ctl := SoftwarePkgController{
-		service: pkgService,
+		service:     s,
+		userAdapter: u,
 	}
 
 	m := middleware.UserChecking().CheckUser
@@ -56,7 +63,7 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	cmd, err := req.toCmd(&user)
+	cmd, err := req.toCmd(&user, ctl.userAdapter)
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 

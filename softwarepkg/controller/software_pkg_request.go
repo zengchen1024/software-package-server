@@ -2,10 +2,12 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/useradapter"
 )
 
 const (
@@ -14,17 +16,18 @@ const (
 )
 
 type softwarePkgRequest struct {
-	SpecUrl         string `json:"spec_url"        binding:"required"`
-	Upstream        string `json:"upstream"        binding:"required"`
-	SrcRPMURL       string `json:"src_rpm_url"     binding:"required"`
-	PackageName     string `json:"pkg_name"        binding:"required"`
-	PackageDesc     string `json:"desc"            binding:"required"`
-	PackageSig      string `json:"sig"             binding:"required"`
-	PackageReason   string `json:"reason"          binding:"required"`
-	PackagePlatform string `json:"platform"        binding:"required"`
+	SpecUrl         string   `json:"spec_url"        binding:"required"`
+	Upstream        string   `json:"upstream"        binding:"required"`
+	SrcRPMURL       string   `json:"src_rpm_url"     binding:"required"`
+	PackageSig      string   `json:"sig"             binding:"required"`
+	PackageName     string   `json:"pkg_name"        binding:"required"`
+	PackageDesc     string   `json:"desc"            binding:"required"`
+	PackageReason   string   `json:"reason"          binding:"required"`
+	PackagePlatform string   `json:"platform"        binding:"required"`
+	Committers      []string `json:"committers"`
 }
 
-func (s softwarePkgRequest) toCmd(importer *domain.User) (
+func (s *softwarePkgRequest) toCmd(importer *domain.User, m useradapter.UserAdapter) (
 	cmd app.CmdToApplyNewSoftwarePkg, err error,
 ) {
 	cmd.Importer = *importer
@@ -67,6 +70,16 @@ func (s softwarePkgRequest) toCmd(importer *domain.User) (
 	}
 
 	cmd.Repo.Platform, err = dp.NewPackagePlatform(s.PackagePlatform)
+	if err != nil {
+		return
+	}
+
+	users, err := toUsers(importer, m, s.Committers, cmd.Repo.Platform)
+	if err != nil {
+		return
+	}
+
+	cmd.Repo.Committers = toCommitters(users)
 
 	return
 }
@@ -225,4 +238,58 @@ func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
 		Pass:    req.Pass,
 		Comment: req.Comment,
 	}, nil
+}
+
+func toUsers(importer *domain.User, m useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
+	[]domain.User, error,
+) {
+	if len(committers) > 3 { // TODO config
+		return nil, errors.New("too many committers")
+	}
+
+	r := []domain.User{*importer}
+
+	if len(committers) == 0 {
+		return r, nil
+	}
+
+	v := map[string]bool{}
+	for _, c := range committers {
+		v[c] = true
+	}
+	if k := importer.Account.Account(); v[k] {
+		delete(v, k)
+	}
+
+	if len(v) == 0 {
+		return r, nil
+	}
+
+	for c := range v {
+		u, err := m.Find(c)
+		if err != nil {
+			return nil, err
+		}
+
+		if !u.ApplyTo(p) {
+			return nil, fmt.Errorf(
+				"committer doesn't have account of %s",
+				p.PackagePlatform(),
+			)
+		}
+
+		r = append(r, u)
+	}
+
+	return r, nil
+}
+
+func toCommitters(users []domain.User) []dp.Account {
+	v := make([]dp.Account, len(users))
+
+	for i := range users {
+		v[i] = users[i].Account
+	}
+
+	return v
 }
