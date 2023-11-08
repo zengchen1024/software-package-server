@@ -177,20 +177,6 @@ func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg, comments []domain.SoftwarePkg
 	}
 }
 
-func toSoftwarePkgApproverDTO(v []domain.SoftwarePkgApprover) (r []SoftwarePkgApproverDTO) {
-	if n := len(v); n > 0 {
-		r = make([]SoftwarePkgApproverDTO, n)
-		for i := range v {
-			r[i] = SoftwarePkgApproverDTO{
-				Account: v[i].Account.Account(),
-				IsTC:    v[i].IsTC,
-			}
-		}
-	}
-
-	return
-}
-
 // SoftwarePkgsDTO
 type SoftwarePkgsDTO struct {
 	Pkgs  []SoftwarePkgDTO `json:"pkgs"`

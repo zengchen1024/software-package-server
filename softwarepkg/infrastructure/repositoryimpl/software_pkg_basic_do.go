@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"gorm.io/plugin/optimisticlock"
 
@@ -136,21 +135,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 	return
 }
 
-func (do *SoftwarePkgBasicDO) toAccounts(v []string) (r []domain.SoftwarePkgApprover, err error) {
-	if len(v) == 0 {
-		return
-	}
-
-	r = make([]domain.SoftwarePkgApprover, len(v))
-	for i := range v {
-		if r[i], err = domain.StringToSoftwarePkgApprover(v[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
 func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) (err error) {
 	basic := &pkg.Basic
 
@@ -186,30 +170,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) 
 	code.Spec.Src, err = dp.NewURL(do.SpecURL)
 
 	return
-}
-
-func toStringArray(v []domain.SoftwarePkgApprover) (arr pq.StringArray) {
-	arr = make(pq.StringArray, len(v))
-	for i := range v {
-		arr[i] = v[i].String()
-	}
-
-	return
-}
-
-func marshalStringArray(sa pq.StringArray) (string, error) {
-	v, err := sa.Value()
-	if err != nil {
-		return "", err
-	}
-
-	if v != nil {
-		if s, ok := v.(string); ok {
-			return s, nil
-		}
-	}
-
-	return "{}", nil
 }
 
 func toEmailDO(e dp.Email) (string, error) {
