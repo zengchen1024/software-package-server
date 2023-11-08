@@ -27,7 +27,7 @@ type softwarePkgRequest struct {
 	Committers      []string `json:"committers"`
 }
 
-func (s *softwarePkgRequest) toCmd(importer *domain.User, m useradapter.UserAdapter) (
+func (s *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAdapter) (
 	cmd app.CmdToApplyNewSoftwarePkg, err error,
 ) {
 	cmd.Importer = *importer
@@ -74,7 +74,7 @@ func (s *softwarePkgRequest) toCmd(importer *domain.User, m useradapter.UserAdap
 		return
 	}
 
-	users, err := toUsers(importer, m, s.Committers, cmd.Repo.Platform)
+	users, err := toUsers(importer, ua, s.Committers, cmd.Repo.Platform)
 	if err != nil {
 		return
 	}
@@ -240,7 +240,7 @@ func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
 	}, nil
 }
 
-func toUsers(importer *domain.User, m useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
+func toUsers(importer *domain.User, ua useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
 	[]domain.User, error,
 ) {
 	if len(committers) > 3 { // TODO config
@@ -261,12 +261,8 @@ func toUsers(importer *domain.User, m useradapter.UserAdapter, committers []stri
 		delete(v, k)
 	}
 
-	if len(v) == 0 {
-		return r, nil
-	}
-
 	for c := range v {
-		u, err := m.Find(c)
+		u, err := ua.Find(c)
 		if err != nil {
 			return nil, err
 		}

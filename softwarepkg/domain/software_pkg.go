@@ -2,13 +2,15 @@ package domain
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/utils"
+)
+
+const (
+	gitee  = "gitee"
+	github = "github"
 )
 
 var (
@@ -27,11 +29,11 @@ type User struct {
 func (u *User) ApplyTo(p dp.PackagePlatform) bool {
 	v := p.PackagePlatform()
 
-	if v == "gitee" && u.GiteeID != "" {
+	if v == gitee && u.GiteeID != "" {
 		return true
 	}
 
-	if v == "github" && u.GithubID != "" {
+	if v == github && u.GithubID != "" {
 		return true
 	}
 
@@ -161,26 +163,6 @@ type SoftwarePkgCI struct {
 
 func (ci *SoftwarePkgCI) isSuccess() bool {
 	return ci.Status != nil && ci.Status.IsCIPassed()
-}
-
-// SoftwarePkgApprover
-type SoftwarePkgApprover struct {
-	Account dp.Account
-	IsTC    bool
-}
-
-func (approver *SoftwarePkgApprover) String() string {
-	return fmt.Sprintf("%s/%v", approver.Account.Account(), approver.IsTC)
-}
-
-func StringToSoftwarePkgApprover(s string) (r SoftwarePkgApprover, err error) {
-	items := strings.Split(s, "/")
-
-	if r.Account, err = dp.NewAccount(items[0]); err == nil {
-		r.IsTC, _ = strconv.ParseBool(items[1])
-	}
-
-	return
 }
 
 // SoftwarePkg
