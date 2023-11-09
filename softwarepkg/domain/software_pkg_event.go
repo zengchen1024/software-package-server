@@ -35,7 +35,6 @@ func UnmarshalToSoftwarePkgAppliedEvent(data []byte) (e softwarePkgAppliedEvent,
 // softwarePkgApprovedEvent
 type softwarePkgApprovedEvent struct {
 	Importer          string `json:"importer"`
-	ImporterEmail     string `json:"importer_email"`
 	PkgId             string `json:"pkg_id"`
 	PkgName           string `json:"pkg_name"`
 	PkgDesc           string `json:"pkg_desc"`
@@ -57,15 +56,14 @@ func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
 	code := &pkg.Code
 
 	return softwarePkgApprovedEvent{
-		Importer:          pkg.Importer.Account.Account(),
-		ImporterEmail:     pkg.Importer.Email.Email(),
+		Importer:          pkg.Importer.Account(),
 		PkgId:             pkg.Id,
 		PkgName:           basic.Name.PackageName(),
 		PkgDesc:           basic.Desc.PackageDesc(),
 		SpecURL:           code.Spec.Src.URL(),
 		Upstream:          basic.Upstream.URL(),
 		SrcRPMURL:         code.SRPM.Src.URL(),
-		CIPRNum:           pkg.CI.PRNum,
+		CIPRNum:           pkg.CI.Id,
 		Platform:          pkg.Repo.Platform.PackagePlatform(),
 		ImportingPkgSig:   pkg.Sig.ImportingPkgSig(),
 		ReasonToImportPkg: basic.Reason.ReasonToImportPkg(),

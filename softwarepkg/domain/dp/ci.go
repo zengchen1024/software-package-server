@@ -7,6 +7,7 @@ const (
 	packageCIStatusPassed  = "ci-passed"
 	packageCIStatusRunning = "ci-running"
 	packageCIStatusWaiting = "ci-waiting"
+	packageCIStatusTimeout = "ci-timeout"
 )
 
 var (
@@ -15,12 +16,14 @@ var (
 		packageCIStatusPassed:  true,
 		packageCIStatusRunning: true,
 		packageCIStatusWaiting: true,
+		packageCIStatusTimeout: true,
 	}
 
 	PackageCIStatusFailed  = packageCIStatus(packageCIStatusFailed)
 	PackageCIStatusPassed  = packageCIStatus(packageCIStatusPassed)
 	PackageCIStatusRunning = packageCIStatus(packageCIStatusRunning)
 	PackageCIStatusWaiting = packageCIStatus(packageCIStatusWaiting)
+	PackageCIStatusTimeout = packageCIStatus(packageCIStatusTimeout)
 )
 
 type packageCIStatus string
@@ -31,6 +34,7 @@ type PackageCIStatus interface {
 	IsCIPassed() bool
 	IsCIRunning() bool
 	IsCIWaiting() bool
+	IsCITimeout() bool
 }
 
 func NewPackageCIStatus(v string) (PackageCIStatus, error) {
@@ -59,4 +63,8 @@ func (p packageCIStatus) IsCIRunning() bool {
 
 func (p packageCIStatus) IsCIWaiting() bool {
 	return p == PackageCIStatusWaiting
+}
+
+func (p packageCIStatus) IsCITimeout() bool {
+	return p == PackageCIStatusTimeout
 }

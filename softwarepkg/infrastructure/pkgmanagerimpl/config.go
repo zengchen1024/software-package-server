@@ -61,22 +61,14 @@ func (cfg *metaDataRepo) setDefault() {
 type ExistingPkgDefaultInfo struct {
 	Platform       string `json:"platform"          required:"true"`
 	ImporterName   string `json:"importer_name"     required:"true"`
-	ImporterEmail  string `json:"importer_email"    required:"true"`
 	ReasonToImport string `json:"reason_to_import"  required:"true"`
 }
 
 func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, err error) {
 	info.Phase = dp.PackagePhaseImported
-	info.CI.Status = dp.PackageCIStatusPassed
 
 	// importer
-	importer := &info.Importer
-
-	if importer.Account, err = dp.NewAccount(cfg.ImporterName); err != nil {
-		return
-	}
-
-	if importer.Email, err = dp.NewEmail(cfg.ImporterEmail); err != nil {
+	if info.Importer, err = dp.NewAccount(cfg.ImporterName); err != nil {
 		return
 	}
 

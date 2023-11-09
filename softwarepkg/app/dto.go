@@ -52,11 +52,11 @@ func toSoftwarePkgDTO(v *domain.SoftwarePkg) SoftwarePkgDTO {
 		Id:        v.Id,
 		Sig:       v.Sig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
-		CIStatus:  v.CI.Status.PackageCIStatus(),
+		CIStatus:  v.CI.Status().PackageCIStatus(),
 		PkgDesc:   v.Basic.Desc.PackageDesc(),
 		PkgName:   v.Basic.Name.PackageName(),
 		Platform:  v.Repo.Platform.PackagePlatform(),
-		Importer:  v.Importer.Account.Account(),
+		Importer:  v.Importer.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
 

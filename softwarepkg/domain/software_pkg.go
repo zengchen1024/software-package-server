@@ -81,8 +81,8 @@ type SoftwarePkgCode struct {
 
 // SoftwarePkgCodeFile
 type SoftwarePkgCodeFile struct {
-	Src  dp.URL // Src is the url user inputed
-	Path dp.URL // Path is the url that the actual storage address of the file
+	Src   dp.URL // Src is the url user inputed
+	Local dp.URL // Local is the url that is the local address of the file
 }
 
 func (f *SoftwarePkgCodeFile) Name() string {
@@ -155,14 +155,80 @@ func (r *SoftwarePkgRepo) committersMap() map[string]bool {
 
 // SoftwarePkgCI
 type SoftwarePkgCI struct {
-	PRNum  int
-	Status dp.PackageCIStatus
-	// TODO deal with the case that the ci is timeout
-	//startTime int64
+	Id        int // The Id of running CI
+	status    dp.PackageCIStatus
+	StartTime int64 // deal with the case that the ci is timeout
+}
+
+func (ci *SoftwarePkgCI) start() (int, error) {
+	if !ci.status.IsCIWaiting() {
+		return 0, errors.New("can't do this")
+	}
+
+	ci.status = dp.PackageCIStatusRunning
+	ci.StartTime = utils.Now()
+	ci.Id++
+
+	return ci.Id, nil
+}
+
+func (ci *SoftwarePkgCI) rerun() error {
+	s := ci.Status()
+
+	if s.IsCIRunning() {
+		return allerror.New(allerror.ErrorCodeCIIsRunning, "ci is running")
+	}
+
+	if s.IsCIWaiting() {
+		return errors.New("duplicate operation")
+	}
+
+	ci.status = dp.PackageCIStatusWaiting
+	ci.StartTime = utils.Now()
+
+	return nil
+}
+
+func (ci *SoftwarePkgCI) done(ciId int, success bool) error {
+	if ci.Id != ciId || !ci.Status().IsCIRunning() {
+		return errors.New("ignore the ci result")
+	}
+
+	if success {
+		ci.status = dp.PackageCIStatusPassed
+	} else {
+		ci.status = dp.PackageCIStatusFailed
+	}
+
+	return nil
 }
 
 func (ci *SoftwarePkgCI) isSuccess() bool {
-	return ci.Status != nil && ci.Status.IsCIPassed()
+	return ci.status != nil && ci.status.IsCIPassed()
+}
+
+func (ci *SoftwarePkgCI) Status() dp.PackageCIStatus {
+	if ci.status == nil {
+		return nil
+	}
+
+	s := ci.status
+
+	// TODO config
+	if s.IsCIWaiting() {
+		if ci.StartTime+30 < utils.Now() {
+			return dp.PackageCIStatusTimeout
+		}
+
+		return s
+	}
+
+	// TODO config
+	if s.IsCIRunning() && ci.StartTime+300 < utils.Now() {
+		return dp.PackageCIStatusTimeout
+	}
+
+	return s
 }
 
 // SoftwarePkg
@@ -172,7 +238,7 @@ type SoftwarePkg struct {
 	Repo     SoftwarePkgRepo
 	Code     SoftwarePkgCode
 	Basic    SoftwarePkgBasicInfo
-	Importer User
+	Importer dp.Account
 
 	CI          SoftwarePkgCI
 	Logs        []SoftwarePkgOperationLog
@@ -257,7 +323,7 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 		return incorrectPhase
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
 		return notImporter
 	}
 
@@ -273,24 +339,18 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
+func (entity *SoftwarePkg) RerunCI(user *User) error {
 	if !entity.Phase.IsReviewing() {
-		return false, incorrectPhase
+		return incorrectPhase
 	}
 
-	if entity.CI.Status.IsCIRunning() {
-		return false, allerror.New(allerror.ErrorCodeCIIsRunning, "ci is running")
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
+		return notImporter
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
-		return false, notImporter
+	if err := entity.CI.rerun(); err != nil {
+		return err
 	}
-
-	if entity.CI.Status.IsCIWaiting() {
-		return false, nil
-	}
-
-	entity.CI = SoftwarePkgCI{Status: dp.PackageCIStatusWaiting}
 
 	entity.Logs = append(
 		entity.Logs,
@@ -299,7 +359,7 @@ func (entity *SoftwarePkg) RerunCI(user *User) (bool, error) {
 		),
 	)
 
-	return true, nil
+	return nil
 }
 
 func (entity *SoftwarePkg) UpdateApplication(
@@ -312,7 +372,7 @@ func (entity *SoftwarePkg) UpdateApplication(
 		return incorrectPhase
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer.Account) {
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
 		return notImporter
 	}
 
@@ -342,31 +402,20 @@ func (entity *SoftwarePkg) UpdateApplication(
 	return nil
 }
 
-func (entity *SoftwarePkg) HandleCIChecking() error {
-	b := entity.Phase.IsReviewing() && entity.CI.Status.IsCIWaiting()
-	if !b {
-		return errors.New("can't do this")
+func (entity *SoftwarePkg) HandleCIChecking() (int, error) {
+	if !entity.Phase.IsReviewing() {
+		return 0, errors.New("can't do this")
 	}
 
-	entity.CI.Status = dp.PackageCIStatusRunning
-	//entity.CI.startTime = utils.Now()
-
-	return nil
+	return entity.CI.start()
 }
 
-func (entity *SoftwarePkg) HandleCIChecked(success bool, prNum int) error {
-	if !entity.Phase.IsReviewing() || entity.CI.PRNum != prNum {
+func (entity *SoftwarePkg) HandleCIDone(ciId int, success bool) error {
+	if !entity.Phase.IsReviewing() {
 		return errors.New("can't do this")
 	}
 
-	if success {
-		entity.CI.PRNum = prNum
-		entity.CI.Status = dp.PackageCIStatusPassed
-	} else {
-		entity.CI.Status = dp.PackageCIStatusFailed
-	}
-
-	return nil
+	return entity.CI.done(ciId, success)
 }
 
 func (entity *SoftwarePkg) HandlePkgInitialized(pr dp.URL) error {
@@ -420,9 +469,9 @@ func NewSoftwarePkg(
 		Repo:     *repo,
 		Code:     *code,
 		Basic:    *basic,
-		Importer: *importer,
+		Importer: importer.Account,
 
-		CI:        SoftwarePkgCI{Status: dp.PackageCIStatusWaiting},
+		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting},
 		Phase:     dp.PackagePhaseReviewing,
 		AppliedAt: utils.Now(),
 	}
