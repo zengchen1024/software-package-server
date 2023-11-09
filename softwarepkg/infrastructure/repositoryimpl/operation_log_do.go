@@ -20,21 +20,18 @@ func (t operationLog) toOperationLogDO(v *domain.SoftwarePkgOperationLog, do *op
 	*do = operationLogDO{
 		Id:        uuid.New(),
 		User:      v.User.Account(),
-		PkgId:     v.PkgId,
 		Action:    v.Action.PackageOperationLogAction(),
 		CreatedAt: v.Time,
 	}
 }
 
 func (do *operationLogDO) toSoftwarePkgOperationLog() (v domain.SoftwarePkgOperationLog, err error) {
-	v.Id = do.Id.String()
 	if v.User, err = dp.NewAccount(do.User); err != nil {
 		return
 	}
 
 	v.Time = do.CreatedAt
 	v.Action = dp.NewPackageOperationLogAction(do.Action)
-	v.PkgId = do.PkgId
 
 	return
 }

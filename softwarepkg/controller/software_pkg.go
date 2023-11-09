@@ -7,6 +7,7 @@ import (
 	commonctl "github.com/opensourceways/software-package-server/common/controller"
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/useradapter"
 )
 
@@ -159,7 +160,12 @@ func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctl.service.Review(ctx.Param("id"), &user, info); err != nil {
+	reviewer := domain.Reviewer{
+		Account: user.Account,
+		GiteeID: user.GiteeID,
+	}
+
+	if err := ctl.service.Review(ctx.Param("id"), &reviewer, info); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
@@ -183,7 +189,12 @@ func (ctl SoftwarePkgController) Reject(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctl.service.Reject(ctx.Param("id"), &user); err != nil {
+	reviewer := domain.Reviewer{
+		Account: user.Account,
+		GiteeID: user.GiteeID,
+	}
+
+	if err := ctl.service.Reject(ctx.Param("id"), &reviewer); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)

@@ -100,16 +100,16 @@ func (s *softwarePkgService) TranslateReviewComment(
 	return
 }
 
-func (s *softwarePkgService) Review(pid string, user *domain.User, reviews []domain.CheckItemReviewInfo) (err error) {
+func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error) {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
 	approved, err := pkg.AddReview(&domain.UserReview{
-		User:    *user,
-		Reviews: reviews,
-	})
+		Reviewer: *user,
+		Reviews:  reviews,
+	}, nil) // TODO nil
 	if err != nil {
 		return
 	}
@@ -139,7 +139,7 @@ func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkg) {
 	}
 }
 
-func (s *softwarePkgService) Reject(pid string, user *domain.User) error {
+func (s *softwarePkgService) Reject(pid string, user *domain.Reviewer) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)

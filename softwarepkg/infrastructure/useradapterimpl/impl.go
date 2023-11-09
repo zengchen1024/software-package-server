@@ -71,9 +71,13 @@ func (impl *userAdapterImpl) Find(giteeAccount string) (domain.User, error) {
 	return domain.User{}, errors.New("unimplemented")
 }
 
-func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.User) (roles []dp.CommunityRole) {
-	if pkg.IsCommitter(user) {
+func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.Reviewer) (roles []dp.CommunityRole) {
+	if pkg.IsCommitter(user.Account) {
 		roles = append(roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
+	}
+
+	if user.GiteeID == "" {
+		return
 	}
 
 	v := impl.agent.GetData()

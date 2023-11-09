@@ -9,8 +9,6 @@ import (
 
 // SoftwarePkgOperationLog
 type SoftwarePkgOperationLog struct {
-	Id     string
-	PkgId  string
 	Time   int64
 	User   dp.Account
 	Action dp.PackageOperationLogAction
@@ -18,19 +16,17 @@ type SoftwarePkgOperationLog struct {
 
 func (log *SoftwarePkgOperationLog) String() string {
 	return fmt.Sprintf(
-		"%s %s %s at %s",
+		"%s %s at %s",
 		log.User.Account(),
 		log.Action.PackageOperationLogAction(),
-		log.PkgId,
 		utils.ToDateTime(log.Time),
 	)
 }
 
 func NewSoftwarePkgOperationLog(
-	user dp.Account, action dp.PackageOperationLogAction, pkgId string,
+	user dp.Account, action dp.PackageOperationLogAction,
 ) SoftwarePkgOperationLog {
 	return SoftwarePkgOperationLog{
-		PkgId:  pkgId,
 		Time:   utils.Now(),
 		User:   user,
 		Action: action,

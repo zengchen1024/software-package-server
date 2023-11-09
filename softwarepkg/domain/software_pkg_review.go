@@ -5,47 +5,46 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+type Reviewer struct {
+	Account dp.Account
+	GiteeID string
+}
+
 type maintainer interface {
-	Roles(*SoftwarePkg, *User) []dp.CommunityRole
+	Roles(*SoftwarePkg, *Reviewer) []dp.CommunityRole
 }
 
 var maintainerInstance maintainer
 
-// SoftwarePkgReview
-type SoftwarePkgReview struct {
-	Items   []CheckItem
-	Reviews []UserReview
-}
-
-func (r *SoftwarePkgReview) add(pkg *SoftwarePkg, ur *UserReview) error {
+func (pkg *SoftwarePkg) addReview(ur *UserReview, items []CheckItem) error {
 	uri := ur.internal(pkg)
 
-	if err := uri.validate(r.Items); err != nil {
+	if err := uri.validate(items); err != nil {
 		return err
 	}
 
-	for i := range r.Reviews {
-		if dp.IsSameAccount(r.Reviews[i].User.Account, ur.User.Account) {
-			r.Reviews[i] = *ur
+	for i := range pkg.Reviews {
+		if dp.IsSameAccount(pkg.Reviews[i].Reviewer.Account, ur.Reviewer.Account) {
+			pkg.Reviews[i] = *ur
 
 			return nil
 		}
 	}
 
-	r.Reviews = append(r.Reviews, *ur)
+	pkg.Reviews = append(pkg.Reviews, *ur)
 
 	return nil
 }
 
-func (r *SoftwarePkgReview) pass(pkg *SoftwarePkg) bool {
-	reviews := make([]userReview, len(r.Reviews))
+func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
+	reviews := make([]userReview, len(pkg.Reviews))
 
-	for i := range r.Reviews {
-		reviews[i] = r.Reviews[i].internal(pkg)
+	for i := range pkg.Reviews {
+		reviews[i] = pkg.Reviews[i].internal(pkg)
 	}
 
-	for i := range r.Items {
-		rf := checkItemReview(&r.Items[i], reviews)
+	for i := range items {
+		rf := checkItemReview(&items[i], reviews)
 
 		if !dp.IsCheckItemPass(rf.Result()) {
 			return false
@@ -55,15 +54,15 @@ func (r *SoftwarePkgReview) pass(pkg *SoftwarePkg) bool {
 	return true
 }
 
-func (r *SoftwarePkgReview) clear(pkg *SoftwarePkg, categories []dp.CheckItemCategory) {
-	reviews := make([]userReview, len(r.Reviews))
+func (pkg *SoftwarePkg) clearReview(categories []dp.CheckItemCategory, items []CheckItem) {
+	reviews := make([]userReview, len(pkg.Reviews))
 
-	for i := range r.Reviews {
-		reviews[i] = r.Reviews[i].internal(pkg)
+	for i := range pkg.Reviews {
+		reviews[i] = pkg.Reviews[i].internal(pkg)
 	}
 
-	for i := range r.Items {
-		if v := &r.Items[i]; v.isCategory(categories) {
+	for i := range items {
+		if v := &items[i]; v.isCategory(categories) {
 			for j := range reviews {
 				reviews[j].clear(v)
 			}
@@ -93,7 +92,7 @@ func checkItemReview(item *CheckItem, reviews []userReview) (rf CheckItemReview)
 
 // UserReview
 type UserReview struct {
-	User
+	Reviewer
 
 	Reviews []CheckItemReviewInfo
 }
@@ -101,7 +100,7 @@ type UserReview struct {
 func (r *UserReview) internal(pkg *SoftwarePkg) userReview {
 	return userReview{
 		UserReview: r,
-		roles:      maintainerInstance.Roles(pkg, &r.User),
+		roles:      maintainerInstance.Roles(pkg, &r.Reviewer),
 	}
 }
 
@@ -159,7 +158,7 @@ func (r *userReview) userCheckItemReview(item *CheckItem) (UserCheckItemReview, 
 	}
 
 	return UserCheckItemReview{
-		User:                &r.User,
+		Reviewer:            &r.Reviewer,
 		Roles:               r.roles,
 		CheckItemReviewInfo: info,
 	}, true
@@ -197,7 +196,7 @@ func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
 
 // UserCheckItemReview
 type UserCheckItemReview struct {
-	*User
+	*Reviewer
 	*CheckItemReviewInfo
 
 	Roles []dp.CommunityRole
@@ -218,12 +217,14 @@ type CheckItem struct {
 	Owner    dp.CommunityRole
 	Category dp.CheckItemCategory
 
-	// if true, keep the review record of reviewer who is still the owner of this item
-	// else, clear all the records about this item
+	// If true, keep the review record of reviewer who is still the owner of this item
+	// else, clear all the records about this item.
+	// For example, the review about the item that the user aggreed to
+	// to be committer of the pkg should be kept when the committers was changed.
 	KeepOwnerReview bool
 
-	// if true, only the owner can review this item
-	// else, anyone can review.
+	// If true, only the owner can review this item else anyone can review.
+	// For example, onlye sig maintainer can determine whether the sig of pkg is correct.
 	OnlyOwnerCanReview bool
 }
 
