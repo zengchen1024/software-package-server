@@ -22,8 +22,8 @@ type SoftwarePkgService interface {
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
 
-	Review(pid string, user *domain.User, reviews []domain.CheckItemReviewInfo) (err error)
-	Reject(string, *domain.User) error
+	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
+	Reject(string, *domain.Reviewer) error
 	Abandon(string, *domain.User) error
 	RerunCI(string, *domain.User) error
 	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
@@ -121,7 +121,7 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 		return parseErrorForFindingPkg(err)
 	}
 
-	err = pkg.UpdateApplication(&cmd.Importer, cmd.Sig, &cmd.Repo, &cmd.Basic)
+	err = pkg.UpdateApplication(&cmd.Importer, cmd.Sig, &cmd.Repo, &cmd.Basic, nil) // TODO nil
 	if err != nil {
 		return err
 	}

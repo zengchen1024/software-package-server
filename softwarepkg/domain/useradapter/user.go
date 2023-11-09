@@ -8,5 +8,5 @@ import (
 type UserAdapter interface {
 	Find(string) (domain.User, error)
 
-	Roles(*domain.SoftwarePkg, *domain.User) []dp.CommunityRole
+	Roles(*domain.SoftwarePkg, *domain.Reviewer) []dp.CommunityRole
 }

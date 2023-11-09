@@ -96,9 +96,9 @@ type SoftwarePkgRepo struct {
 	Committers []dp.Account
 }
 
-func (r *SoftwarePkgRepo) isCommitter(u *User) bool {
+func (r *SoftwarePkgRepo) isCommitter(u dp.Account) bool {
 	for i := range r.Committers {
-		if dp.IsSameAccount(r.Committers[i], u.Account) {
+		if dp.IsSameAccount(r.Committers[i], u) {
 			return true
 		}
 	}
@@ -243,12 +243,12 @@ type SoftwarePkg struct {
 	CI          SoftwarePkgCI
 	Logs        []SoftwarePkgOperationLog
 	Phase       dp.PackagePhase
-	Review      SoftwarePkgReview
+	Reviews     []UserReview
 	AppliedAt   int64
 	CommunityPR dp.URL
 }
 
-func (entity *SoftwarePkg) IsCommitter(user *User) bool {
+func (entity *SoftwarePkg) IsCommitter(user dp.Account) bool {
 	return entity.Repo.isCommitter(user)
 }
 
@@ -256,7 +256,7 @@ func (entity *SoftwarePkg) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
 }
 
-func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
+func (entity *SoftwarePkg) AddReview(ur *UserReview, items []CheckItem) (bool, error) {
 	if !entity.Phase.IsReviewing() {
 		return false, incorrectPhase
 	}
@@ -267,18 +267,18 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 		)
 	}
 
-	if err := entity.Review.add(entity, ur); err != nil {
+	if err := entity.addReview(ur, items); err != nil {
 		return false, err
 	}
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			ur.User.Account, dp.PackageOperationLogActionReview, entity.Id,
+			ur.Reviewer.Account, dp.PackageOperationLogActionReview,
 		),
 	)
 
-	b := entity.Review.pass(entity)
+	b := entity.doesPassReview(items)
 	if b {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
@@ -286,7 +286,7 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 	return b, nil
 }
 
-func (entity *SoftwarePkg) RejectBy(user *User) error {
+func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
 	}
@@ -311,7 +311,7 @@ func (entity *SoftwarePkg) RejectBy(user *User) error {
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionReject, entity.Id,
+			user.Account, dp.PackageOperationLogActionReject,
 		),
 	)
 
@@ -332,7 +332,7 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionAbandon, entity.Id,
+			user.Account, dp.PackageOperationLogActionAbandon,
 		),
 	)
 
@@ -355,7 +355,7 @@ func (entity *SoftwarePkg) RerunCI(user *User) error {
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionResunci, entity.Id,
+			user.Account, dp.PackageOperationLogActionResunci,
 		),
 	)
 
@@ -367,6 +367,7 @@ func (entity *SoftwarePkg) UpdateApplication(
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
 	basic *SoftwarePkgBasicInfo,
+	items []CheckItem,
 ) error {
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
@@ -389,13 +390,13 @@ func (entity *SoftwarePkg) UpdateApplication(
 	}
 
 	if len(categories) > 0 {
-		entity.Review.clear(entity, categories)
+		entity.clearReview(categories, items)
 	}
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionUpdate, entity.Id,
+			user.Account, dp.PackageOperationLogActionUpdate,
 		),
 	)
 
