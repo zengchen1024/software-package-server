@@ -23,13 +23,14 @@ type CmdToHandlePkgCIChecked struct {
 	PkgId    string
 	Detail   string
 	Success  bool
+	CIId     int
 	PRNumber int
 }
 
 func (cmd *CmdToHandlePkgCIChecked) logString() string {
 	return fmt.Sprintf(
-		"handling pkg ci checked, pkgid:%s, pr number:%d",
-		cmd.PkgId, cmd.PRNumber,
+		"handling pkg ci checked, pkgid:%s, ci id:%d",
+		cmd.PkgId, cmd.CIId,
 	)
 }
 

@@ -58,16 +58,15 @@ func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCICheck
 		return err
 	}
 
-	if err = pkg.HandleCIChecking(); err != nil {
-		return err
-	}
-
-	prNum, err := s.ci.SendTest(&pkg)
+	_, err = pkg.HandleCIChecking()
 	if err != nil {
 		return err
 	}
 
-	pkg.CI.PRNum = prNum
+	// TODO send ciId to test
+	if _, err = s.ci.SendTest(&pkg); err != nil {
+		return err
+	}
 
 	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
 		logrus.Errorf(
@@ -93,7 +92,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 		)
 	}
 
-	if err := pkg.HandleCIChecked(cmd.Success, cmd.PRNumber); err != nil {
+	if err := pkg.HandleCIDone(cmd.CIId, cmd.Success); err != nil {
 		return err
 	}
 

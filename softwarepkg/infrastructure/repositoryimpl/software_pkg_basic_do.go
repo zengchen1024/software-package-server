@@ -26,24 +26,16 @@ const (
 )
 
 func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *SoftwarePkgBasicDO) (err error) {
-	email, err := toEmailDO(pkg.Importer.Email)
-	if err != nil {
-		return err
-	}
-
 	code := &pkg.Code
 	basic := &pkg.Basic
 
 	*do = SoftwarePkgBasicDO{
 		Id:              uuid.New(),
 		PackageName:     basic.Name.PackageName(),
-		Importer:        pkg.Importer.Account.Account(),
-		ImporterEmail:   email,
+		Importer:        pkg.Importer.Account(),
 		Phase:           pkg.Phase.PackagePhase(),
-		CIPRNum:         pkg.CI.PRNum,
-		CIStatus:        pkg.CI.Status.PackageCIStatus(),
 		SpecURL:         code.Spec.Src.URL(),
-		SrcRPMURL:       code.SRPM.Path.URL(),
+		SrcRPMURL:       code.SRPM.Local.URL(),
 		Upstream:        basic.Upstream.URL(),
 		PackageDesc:     basic.Desc.PackageDesc(),
 		PackagePlatform: pkg.Repo.Platform.PackagePlatform(),
@@ -112,11 +104,7 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 		}
 	}
 
-	if info.Importer.Account, err = dp.NewAccount(do.Importer); err != nil {
-		return
-	}
-
-	if info.Importer.Email, err = toEmail(do.ImporterEmail); err != nil {
+	if info.Importer, err = dp.NewAccount(do.Importer); err != nil {
 		return
 	}
 
@@ -125,12 +113,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkg() (info domain.SoftwarePkg, err erro
 	}
 
 	info.AppliedAt = do.AppliedAt
-
-	if info.CI.Status, err = dp.NewPackageCIStatus(do.CIStatus); err != nil {
-		return
-	}
-
-	info.CI.PRNum = do.CIPRNum
 
 	return
 }

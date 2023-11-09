@@ -171,15 +171,12 @@ func (s *softwarePkgService) RerunCI(pid string, user *domain.User) error {
 		return parseErrorForFindingPkg(err)
 	}
 
-	changed, err := pkg.RerunCI(user)
-	if err != nil {
+	if err = pkg.RerunCI(user); err != nil {
 		return err
 	}
 
-	if changed {
-		if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-			return err
-		}
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return err
 	}
 
 	e := domain.NewSoftwarePkgAppUpdatedEvent(&pkg)
