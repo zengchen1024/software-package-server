@@ -139,7 +139,7 @@ func main() {
 	defer useradapterimpl.Exit()
 
 	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter())
+	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter(), nil)
 
 	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 

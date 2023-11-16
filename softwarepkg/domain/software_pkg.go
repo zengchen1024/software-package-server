@@ -14,9 +14,16 @@ const (
 )
 
 var (
-	notImporter    = allerror.NewNoPermission("not the importer")
+	ciInstance     pkgCI
+	notfound       = allerror.NewNotFound(allerror.ErrorCodePkgNotFound, "not found")
 	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
 )
+
+type pkgCI interface {
+	// return new pr num
+	StartNewCI(pkg *SoftwarePkg) (int, error)
+	ClearCI(pkg *SoftwarePkg) error
+}
 
 type User struct {
 	Email   dp.Email
@@ -79,15 +86,96 @@ type SoftwarePkgCode struct {
 	SRPM SoftwarePkgCodeFile
 }
 
-// SoftwarePkgCodeFile
-type SoftwarePkgCodeFile struct {
-	Src   dp.URL // Src is the url user inputed
-	Local dp.URL // Local is the url that is the local address of the file
+func (code *SoftwarePkgCode) isReady() bool {
+	return code.Spec.isReady() && code.SRPM.isReady()
 }
 
-func (f *SoftwarePkgCodeFile) Name() string {
-	// TODO
-	return ""
+func (code *SoftwarePkgCode) update(spec, srpm dp.URL) {
+	if spec != nil {
+		code.Spec.update(spec)
+	}
+
+	if srpm != nil {
+		code.SRPM.update(srpm)
+	}
+}
+
+func (code *SoftwarePkgCode) filesToDownload() []SoftwarePkgCodeInfo {
+	r := []SoftwarePkgCodeInfo{}
+
+	if !code.Spec.isReady() {
+		r = append(r, code.Spec.SoftwarePkgCodeInfo)
+	}
+
+	if !code.SRPM.isReady() {
+		r = append(r, code.SRPM.SoftwarePkgCodeInfo)
+	}
+
+	return r
+}
+
+func (code *SoftwarePkgCode) saveDownloadedFiles(infos []SoftwarePkgCodeInfo) (changed bool) {
+	spec := false
+
+	for i := range infos {
+		item := &infos[i]
+
+		if !spec && code.Spec.saveLocalPath(item) {
+			changed = true
+		}
+
+		if code.SRPM.saveLocalPath(item) {
+			changed = true
+		}
+	}
+
+	return
+}
+
+// SoftwarePkgCodeInfo
+type SoftwarePkgCodeInfo struct {
+	Src       dp.URL // Src is the url user inputed
+	Local     dp.URL // Local is the url that is the local address of the file
+	UpdatedAt int64
+}
+
+func (f *SoftwarePkgCodeInfo) FileName() string {
+	return f.Src.FileName()
+}
+
+func (info *SoftwarePkgCodeInfo) isSame(info1 *SoftwarePkgCodeInfo) bool {
+	return info.UpdatedAt == info1.UpdatedAt && info.Src.URL() == info1.Src.URL()
+}
+
+// SoftwarePkgCodeFile
+type SoftwarePkgCodeFile struct {
+	SoftwarePkgCodeInfo
+
+	Dirty bool // if true, the code should be updated.
+	//Reason string // the reason why can't download the code file
+}
+
+func (f *SoftwarePkgCodeFile) isReady() bool {
+	return f.Local != nil && !f.Dirty
+}
+
+func (f *SoftwarePkgCodeFile) update(src dp.URL) {
+	f.Src = src
+	f.Local = nil
+	f.Dirty = true
+	// f.Reason = ""
+	f.UpdatedAt = utils.Now()
+}
+
+func (f *SoftwarePkgCodeFile) saveLocalPath(info *SoftwarePkgCodeInfo) bool {
+	if !f.isReady() && f.isSame(info) {
+		f.Local = info.Local
+		f.Dirty = false
+
+		return true
+	}
+
+	return false
 }
 
 // SoftwarePkgRepo
@@ -106,25 +194,18 @@ func (r *SoftwarePkgRepo) isCommitter(u dp.Account) bool {
 	return false
 }
 
-func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) []dp.CheckItemCategory {
-	b := false
-	categories := []dp.CheckItemCategory{}
-
-	if r.Platform.PackagePlatform() != r1.Platform.PackagePlatform() {
-		b = true
+func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) dp.CheckItemCategory {
+	if p := r1.Platform; p != nil && r.Platform.PackagePlatform() != p.PackagePlatform() {
+		r.Platform = p
 	}
 
-	if !r.isSameCommitters(r1) {
-		categories = append(categories, dp.CheckItemCategoryCommitter)
+	if len(r1.Committers) > 0 && !r.isSameCommitters(r1) {
+		r.Committers = r1.Committers
 
-		b = true
+		return dp.CheckItemCategoryCommitter
 	}
 
-	if b {
-		*r = *r1
-	}
-
-	return categories
+	return nil
 }
 
 func (r *SoftwarePkgRepo) isSameCommitters(r1 *SoftwarePkgRepo) bool {
@@ -160,19 +241,23 @@ type SoftwarePkgCI struct {
 	StartTime int64 // deal with the case that the ci is timeout
 }
 
-func (ci *SoftwarePkgCI) start() (int, error) {
+func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
 	if !ci.status.IsCIWaiting() {
-		return 0, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
 	ci.status = dp.PackageCIStatusRunning
 	ci.StartTime = utils.Now()
-	ci.Id++
 
-	return ci.Id, nil
+	v, err := ciInstance.StartNewCI(pkg)
+	if err == nil {
+		ci.Id = v
+	}
+
+	return err
 }
 
-func (ci *SoftwarePkgCI) rerun() error {
+func (ci *SoftwarePkgCI) retest() error {
 	s := ci.Status()
 
 	if s.IsCIRunning() {
@@ -200,6 +285,8 @@ func (ci *SoftwarePkgCI) done(ciId int, success bool) error {
 		ci.status = dp.PackageCIStatusFailed
 	}
 
+	ci.StartTime = 0
+
 	return nil
 }
 
@@ -213,15 +300,6 @@ func (ci *SoftwarePkgCI) Status() dp.PackageCIStatus {
 	}
 
 	s := ci.status
-
-	// TODO config
-	if s.IsCIWaiting() {
-		if ci.StartTime+30 < utils.Now() {
-			return dp.PackageCIStatusTimeout
-		}
-
-		return s
-	}
 
 	// TODO config
 	if s.IsCIRunning() && ci.StartTime+300 < utils.Now() {
@@ -254,6 +332,14 @@ func (entity *SoftwarePkg) IsCommitter(user dp.Account) bool {
 
 func (entity *SoftwarePkg) CanAddReviewComment() bool {
 	return entity.Phase.IsReviewing()
+}
+
+func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeInfo {
+	return entity.Code.filesToDownload()
+}
+
+func (entity *SoftwarePkg) SaveDownloadedFiles(infos []SoftwarePkgCodeInfo) bool {
+	return entity.Code.saveDownloadedFiles(infos)
 }
 
 func (entity *SoftwarePkg) AddReview(ur *UserReview, items []CheckItem) (bool, error) {
@@ -319,12 +405,12 @@ func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 }
 
 func (entity *SoftwarePkg) Abandon(user *User) error {
-	if !entity.Phase.IsReviewing() {
-		return incorrectPhase
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
+		return notfound
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
-		return notImporter
+	if !entity.Phase.IsReviewing() {
+		return incorrectPhase
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
@@ -339,23 +425,27 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) RerunCI(user *User) error {
+func (entity *SoftwarePkg) Retest(user *User) error {
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
+		return notfound
+	}
+
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
-		return notImporter
+	if !entity.Code.isReady() {
+		return allerror.New(allerror.ErrorCodePkgCodeNotReady, "code not ready")
 	}
 
-	if err := entity.CI.rerun(); err != nil {
+	if err := entity.CI.retest(); err != nil {
 		return err
 	}
 
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionResunci,
+			user.Account, dp.PackageOperationLogActionRetest,
 		),
 	)
 
@@ -367,14 +457,15 @@ func (entity *SoftwarePkg) UpdateApplication(
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
 	basic *SoftwarePkgBasicInfo,
-	items []CheckItem,
+	spec dp.URL,
+	srpm dp.URL,
 ) error {
-	if !entity.Phase.IsReviewing() {
-		return incorrectPhase
+	if !dp.IsSameAccount(user.Account, entity.Importer) {
+		return notfound
 	}
 
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
-		return notImporter
+	if !entity.Phase.IsReviewing() {
+		return incorrectPhase
 	}
 
 	categories := entity.Basic.update(basic)
@@ -385,13 +476,23 @@ func (entity *SoftwarePkg) UpdateApplication(
 		entity.Sig = sig
 	}
 
-	if v := entity.Repo.update(repo); len(v) > 0 {
-		categories = append(categories, v...)
+	if v := entity.Repo.update(repo); v != nil {
+		categories = append(categories, v)
 	}
 
-	if len(categories) > 0 {
-		entity.clearReview(categories, items)
+	if spec != nil || srpm != nil {
+		entity.Code.update(spec, srpm)
+		categories = append(categories, dp.CheckItemCategoryCode)
 	}
+
+	if len(categories) == 0 {
+		return errors.New("nothing changed")
+	}
+
+	// TODO
+	var items []CheckItem
+
+	entity.clearReview(categories, items)
 
 	entity.Logs = append(
 		entity.Logs,
@@ -403,12 +504,12 @@ func (entity *SoftwarePkg) UpdateApplication(
 	return nil
 }
 
-func (entity *SoftwarePkg) HandleCIChecking() (int, error) {
+func (entity *SoftwarePkg) StartCI() error {
 	if !entity.Phase.IsReviewing() {
-		return 0, errors.New("can't do this")
+		return errors.New("can't do this")
 	}
 
-	return entity.CI.start()
+	return entity.CI.start(entity)
 }
 
 func (entity *SoftwarePkg) HandleCIDone(ciId int, success bool) error {
@@ -431,7 +532,7 @@ func (entity *SoftwarePkg) HandlePkgInitialized(pr dp.URL) error {
 
 func (entity *SoftwarePkg) HandlePkgAlreadyExisted() error {
 	if !entity.Phase.IsCreatingRepo() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
@@ -439,18 +540,9 @@ func (entity *SoftwarePkg) HandlePkgAlreadyExisted() error {
 	return nil
 }
 
-type RepoCreatedInfo struct {
-	Platform dp.PackagePlatform
-	RepoLink dp.URL
-}
-
-func (entity *SoftwarePkg) HandleRepoCreated(info RepoCreatedInfo) error {
-	return nil
-}
-
-func (entity *SoftwarePkg) HandleCodeSaved(info RepoCreatedInfo) error {
-	if err := entity.HandleRepoCreated(info); err != nil {
-		return err
+func (entity *SoftwarePkg) HandleRepoCodePushed() error {
+	if !entity.Phase.IsCreatingRepo() {
+		return incorrectPhase
 	}
 
 	entity.Phase = dp.PackagePhaseImported
@@ -461,19 +553,25 @@ func (entity *SoftwarePkg) HandleCodeSaved(info RepoCreatedInfo) error {
 func NewSoftwarePkg(
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
-	code *SoftwarePkgCode,
 	basic *SoftwarePkgBasicInfo,
+	spec dp.URL,
+	srpm dp.URL,
 	importer *User,
 ) SoftwarePkg {
-	return SoftwarePkg{
+	pkg := SoftwarePkg{
 		Sig:      sig,
 		Repo:     *repo,
-		Code:     *code,
 		Basic:    *basic,
 		Importer: importer.Account,
 
-		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting},
+		CI: SoftwarePkgCI{
+			status: dp.PackageCIStatusWaiting,
+		},
 		Phase:     dp.PackagePhaseReviewing,
 		AppliedAt: utils.Now(),
 	}
+
+	pkg.Code.update(spec, srpm)
+
+	return pkg
 }

@@ -4,16 +4,16 @@ const (
 	packageOperationLogActionUpdate  = "update"
 	packageOperationLogActionReject  = "reject"
 	packageOperationLogActionReview  = "review"
+	packageOperationLogActionRetest  = "retest"
 	packageOperationLogActionAbandon = "abandon"
-	packageOperationLogActionRerunci = "rerunci"
 )
 
 var (
 	PackageOperationLogActionUpdate  = packageOperationLogAction(packageOperationLogActionUpdate)
 	PackageOperationLogActionReject  = packageOperationLogAction(packageOperationLogActionReject)
 	PackageOperationLogActionReview  = packageOperationLogAction(packageOperationLogActionReview)
+	PackageOperationLogActionRetest  = packageOperationLogAction(packageOperationLogActionRetest)
 	PackageOperationLogActionAbandon = packageOperationLogAction(packageOperationLogActionAbandon)
-	PackageOperationLogActionResunci = packageOperationLogAction(packageOperationLogActionRerunci)
 )
 
 type PackageOperationLogAction interface {

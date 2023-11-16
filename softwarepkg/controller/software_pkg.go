@@ -71,8 +71,8 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 		return
 	}
 
-	if r, code, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
+	if r, err := ctl.service.ApplyNewPkg(&cmd); err != nil {
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPost(ctx, r)
 	}
@@ -354,7 +354,7 @@ func (ctl SoftwarePkgController) RerunCI(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctl.service.RerunCI(ctx.Param("id"), &user); err != nil {
+	if err := ctl.service.Retest(ctx.Param("id"), &user); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)

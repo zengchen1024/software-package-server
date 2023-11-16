@@ -1,9 +1,9 @@
 package main
 
 import (
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/utils"
 
-	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -42,30 +42,28 @@ type postgresqlConfig struct {
 }
 
 type Config struct {
-	Kafka          kafka.Config            `json:"kafka"                required:"true"`
-	Topics         Topics                  `json:"topics_to_subscribe"  required:"true"`
-	GroupName      string                  `json:"group_name"           required:"true"`
-	Encryption     localutils.Config       `json:"encryption"           required:"true"`
-	Postgresql     postgresqlConfig        `json:"postgresql"           required:"true"`
-	PkgManager     pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
-	SoftwarePkg    domainConfig            `json:"software_pkg"         required:"true"`
-	TopicsToNotify TopicsToNotify          `json:"topics_to_notify"     required:"true"`
-	SigValidator   sigvalidatorimpl.Config `json:"sig"                  required:"true"`
-	PkgCI          pkgciimpl.Config        `json:"ci"                   required:"true"`
+	Kafka        kfklib.Config           `json:"kafka"                required:"true"`
+	Topics       Topics                  `json:"topics_to_subscribe"  required:"true"`
+	GroupName    string                  `json:"group_name"           required:"true"`
+	Encryption   localutils.Config       `json:"encryption"           required:"true"`
+	Postgresql   postgresqlConfig        `json:"postgresql"           required:"true"`
+	PkgManager   pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
+	SoftwarePkg  domainConfig            `json:"software_pkg"         required:"true"`
+	SigValidator sigvalidatorimpl.Config `json:"sig"                  required:"true"`
+	PkgCI        pkgciimpl.Config        `json:"ci"                   required:"true"`
 }
 
 type Topics struct {
-	SoftwarePkgCIChecking     string `json:"software_pkg_ci_checking"      required:"true"`
-	SoftwarePkgCIChecked      string `json:"software_pkg_ci_checked"       required:"true"`
-	SoftwarePkgCodeSaved      string `json:"software_pkg_code_saved"       required:"true"`
-	SoftwarePkgInitialized    string `json:"software_pkg_initialized"      required:"true"`
-	SoftwarePkgRepoCreated    string `json:"software_pkg_repo_created"     required:"true"`
+	SoftwarePkgCIDone         string `json:"software_pkg_ci_done"          required:"true"`
+	SoftwarePkgApplied        string `json:"software_pkg_applied"          required:"true"`
+	SoftwarePkgRetested       string `json:"software_pkg_retested"         required:"true"`
+	SoftwarePkgRepoCodePushed string `json:"software_pkg_repo_code_pushed" required:"true"`
 	SoftwarePkgAlreadyExisted string `json:"software_pkg_already_existed"  required:"true"`
-}
 
-type TopicsToNotify struct {
-	AlreadyClosedSoftwarePkg      string `json:"already_closed_software_pkg"        required:"true"`
-	IndirectlyApprovedSoftwarePkg string `json:"indirectly_approved_software_pkg"   required:"true"`
+	// importer edited the pkg and want to reload code
+	SoftwarePkgCodeUpdated string `json:"software_pkg_code_updated"        required:"true"`
+	// the pkg code has downloaded
+	SoftwarePkgCodeChanged string `json:"software_pkg_code_changed"        required:"true"`
 }
 
 type configValidate interface {

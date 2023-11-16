@@ -7,8 +7,10 @@ import (
 )
 
 var (
-	NewSoftwarePkgAppUpdatedEvent  = NewSoftwarePkgAppliedEvent
-	NewSoftwarePkgInitializedEvent = NewSoftwarePkgApprovedEvent
+	NewSoftwarePkgRetestedEvent     = NewSoftwarePkgAppliedEvent
+	NewSoftwarePkgInitializedEvent  = NewSoftwarePkgApprovedEvent
+	NewSoftwarePkgCodeUpdatedEvent  = NewSoftwarePkgAppliedEvent
+	NewSoftwarePkgCodeChangeedEvent = NewSoftwarePkgAppliedEvent
 )
 
 // softwarePkgAppliedEvent

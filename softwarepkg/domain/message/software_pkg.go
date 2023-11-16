@@ -5,8 +5,9 @@ type EventMessage interface {
 }
 
 type SoftwarePkgMessage interface {
-	NotifyPkgApplied(EventMessage) error
-	NotifyPkgToRerunCI(EventMessage) error
+	SendPkgAppliedEvent(EventMessage) error
+	SendPkgCodeUpdatedEvent(EventMessage) error
+	SendPkgRetestedEvent(EventMessage) error
 	NotifyPkgApproved(EventMessage) error
 	NotifyPkgRejected(EventMessage) error
 	NotifyPkgAbandoned(EventMessage) error
@@ -14,6 +15,5 @@ type SoftwarePkgMessage interface {
 }
 
 type SoftwarePkgIndirectMessage interface {
-	NotifyPkgAlreadyClosed(EventMessage) error
-	NotifyPkgIndirectlyApproved(EventMessage) error
+	SendSoftwarePkgCodeChangedEvent(EventMessage) error
 }

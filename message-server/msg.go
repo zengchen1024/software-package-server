@@ -6,7 +6,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-func cmdToHandlePkgCIChecking(data []byte) (cmd app.CmdToHandlePkgCIChecking, err error) {
+func cmdToDownloadPkgCode(data []byte) (cmd app.CmdToDownloadPkgCode, err error) {
 	v, err := domain.UnmarshalToSoftwarePkgAppliedEvent(data)
 	if err == nil {
 		cmd.PkgId = v.PkgId
@@ -15,16 +15,25 @@ func cmdToHandlePkgCIChecking(data []byte) (cmd app.CmdToHandlePkgCIChecking, er
 	return
 }
 
-// msgToHandlePkgCIChecked
-type msgToHandlePkgCIChecked struct {
+func cmdToStartCI(data []byte) (cmd app.CmdToStartCI, err error) {
+	v, err := domain.UnmarshalToSoftwarePkgAppliedEvent(data)
+	if err == nil {
+		cmd.PkgId = v.PkgId
+	}
+
+	return
+}
+
+// msgToHandlePkgCIDone
+type msgToHandlePkgCIDone struct {
 	PkgId    string `json:"pkg_id"`
 	Detail   string `json:"detail"`
 	PRNumber int    `json:"number"`
 	Success  bool   `json:"success"`
 }
 
-func (msg *msgToHandlePkgCIChecked) toCmd() app.CmdToHandlePkgCIChecked {
-	return app.CmdToHandlePkgCIChecked{
+func (msg *msgToHandlePkgCIDone) toCmd() app.CmdToHandlePkgCIDone {
+	return app.CmdToHandlePkgCIDone{
 		PkgId:    msg.PkgId,
 		Detail:   msg.Detail,
 		Success:  msg.Success,
@@ -58,31 +67,16 @@ func (msg *msgToHandlePkgInitialized) toCmd() (cmd app.CmdToHandlePkgInitialized
 	return
 }
 
-// msgToHandlePkgRepoCreated
-type msgToHandlePkgRepoCreated struct {
-	PkgId        string `json:"pkg_id"`
-	Platform     string `json:"platform"`
-	RepoLink     string `json:"repo_link"`
-	FailedReason string `json:"failed_reason"`
+// msgToHandlePkgRepoCodePushed
+type msgToHandlePkgRepoCodePushed struct {
+	PkgId string `json:"pkg_id"`
 }
 
-func (msg *msgToHandlePkgRepoCreated) toCmd() (cmd app.CmdToHandlePkgRepoCreated, err error) {
+func (msg *msgToHandlePkgRepoCodePushed) toCmd() (cmd app.CmdToHandlePkgRepoCodePushed, err error) {
 	cmd.PkgId = msg.PkgId
-	cmd.FiledReason = msg.FailedReason
-
-	if cmd.Platform, err = dp.NewPackagePlatform(msg.Platform); err != nil {
-		return
-	}
-
-	if msg.RepoLink != "" {
-		cmd.RepoLink, err = dp.NewURL(msg.RepoLink)
-	}
 
 	return
 }
-
-// msgToHandlePkgCodeSaved
-type msgToHandlePkgCodeSaved = msgToHandlePkgRepoCreated
 
 // cmdToHandlePkgAlreadyExisted
 func cmdToHandlePkgAlreadyExisted(data []byte) (cmd app.CmdToHandlePkgAlreadyExisted, err error) {

@@ -3,15 +3,15 @@ package messageimpl
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 )
 
 func Init(cfg *Config, log *logrus.Entry) error {
 	producerInstance = &producer{cfg.Topics}
 
-	return kafka.Init(&cfg.Config, log)
+	return kfklib.Init(&cfg.Config, log, nil, "", true)
 }
 
 func Exit() {
-	kafka.Exit()
+	kfklib.Exit()
 }

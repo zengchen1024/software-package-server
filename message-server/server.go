@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+	kfklib "github.com/opensourceways/kafka-lib/agent"
+
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 )
 
@@ -25,39 +26,79 @@ func (s *server) run(ctx context.Context, cfg *Config) error {
 func (s *server) subscribe(cfg *Config) error {
 	topics := &cfg.Topics
 
-	h := map[string]kafka.Handler{
-		topics.SoftwarePkgCIChecking:     s.handlePkgCIChecking,
-		topics.SoftwarePkgCIChecked:      s.handlePkgCIChecked,
-		topics.SoftwarePkgCodeSaved:      s.handlePkgCodeSaved,
-		topics.SoftwarePkgInitialized:    s.handlePkgInitialized,
-		topics.SoftwarePkgRepoCreated:    s.handlePkgRepoCreated,
-		topics.SoftwarePkgAlreadyExisted: s.handlePkgAlreadyExisted,
-	}
-
-	return kafka.Subscriber().Subscribe(cfg.GroupName, h)
-}
-
-func (s *server) handlePkgCIChecking(data []byte) error {
-	cmd, err := cmdToHandlePkgCIChecking(data)
+	err := kfklib.Subscribe(
+		"software_pkg_download_code", s.downloadPkgCode,
+		[]string{topics.SoftwarePkgApplied, topics.SoftwarePkgCodeUpdated},
+	)
 	if err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgCIChecking(cmd)
+	err = kfklib.Subscribe(
+		"software_pkg_start_ci", s.startCI,
+		[]string{topics.SoftwarePkgCodeChanged, topics.SoftwarePkgRetested},
+	)
+	if err != nil {
+		return err
+	}
+
+	err = kfklib.Subscribe(
+		"software_pkg_ci_done", s.handlePkgCIDone,
+		[]string{topics.SoftwarePkgCIDone},
+	)
+	if err != nil {
+		return err
+	}
+
+	err = kfklib.Subscribe(
+		"software_pkg_import_existed", s.importPkg,
+		[]string{topics.SoftwarePkgAlreadyExisted},
+	)
+	if err != nil {
+		return err
+	}
+
+	err = kfklib.Subscribe(
+		"software_pkg_repo_code_pushed", s.handlePkgRepoCodePushed,
+		[]string{topics.SoftwarePkgRepoCodePushed},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *server) handlePkgCIChecked(data []byte) error {
-	msg := new(msgToHandlePkgCIChecked)
+func (s *server) downloadPkgCode(data []byte, m map[string]string) error {
+	cmd, err := cmdToDownloadPkgCode(data)
+	if err != nil {
+		return err
+	}
+
+	return s.service.DownloadPkgCode(cmd)
+}
+
+func (s *server) startCI(data []byte, m map[string]string) error {
+	cmd, err := cmdToStartCI(data)
+	if err != nil {
+		return err
+	}
+
+	return s.service.StartCI(cmd)
+}
+
+func (s *server) handlePkgCIDone(data []byte, m map[string]string) error {
+	msg := new(msgToHandlePkgCIDone)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgCIChecked(msg.toCmd())
+	return s.service.HandlePkgCIDone(msg.toCmd())
 }
 
-func (s *server) handlePkgInitialized(data []byte) error {
-	msg := new(msgToHandlePkgInitialized)
+func (s *server) handlePkgRepoCodePushed(data []byte, m map[string]string) error {
+	msg := new(msgToHandlePkgRepoCodePushed)
 
 	if err := json.Unmarshal(data, msg); err != nil {
 		return err
@@ -68,44 +109,14 @@ func (s *server) handlePkgInitialized(data []byte) error {
 		return err
 	}
 
-	return s.service.HandlePkgInitialized(cmd)
+	return s.service.HandlePkgRepoCodePushed(cmd)
 }
 
-func (s *server) handlePkgRepoCreated(data []byte) error {
-	msg := new(msgToHandlePkgRepoCreated)
-
-	if err := json.Unmarshal(data, msg); err != nil {
-		return err
-	}
-
-	cmd, err := msg.toCmd()
-	if err != nil {
-		return err
-	}
-
-	return s.service.HandlePkgRepoCreated(cmd)
-}
-
-func (s *server) handlePkgCodeSaved(data []byte) error {
-	msg := new(msgToHandlePkgCodeSaved)
-
-	if err := json.Unmarshal(data, msg); err != nil {
-		return err
-	}
-
-	cmd, err := msg.toCmd()
-	if err != nil {
-		return err
-	}
-
-	return s.service.HandlePkgCodeSaved(cmd)
-}
-
-func (s *server) handlePkgAlreadyExisted(data []byte) error {
+func (s *server) importPkg(data []byte, m map[string]string) error {
 	cmd, err := cmdToHandlePkgAlreadyExisted(data)
 	if err != nil {
 		return err
 	}
 
-	return s.service.HandlePkgAlreadyExisted(cmd)
+	return s.service.ImportPkg(cmd)
 }

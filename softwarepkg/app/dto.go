@@ -10,17 +10,16 @@ import (
 type CmdToApplyNewSoftwarePkg struct {
 	Sig      dp.ImportingPkgSig
 	Repo     domain.SoftwarePkgRepo
-	Code     domain.SoftwarePkgCode
+	Spec     dp.URL
+	SRPM     dp.URL
 	Basic    domain.SoftwarePkgBasicInfo
 	Importer domain.User
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
-	PkgId    string
-	Sig      dp.ImportingPkgSig
-	Repo     domain.SoftwarePkgRepo
-	Basic    domain.SoftwarePkgBasicInfo
-	Importer domain.User
+	PkgId string
+
+	CmdToApplyNewSoftwarePkg
 }
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs

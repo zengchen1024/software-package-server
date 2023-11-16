@@ -1,8 +1,6 @@
 package app
 
 import (
-	"errors"
-
 	"github.com/sirupsen/logrus"
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
@@ -17,17 +15,17 @@ import (
 )
 
 type SoftwarePkgService interface {
-	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, string, error)
-	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
+	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
+	Abandon(string, *domain.User) error
+	Retest(string, *domain.User) error
 
 	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
 	Reject(string, *domain.Reviewer) error
-	Abandon(string, *domain.User) error
-	RerunCI(string, *domain.User) error
-	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
+	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
 
+	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
 	TranslateReviewComment(*CmdToTranslateReviewComment) (
 		dto TranslatedReveiwCommentDTO, code string, err error,
 	)
@@ -71,36 +69,37 @@ type softwarePkgService struct {
 }
 
 func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
-	dto NewSoftwarePkgDTO, code string, err error,
+	dto NewSoftwarePkgDTO, err error,
 ) {
 	v := domain.NewSoftwarePkg(
-		cmd.Sig, &cmd.Repo, &cmd.Code, &cmd.Basic, &cmd.Importer,
+		cmd.Sig, &cmd.Repo, &cmd.Basic, cmd.Spec, cmd.SRPM, &cmd.Importer,
 	)
 	if s.pkgService.IsPkgExisted(cmd.Basic.Name) {
-		err = errors.New("software package already existed")
-		code = errorSoftwarePkgExists
+		err = errorSoftwarePkgExists
 
 		return
 	}
 
 	if err = s.repo.AddSoftwarePkg(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
-			code = errorSoftwarePkgExists
+			err = errorSoftwarePkgExists
 		}
-	} else {
-		dto.Id = v.Id
 
-		e := domain.NewSoftwarePkgAppliedEvent(&v)
-		if err1 := s.message.NotifyPkgApplied(&e); err1 != nil {
-			logrus.Errorf(
-				"failed to notify a new applying pkg:%s, err:%s",
-				v.Id, err1.Error(),
-			)
-		} else {
-			logrus.Debugf(
-				"successfully to notify a new applying pkg:%s", v.Id,
-			)
-		}
+		return
+	}
+
+	dto.Id = v.Id
+
+	e := domain.NewSoftwarePkgAppliedEvent(&v)
+	if err1 := s.message.SendPkgAppliedEvent(&e); err1 != nil {
+		logrus.Errorf(
+			"failed to send pkg applied event, pkg:%s, err:%s",
+			v.Id, err1.Error(),
+		)
+	} else {
+		logrus.Debugf(
+			"successfully to send pkg applied event, pkg:%s", v.Id,
+		)
 	}
 
 	return
@@ -121,10 +120,78 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 		return parseErrorForFindingPkg(err)
 	}
 
-	err = pkg.UpdateApplication(&cmd.Importer, cmd.Sig, &cmd.Repo, &cmd.Basic, nil) // TODO nil
+	err = pkg.UpdateApplication(&cmd.Importer, cmd.Sig, &cmd.Repo, &cmd.Basic, cmd.Spec, cmd.SRPM)
 	if err != nil {
 		return err
 	}
 
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return err
+	}
+
+	if cmd.Spec != nil || cmd.SRPM != nil {
+		e := domain.NewSoftwarePkgCodeUpdatedEvent(&pkg)
+
+		if err1 := s.message.SendPkgCodeUpdatedEvent(&e); err1 != nil {
+			logrus.Errorf(
+				"failed to send pkg code updated event, pkg:%s, err:%s",
+				pkg.Id, err1.Error(),
+			)
+		} else {
+			logrus.Debugf(
+				"successfully to send pkg code updated event , pkg:%s", pkg.Id,
+			)
+		}
+	}
+
+	return nil
+}
+
+func (s *softwarePkgService) Abandon(pid string, user *domain.User) error {
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+	if err != nil {
+		return parseErrorForFindingPkg(err)
+	}
+
+	if err = pkg.Abandon(user); err != nil {
+		return err
+	}
+
 	return s.repo.SaveSoftwarePkg(&pkg, version)
+}
+
+func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
+	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+	if err != nil {
+		return parseErrorForFindingPkg(err)
+	}
+
+	if err = pkg.Retest(user); err != nil {
+		return err
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+		return err
+	}
+
+	e := domain.NewSoftwarePkgRetestedEvent(&pkg)
+	if err = s.message.SendPkgRetestedEvent(&e); err != nil {
+		return err
+	}
+
+	s.addCommentToRetest(pid)
+
+	return nil
+}
+
+func (s *softwarePkgService) addCommentToRetest(pkgId string) {
+	content, _ := dp.NewReviewComment("The CI will run now.")
+	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
+
+	if err := s.commentRepo.AddReviewComment(pkgId, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when retest for pkg:%s, err:%s",
+			pkgId, err.Error(),
+		)
+	}
 }
