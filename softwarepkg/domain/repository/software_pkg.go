@@ -22,8 +22,6 @@ type TranslatedReviewCommentIndex struct {
 }
 
 type SoftwarePkg interface {
-	HasSoftwarePkg(dp.PackageName) (bool, error)
-
 	// AddSoftwarePkg adds a new pkg
 	AddSoftwarePkg(*domain.SoftwarePkg) error
 

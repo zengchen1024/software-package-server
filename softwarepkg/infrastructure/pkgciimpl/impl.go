@@ -2,7 +2,6 @@ package pkgciimpl
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
 	libutils "github.com/opensourceways/server-common-lib/utils"
@@ -10,7 +9,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/utils"
 )
 
 var instance *pkgCIImpl
@@ -71,18 +69,18 @@ type pkgCIImpl struct {
 	pkgInfoFile string
 }
 
-func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkg) (int, error) {
-	name := info.Basic.Name.PackageName()
-	branch := fmt.Sprintf("%s-%d", name, utils.Now())
-	if err := impl.createBranch(info, branch); err != nil {
-		return 0, err
+func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
+	if pkg.CI.Id > 0 {
+		impl.closePR(pkg.CI.Id)
 	}
+
+	name := pkg.Basic.Name.PackageName()
 
 	pr, err := impl.cli.CreatePullRequest(
 		impl.cfg.CIRepo.Org,
 		impl.cfg.CIRepo.Repo,
-		name, name,
-		branch,
+		fmt.Sprintf("test for new package: %s", name), pkg.Id,
+		name,
 		impl.cfg.TargetBranch,
 		true,
 	)
@@ -90,59 +88,64 @@ func (impl *pkgCIImpl) SendTest(info *domain.SoftwarePkg) (int, error) {
 		return 0, err
 	}
 
-	if err = impl.createPRComment(pr.Number); err != nil {
-		return 0, err
-	}
-
 	return int(pr.Number), nil
 }
 
-func (impl *pkgCIImpl) ClosePR(id int) error {
+func (impl *pkgCIImpl) ClearCI(pkg *domain.SoftwarePkg) error {
+	if pkg.CI.Id > 0 {
+		impl.closePR(pkg.CI.Id)
+	}
+
+	// clear branch
+
+	return nil
+}
+
+func (impl *pkgCIImpl) DownloadPkgCode(pkg *domain.SoftwarePkg) error {
+	branch := pkg.Basic.Name.PackageName()
+	if err := impl.createBranch(pkg, branch); err != nil {
+		return err
+	}
+
+	if v := &pkg.Code.Spec; v.Dirty {
+		v.Dirty = false
+		v.Local = nil // TODO
+	}
+
+	if v := &pkg.Code.SRPM; v.Dirty {
+		v.Dirty = false
+		v.Local = nil // TODO
+	}
+
+	return nil
+}
+
+func (impl *pkgCIImpl) closePR(id int) error {
 	return impl.cli.ClosePR(impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, int32(id))
 }
 
-func (impl *pkgCIImpl) createPRComment(id int32) error {
-	err := impl.cli.CreatePRComment(
-		impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, id, impl.cfg.CIComment,
-	)
-	if err != nil {
-		logrus.Errorf("create pr %d comment failed, err:%s", id, err.Error())
-	}
-
-	return err
-}
-
-func (impl *pkgCIImpl) genPkgInfoFile(info *domain.SoftwarePkg) error {
-	v := &softwarePkgInfo{
-		PkgId:   info.Id,
-		PkgName: info.Basic.Name.PackageName(),
-		Service: impl.cfg.CIService,
-	}
-
-	content, err := v.toYaml()
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(impl.pkgInfoFile, content, 0644)
-}
-
 func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkg, branch string) error {
-	if err := impl.genPkgInfoFile(info); err != nil {
-		return err
+	cfg := &impl.cfg
+
+	code := &info.Code
+	spec := "-"
+	if code.Spec.Dirty {
+		spec = code.Spec.Src.URL()
 	}
 
-	cfg := &impl.cfg
-	code := &info.Code
+	srpm := "-"
+	if code.SRPM.Dirty {
+		srpm = code.SRPM.Src.URL()
+	}
+
 	params := []string{
 		cfg.PRScript,
 		impl.ciRepoDir,
 		cfg.GitUser.Token,
 		cfg.TargetBranch,
 		branch,
-		impl.pkgInfoFile,
-		code.Spec.Src.URL(),
-		code.SRPM.Src.URL(),
+		spec,
+		srpm,
 	}
 
 	return impl.runcmd(params)

@@ -39,7 +39,7 @@ func (s *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAda
 		return
 	}
 
-	cmd.Code.Spec.Src, err = dp.NewURL(s.SpecUrl)
+	cmd.Spec, err = dp.NewURL(s.SpecUrl)
 	if err != nil {
 		return
 	}
@@ -49,7 +49,7 @@ func (s *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAda
 		return
 	}
 
-	cmd.Code.SRPM.Src, err = dp.NewURL(s.SrcRPMURL)
+	cmd.SRPM, err = dp.NewURL(s.SrcRPMURL)
 	if err != nil {
 		return
 	}
@@ -221,7 +221,7 @@ func (req *reviewRequest) toCmd() (reviews []domain.CheckItemReviewInfo, err err
 }
 
 type checkItemReviewInfo struct {
-	Id      int    `json:"id"       binding:"required"`
+	Id      string `json:"id"       binding:"required"`
 	Pass    bool   `json:"pass"`
 	Comment string `json:"comment"`
 }

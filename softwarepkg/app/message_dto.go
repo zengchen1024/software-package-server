@@ -3,34 +3,43 @@ package app
 import (
 	"fmt"
 
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-// CmdToHandlePkgCIChecking
-type CmdToHandlePkgCIChecking struct {
+// CmdToDownloadPkgCode
+type CmdToDownloadPkgCode struct {
 	PkgId string
 }
 
-func (cmd *CmdToHandlePkgCIChecking) logString() string {
+func (cmd *CmdToDownloadPkgCode) logString() string {
 	return fmt.Sprintf(
-		"handling pkg ci checking, pkgid:%s", cmd.PkgId,
+		"downloading pkg code, pkgid:%s", cmd.PkgId,
 	)
 }
 
-// CmdToHandlePkgCIChecked
-type CmdToHandlePkgCIChecked struct {
+// CmdToStartCI
+type CmdToStartCI struct {
+	PkgId string
+}
+
+func (cmd *CmdToStartCI) logString() string {
+	return fmt.Sprintf(
+		"starting pkg ci, pkgid:%s", cmd.PkgId,
+	)
+}
+
+// CmdToHandlePkgCIDone
+type CmdToHandlePkgCIDone struct {
 	PkgId    string
 	Detail   string
 	Success  bool
-	CIId     int
 	PRNumber int
 }
 
-func (cmd *CmdToHandlePkgCIChecked) logString() string {
+func (cmd *CmdToHandlePkgCIDone) logString() string {
 	return fmt.Sprintf(
-		"handling pkg ci checked, pkgid:%s, ci id:%d",
-		cmd.PkgId, cmd.CIId,
+		"handling pkg ci done, pkgid:%s, pr number:%d",
+		cmd.PkgId, cmd.PRNumber,
 	)
 }
 
@@ -58,32 +67,23 @@ func (cmd *CmdToHandlePkgInitialized) logString() string {
 	)
 }
 
-// CmdToHandlePkgRepoCreated
-type CmdToHandlePkgRepoCreated struct {
-	PkgId       string
-	FiledReason string
-
-	domain.RepoCreatedInfo
+// CmdToHandlePkgRepoCodePushed
+type CmdToHandlePkgRepoCodePushed struct {
+	PkgId string
 }
 
-func (cmd *CmdToHandlePkgRepoCreated) isSuccess() bool {
-	return cmd.FiledReason == ""
-}
-
-func (cmd *CmdToHandlePkgRepoCreated) logString() string {
-	if !cmd.isSuccess() {
-		return ""
-	}
-
+func (cmd *CmdToHandlePkgRepoCodePushed) logString() string {
 	return fmt.Sprintf(
-		"handling pkg repo created, pkgid:%s, platform:%s, repo:%s",
-		cmd.PkgId, cmd.Platform.PackagePlatform(), cmd.RepoLink.URL(),
+		"handling pkg repo code pushed, pkgid:%s", cmd.PkgId,
 	)
 }
 
-// CmdToHandlePkgCodeSaved
-type CmdToHandlePkgCodeSaved = CmdToHandlePkgRepoCreated
-
 type CmdToHandlePkgAlreadyExisted struct {
 	PkgName dp.PackageName
+}
+
+func (cmd *CmdToHandlePkgAlreadyExisted) logString() string {
+	return fmt.Sprintf(
+		"importing existed pkg, pkg name:%s", cmd.PkgName.PackageName(),
+	)
 }

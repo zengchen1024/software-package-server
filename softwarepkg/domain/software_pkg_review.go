@@ -204,18 +204,18 @@ type UserCheckItemReview struct {
 
 // CheckItemReviewInfo
 type CheckItemReviewInfo struct {
-	Id      int
+	Id      string
 	Pass    bool
 	Comment string
 }
 
 // CheckItem
 type CheckItem struct {
-	Id       int
+	Id       string
 	Name     string
 	Desc     string
 	Owner    dp.CommunityRole
-	Category dp.CheckItemCategory
+	Category dp.CheckItemCategory // TODO []dp.CheckItemCategory a item should be review again when multiple categories changed
 
 	// If true, keep the review record of reviewer who is still the owner of this item
 	// else, clear all the records about this item.

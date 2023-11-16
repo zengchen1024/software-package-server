@@ -2,8 +2,9 @@ package domain
 
 var config Config
 
-func Init(cfg *Config, m maintainer) {
+func Init(cfg *Config, m maintainer, ci pkgCI) {
 	config = *cfg
+	ciInstance = ci
 	maintainerInstance = m
 }
 

@@ -3,6 +3,7 @@ package dp
 import (
 	"errors"
 	"net/url"
+	"path"
 	"regexp"
 
 	libutil "github.com/opensourceways/server-common-lib/utils"
@@ -38,6 +39,7 @@ func IsSameAccount(a, b Account) bool {
 // URL
 type URL interface {
 	URL() string
+	FileName() string
 }
 
 func NewURL(v string) (URL, error) {
@@ -56,6 +58,15 @@ type dpURL string
 
 func (v dpURL) URL() string {
 	return string(v)
+}
+
+func (v dpURL) FileName() string {
+	r, err := url.ParseRequestURI(string(v))
+	if err != nil {
+		return ""
+	}
+
+	return path.Base(r.Path)
 }
 
 // Email

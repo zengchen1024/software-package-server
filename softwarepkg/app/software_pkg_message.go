@@ -15,12 +15,12 @@ import (
 )
 
 type SoftwarePkgMessageService interface {
-	HandlePkgCIChecking(CmdToHandlePkgCIChecking) error
-	HandlePkgCIChecked(CmdToHandlePkgCIChecked) error
-	HandlePkgCodeSaved(CmdToHandlePkgCodeSaved) error
-	HandlePkgInitialized(CmdToHandlePkgInitialized) error
-	HandlePkgRepoCreated(CmdToHandlePkgRepoCreated) error
-	HandlePkgAlreadyExisted(CmdToHandlePkgAlreadyExisted) error
+	DownloadPkgCode(cmd CmdToDownloadPkgCode) error
+	StartCI(cmd CmdToStartCI) error
+	HandlePkgCIDone(CmdToHandlePkgCIDone) error
+	HandlePkgRepoCodePushed(CmdToHandlePkgRepoCodePushed) error
+	//HandlePkgInitialized(CmdToHandlePkgInitialized) error
+	ImportPkg(CmdToHandlePkgAlreadyExisted) error
 }
 
 func NewSoftwarePkgMessageService(
@@ -51,20 +51,60 @@ type softwarePkgMessageService struct {
 	commentRepo repository.SoftwarePkgComment
 }
 
-// HandlePkgCIChecking
-func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCIChecking) error {
+// DownloadPkgCode
+func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
 
-	_, err = pkg.HandleCIChecking()
+	files, err := s.ci.DownloadPkgCode(&pkg)
 	if err != nil {
 		return err
 	}
 
-	// TODO send ciId to test
-	if _, err = s.ci.SendTest(&pkg); err != nil {
+	pkg1, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if !pkg1.SaveDownloadedFiles(files) {
+		return nil
+	}
+
+	if err = s.repo.SaveSoftwarePkg(&pkg1, version); err != nil {
+		logrus.Errorf(
+			"save pkg failed when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
+
+		return err
+	}
+
+	s.notifyPkgCodeChanged(&pkg1)
+
+	return nil
+}
+
+func (s softwarePkgMessageService) notifyPkgCodeChanged(pkg *domain.SoftwarePkg) {
+	e := domain.NewSoftwarePkgCodeChangeedEvent(pkg)
+
+	if err := s.message.SendSoftwarePkgCodeChangedEvent(&e); err != nil {
+		logrus.Errorf(
+			"failed to send pkg code changed event, pkg:%s, err:%s",
+			pkg.Id, err.Error(),
+		)
+	}
+}
+
+// StartCI
+func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
+	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	if err != nil {
+		return err
+	}
+
+	if err = pkg.StartCI(); err != nil {
 		return err
 	}
 
@@ -78,21 +118,14 @@ func (s softwarePkgMessageService) HandlePkgCIChecking(cmd CmdToHandlePkgCICheck
 	return nil
 }
 
-// HandlePkgCIChecked
-func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecked) error {
+// HandlePkgCIDone
+func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
 
-	if err := s.ci.ClosePR(cmd.PRNumber); err != nil {
-		logrus.Errorf(
-			"close pr failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
-
-	if err := pkg.HandleCIDone(cmd.CIId, cmd.Success); err != nil {
+	if err := pkg.HandleCIDone(cmd.PRNumber, cmd.Success); err != nil {
 		return err
 	}
 
@@ -108,7 +141,7 @@ func (s softwarePkgMessageService) HandlePkgCIChecked(cmd CmdToHandlePkgCIChecke
 	return nil
 }
 
-func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIChecked) {
+func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIDone) {
 	content, _ := dp.NewReviewComment(cmd.Detail)
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
@@ -120,53 +153,14 @@ func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIChecked) {
 	}
 }
 
-// HandlePkgRepoCreated
-func (s softwarePkgMessageService) HandlePkgRepoCreated(cmd CmdToHandlePkgRepoCreated) error {
-	if !cmd.isSuccess() {
-		logrus.Errorf(
-			"failed to create repo on platform:%s for pkg:%s, err:%s",
-			cmd.Platform.PackagePlatform(), cmd.PkgId, cmd.FiledReason,
-		)
-
-		return nil
-	}
-
+// HandlePkgRepoCodePushed
+func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRepoCodePushed) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
 		return err
 	}
 
-	if err := pkg.HandleRepoCreated(cmd.RepoCreatedInfo); err != nil {
-		return err
-	}
-
-	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		logrus.Errorf(
-			"save pkg failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
-
-	return nil
-}
-
-// HandlePkgCodeSaved
-func (s softwarePkgMessageService) HandlePkgCodeSaved(cmd CmdToHandlePkgCodeSaved) error {
-	if !cmd.isSuccess() {
-		logrus.Errorf(
-			"failed to create repo on platform:%s for pkg:%s, err:%s",
-			cmd.Platform.PackagePlatform(), cmd.PkgId, cmd.FiledReason,
-		)
-
-		return nil
-	}
-
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
-	if err != nil {
-		return err
-	}
-
-	if err := pkg.HandleCodeSaved(cmd.RepoCreatedInfo); err != nil {
+	if err := pkg.HandleRepoCodePushed(); err != nil {
 		return err
 	}
 
@@ -193,7 +187,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 		}
 
 		if !pkg.Repo.Platform.IsLocalPlatform() {
-			s.notifyPkgInitialized(&pkg, &cmd)
+			//s.notifyPkgInitialized(&pkg, &cmd)
 		}
 	} else {
 		if !cmd.isPkgAreadyExisted() {
@@ -219,19 +213,6 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 	return nil
 }
 
-func (s softwarePkgMessageService) notifyPkgInitialized(
-	pkg *domain.SoftwarePkg, cmd *CmdToHandlePkgInitialized,
-) {
-	e := domain.NewSoftwarePkgInitializedEvent(pkg)
-
-	if err := s.message.NotifyPkgIndirectlyApproved(&e); err != nil {
-		logrus.Errorf(
-			"failed to notify the pkg was approved indirectly when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
-}
-
 func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgInitialized) {
 	str := fmt.Sprintf(
 		"I'am sorry to close this application. Because the pkg was imported sometimes ago. The repo address is %s. You can work on that repo.",
@@ -248,15 +229,14 @@ func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgIn
 	}
 }
 
-// HandlePkgAlreadyExisted
-func (s softwarePkgMessageService) HandlePkgAlreadyExisted(cmd CmdToHandlePkgAlreadyExisted) error {
-	if b, _ := s.repo.HasSoftwarePkg(cmd.PkgName); b {
-		return nil
-	}
-
+// ImportPkg
+func (s softwarePkgMessageService) ImportPkg(cmd CmdToHandlePkgAlreadyExisted) error {
 	v, err := s.manager.GetPkg(cmd.PkgName)
 	if err != nil {
-		logrus.Errorf("get pkg/%s failed, err:%s", cmd.PkgName.PackageName(), err.Error())
+		logrus.Errorf(
+			"failed to get pkg info when %s, err:%s",
+			cmd.logString(), err.Error(),
+		)
 
 		return err
 	}
@@ -267,8 +247,8 @@ func (s softwarePkgMessageService) HandlePkgAlreadyExisted(cmd CmdToHandlePkgAlr
 		}
 
 		logrus.Errorf(
-			"failed to add a software pkg, pkgname:%s, err:%s",
-			cmd.PkgName.PackageName(), err.Error(),
+			"failed to add a software pkg when %s, err:%s",
+			cmd.logString(), err.Error(),
 		)
 	}
 

@@ -8,11 +8,11 @@ import (
 	"sync"
 	"syscall"
 
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
 
-	"github.com/opensourceways/software-package-server/common/infrastructure/kafka"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
@@ -81,7 +81,7 @@ func main() {
 	defer sigvalidatorimpl.Exit()
 
 	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config, nil)
+	domain.Init(&cfg.SoftwarePkg.Config, nil, pkgciimpl.PkgCI())
 	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
 
 	// Pkg manager
@@ -113,20 +113,20 @@ func main() {
 	}
 
 	// mq
-	if err = kafka.Init(&cfg.Kafka, log); err != nil {
+	if err = kfklib.Init(&cfg.Kafka, log, nil, "", true); err != nil {
 		logrus.Errorf("initialize mq failed, err:%v", err)
 
 		return
 	}
 
-	defer kafka.Exit()
+	defer kfklib.Exit()
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
-		pkgciimpl.PkgCI(),
+		nil,
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		pkgmanagerimpl.Instance(),
-		&producer{topics: cfg.TopicsToNotify},
+		&producer{cfg.Topics.SoftwarePkgCodeChanged},
 		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 	)
 

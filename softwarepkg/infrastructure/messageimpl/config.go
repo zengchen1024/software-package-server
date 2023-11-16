@@ -1,17 +1,26 @@
 package messageimpl
 
-import "github.com/opensourceways/software-package-server/common/infrastructure/kafka"
+import (
+	kfklib "github.com/opensourceways/kafka-lib/agent"
+)
 
 type Config struct {
-	kafka.Config
+	kfklib.Config
 
 	Topics Topics `json:"topics"  required:"true"`
 }
 
 type Topics struct {
-	NewSoftwarePkg            string `json:"new_software_pkg"              required:"true"`
-	ApprovedSoftwarePkg       string `json:"approved_software_pkg"         required:"true"`
-	RejectedSoftwarePkg       string `json:"rejected_software_pkg"         required:"true"`
-	AbandonedSoftwarePkg      string `json:"abandoned_software_pkg"        required:"true"`
-	AlreadyExistedSoftwarePkg string `json:"already_existed_software_pkg"  required:"true"`
+	//ApprovedSoftwarePkg       string `json:"approved_software_pkg"         required:"true"`
+
+	SoftwarePkgApplied        string `json:"software_pkg_applied"          required:"true"`
+	SoftwarePkgRetested       string `json:"software_pkg_retested"         required:"true"`
+	SoftwarePkgAlreadyExisted string `json:"software_pkg_already_existed"  required:"true"`
+
+	// importer edited the pkg and want to reload code
+	SoftwarePkgCodeUpdated string `json:"software_pkg_code_updated"        required:"true"`
+
+	SoftwarePkgApproved  string
+	SoftwarePkgRejected  string
+	SoftwarePkgAbandoned string
 }
