@@ -1,5 +1,10 @@
 package dp
 
+import (
+	"errors"
+	"strings"
+)
+
 const (
 	communityRoleTC            = "tc"
 	communityRoleCommitter     = "committer"
@@ -17,6 +22,25 @@ var (
 type CommunityRole interface {
 	CommunityRole() string
 	IsTC() bool
+}
+
+func NewCommunityRole(v string) (CommunityRole, error) {
+	switch strings.ToLower(v) {
+	case communityRoleTC:
+		return CommunityRoleTC, nil
+
+	case communityRoleCommitter:
+		return CommunityRoleCommitter, nil
+
+	case communityRoleRepoMember:
+		return CommunityRoleRepoMember, nil
+
+	case communityRoleSigMaintainer:
+		return CommunityRoleSigMaintainer, nil
+
+	default:
+		return nil, errors.New("unknown community role")
+	}
 }
 
 type communityRole string

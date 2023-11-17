@@ -7,7 +7,6 @@ import (
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/cacheagent"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 var instance userAdapterImpl
@@ -71,11 +70,7 @@ func (impl *userAdapterImpl) Find(giteeAccount string) (domain.User, error) {
 	return domain.User{}, errors.New("unimplemented")
 }
 
-func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.Reviewer) (roles []dp.CommunityRole) {
-	if pkg.IsCommitter(user.Account) {
-		roles = append(roles, dp.CommunityRoleCommitter, dp.CommunityRoleRepoMember)
-	}
-
+func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.Reviewer) (tc bool, sigMaitainer bool) {
 	if user.GiteeID == "" {
 		return
 	}
@@ -87,13 +82,9 @@ func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.Reviewe
 		return
 	}
 
-	if m.isSigMaintainer(user.GiteeID, impl.tcSig) {
-		roles = append(roles, dp.CommunityRoleTC)
-	}
+	tc = m.isSigMaintainer(user.GiteeID, impl.tcSig)
 
-	if m.isSigMaintainer(user.GiteeID, pkg.Sig.ImportingPkgSig()) {
-		roles = append(roles, dp.CommunityRoleSigMaintainer, dp.CommunityRoleRepoMember)
-	}
+	sigMaitainer = m.isSigMaintainer(user.GiteeID, pkg.Sig.ImportingPkgSig())
 
 	return
 }

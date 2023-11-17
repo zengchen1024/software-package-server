@@ -11,7 +11,7 @@ type Reviewer struct {
 }
 
 type maintainer interface {
-	Roles(*SoftwarePkg, *Reviewer) []dp.CommunityRole
+	Roles(*SoftwarePkg, *Reviewer) (tc, sigMaitainer bool)
 }
 
 var maintainerInstance maintainer
@@ -54,20 +54,20 @@ func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
 	return true
 }
 
-func (pkg *SoftwarePkg) clearReview(categories []dp.PkgModificationCategory, items []CheckItem) {
+func (pkg *SoftwarePkg) clearReview(pkgms []string, items []CheckItem) {
 	reviews := make([]userReview, len(pkg.Reviews))
 
 	for i := range pkg.Reviews {
 		reviews[i] = pkg.Reviews[i].internal(pkg)
 	}
 
-	m := map[string]bool{}
-	for i := range categories {
-		m[categories[i].PkgModificationCategory()] = true
+	ms := map[string]bool{}
+	for i := range pkgms {
+		ms[pkgms[i]] = true
 	}
 
 	for i := range items {
-		if v := &items[i]; v.isCategory(m) {
+		if v := &items[i]; !v.Keep && v.needRecheck(ms) {
 			for j := range reviews {
 				reviews[j].clear(v)
 			}
@@ -103,9 +103,32 @@ type UserReview struct {
 }
 
 func (r *UserReview) internal(pkg *SoftwarePkg) userReview {
+	tc, sigMaitainer := maintainerInstance.Roles(pkg, &r.Reviewer)
+
+	roles := map[string]bool{}
+
+	if tc {
+		roles[dp.CommunityRoleTC.CommunityRole()] = true
+	}
+
+	if sigMaitainer {
+		roles[dp.CommunityRoleSigMaintainer.CommunityRole()] = true
+		roles[dp.CommunityRoleRepoMember.CommunityRole()] = true
+	}
+
+	if pkg.isCommitter(r.Account) {
+		roles[dp.CommunityRoleCommitter.CommunityRole()] = true
+
+		v := r.checkItemReviewInfo(&CheckItem{Id: r.Account.Account()})
+
+		if v != nil && v.Pass {
+			roles[dp.CommunityRoleRepoMember.CommunityRole()] = true
+		}
+	}
+
 	return userReview{
 		UserReview: r,
-		roles:      maintainerInstance.Roles(pkg, &r.Reviewer),
+		roles:      roles,
 	}
 }
 
@@ -123,7 +146,7 @@ func (r *UserReview) checkItemReviewInfo(item *CheckItem) *CheckItemReviewInfo {
 type userReview struct {
 	*UserReview
 
-	roles []dp.CommunityRole
+	roles map[string]bool
 }
 
 func (r *userReview) validate(items []CheckItem) error {
@@ -139,10 +162,6 @@ func (r *userReview) validate(items []CheckItem) error {
 }
 
 func (r *userReview) clear(item *CheckItem) {
-	if item.KeepOwnerReview && item.isOwner(r.roles) {
-		return
-	}
-
 	for i := range r.Reviews {
 		if v := &r.Reviews[i]; v.Id == item.Id {
 			n := len(r.Reviews) - 1
@@ -164,7 +183,7 @@ func (r *userReview) userCheckItemReview(item *CheckItem) (UserCheckItemReview, 
 
 	return UserCheckItemReview{
 		Reviewer:            &r.Reviewer,
-		Roles:               r.roles,
+		isOwner:             item.isOwnerOfItem(r.roles),
 		CheckItemReviewInfo: info,
 	}, true
 }
@@ -183,7 +202,7 @@ func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
 	pass := false
 
 	for i := range r.Reviews {
-		if v := &r.Reviews[i]; r.Item.isOwner(v.Roles) {
+		if v := &r.Reviews[i]; v.isOwner {
 			if !v.Pass {
 				return dp.CheckItemNotPass
 			}
@@ -204,7 +223,7 @@ type UserCheckItemReview struct {
 	*Reviewer
 	*CheckItemReviewInfo
 
-	Roles []dp.CommunityRole
+	isOwner bool
 }
 
 // CheckItemReviewInfo
@@ -221,37 +240,31 @@ type CheckItem struct {
 	Desc  string
 	Owner dp.CommunityRole
 
-	// This check item should be checked again when the relevant modifications happened.
-	Categories []dp.PkgModificationCategory
-
-	// If true, keep the review record of reviewer who is still the owner of this item
-	// else, clear all the records about this item.
-	// For example, the review about the item that the user aggreed to
-	// to be committer of the pkg should be kept when the committers was changed.
-	KeepOwnerReview bool
+	// If true, keep the review record of reviewer, otherwise clear all the records about
+	// this item when relevant modifications happened.
+	// For example, the review about the item whether the user aggreed to
+	// to be committer of the pkg should be kept.
+	Keep bool
 
 	// If true, only the owner can review this item else anyone can review.
 	// For example, onlye sig maintainer can determine whether the sig of pkg is correct.
-	OnlyOwnerCanReview bool
+	OnlyOwner bool
+
+	// This check item should be checked again when the relevant modifications happened.
+	Modifications []string
 }
 
-func (item *CheckItem) isOwner(roles []dp.CommunityRole) bool {
-	for _, role := range roles {
-		if dp.IsSameCommunityRole(role, item.Owner) {
-			return true
-		}
-	}
-
-	return false
+func (item *CheckItem) isOwnerOfItem(roles map[string]bool) bool {
+	return roles != nil && roles[item.Owner.CommunityRole()]
 }
 
-func (item *CheckItem) canReview(roles []dp.CommunityRole) bool {
-	return !item.OnlyOwnerCanReview || item.isOwner(roles)
+func (item *CheckItem) canReview(roles map[string]bool) bool {
+	return !item.OnlyOwner || item.isOwnerOfItem(roles)
 }
 
-func (item *CheckItem) isCategory(categories map[string]bool) bool {
-	for i := range item.Categories {
-		if categories[item.Categories[i].PkgModificationCategory()] {
+func (item *CheckItem) needRecheck(ms map[string]bool) bool {
+	for _, v := range item.Modifications {
+		if ms[v] {
 			return true
 		}
 	}

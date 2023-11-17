@@ -2,6 +2,8 @@ package domain
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -49,30 +51,30 @@ type SoftwarePkgBasicInfo struct {
 	Upstream dp.URL
 }
 
-func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgBasicInfo) []dp.PkgModificationCategory {
-	categories := []dp.PkgModificationCategory{}
+func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgBasicInfo) []string {
+	ms := []string{}
 
 	if basic.Name.PackageName() != info.Name.PackageName() {
-		categories = append(categories, dp.PkgModificationCategoryPkgName)
+		ms = append(ms, pkgModificationPkgName)
 	}
 
 	if basic.Desc.PackageDesc() != info.Desc.PackageDesc() {
-		categories = append(categories, dp.PkgModificationCategoryPkgDesc)
+		ms = append(ms, pkgModificationPkgDesc)
 	}
 
 	if basic.Reason.ReasonToImportPkg() != info.Reason.ReasonToImportPkg() {
-		categories = append(categories, dp.PkgModificationCategoryPkgReason)
+		ms = append(ms, pkgModificationPkgReason)
 	}
 
 	if basic.Upstream.URL() != info.Upstream.URL() {
-		categories = append(categories, dp.PkgModificationCategoryUpstream)
+		ms = append(ms, pkgModificationUpstream)
 	}
 
-	if len(categories) > 0 {
+	if len(ms) > 0 {
 		*basic = *info
 	}
 
-	return categories
+	return ms
 }
 
 // SoftwarePkg
@@ -93,7 +95,50 @@ type SoftwarePkg struct {
 	Initialized bool
 }
 
-func (entity *SoftwarePkg) IsCommitter(user dp.Account) bool {
+func (entity *SoftwarePkg) CheckItems() []CheckItem {
+	other := entity.otherCheckItems()
+
+	r := make([]CheckItem, 0, len(other)+len(commonCheckItems))
+	r = append(r, commonCheckItems...) // don't change commonCheckItems by copy it.
+	r = append(r, other...)
+
+	return r
+}
+
+func (entity *SoftwarePkg) otherCheckItems() []CheckItem {
+	v := []CheckItem{
+		{
+			Id:            strconv.Itoa(len(commonCheckItems) + 1),
+			Name:          "Sig",
+			Desc:          fmt.Sprintf("软件包被%s Sig接纳", entity.Sig.ImportingPkgSig()),
+			Owner:         dp.CommunityRoleSigMaintainer,
+			OnlyOwner:     true,
+			Modifications: []string{pkgModificationSig},
+		},
+	}
+
+	for i := range entity.Repo.Committers {
+		c := entity.Repo.Committers[i].Account()
+
+		if c == entity.Importer.Account() {
+			continue
+		}
+
+		v = append(v, CheckItem{
+			Id:            c,
+			Name:          "软件包维护人",
+			Desc:          fmt.Sprintf("%s 同意作为此软件包的维护人", c),
+			Owner:         dp.CommunityRoleCommitter,
+			Keep:          true,
+			OnlyOwner:     true,
+			Modifications: []string{pkgModificationCommitter},
+		})
+	}
+
+	return v
+}
+
+func (entity *SoftwarePkg) isCommitter(user dp.Account) bool {
 	return entity.Repo.isCommitter(user)
 }
 
@@ -109,7 +154,7 @@ func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeFile) bool
 	return entity.Code.saveDownloadedFiles(files)
 }
 
-func (entity *SoftwarePkg) AddReview(ur *UserReview, items []CheckItem) (bool, error) {
+func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 	if !entity.Phase.IsReviewing() {
 		return false, incorrectPhase
 	}
@@ -119,6 +164,8 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview, items []CheckItem) (bool, e
 			allerror.ErrorCodeCIIsNotReady, "ci is not successful yet",
 		)
 	}
+
+	items := append(entity.otherCheckItems(), commonCheckItems...)
 
 	if err := entity.addReview(ur, items); err != nil {
 		return false, err
@@ -144,18 +191,7 @@ func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 		return incorrectPhase
 	}
 
-	roles := maintainerInstance.Roles(entity, user)
-
-	isTC := false
-
-	for i := range roles {
-		if roles[i].IsTC() {
-			isTC = true
-			break
-		}
-	}
-
-	if !isTC {
+	if tc, _ := maintainerInstance.Roles(entity, user); !tc {
 		return allerror.NewNoPermission("not the tc")
 	}
 
@@ -235,31 +271,28 @@ func (entity *SoftwarePkg) UpdateApplication(
 		return incorrectPhase
 	}
 
-	categories := entity.Basic.update(basic)
+	ms := entity.Basic.update(basic)
 
 	if entity.Sig.ImportingPkgSig() != sig.ImportingPkgSig() {
-		categories = append(categories, dp.PkgModificationCategorySig)
+		ms = append(ms, pkgModificationSig)
 
 		entity.Sig = sig
 	}
 
-	if v := entity.Repo.update(repo); v != nil {
-		categories = append(categories, v)
+	if v := entity.Repo.update(repo); v != "" {
+		ms = append(ms, v)
 	}
 
 	if spec != nil || srpm != nil {
 		entity.Code.update(spec, srpm)
-		categories = append(categories, dp.PkgModificationCategoryCode)
+		ms = append(ms, pkgModificationCode)
 	}
 
-	if len(categories) == 0 {
+	if len(ms) == 0 {
 		return errors.New("nothing changed")
 	}
 
-	// TODO
-	var items []CheckItem
-
-	entity.clearReview(categories, items)
+	entity.clearReview(ms, append(entity.otherCheckItems(), commonCheckItems...))
 
 	entity.Logs = append(
 		entity.Logs,

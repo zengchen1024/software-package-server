@@ -18,7 +18,7 @@ func (r *SoftwarePkgRepo) isCommitter(u dp.Account) bool {
 	return false
 }
 
-func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) dp.PkgModificationCategory {
+func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) string {
 	if p := r1.Platform; p != nil && r.Platform.PackagePlatform() != p.PackagePlatform() {
 		r.Platform = p
 	}
@@ -26,10 +26,10 @@ func (r *SoftwarePkgRepo) update(r1 *SoftwarePkgRepo) dp.PkgModificationCategory
 	if len(r1.Committers) > 0 && !r.isSameCommitters(r1) {
 		r.Committers = r1.Committers
 
-		return dp.PkgModificationCategoryCommitter
+		return pkgModificationCommitter
 	}
 
-	return nil
+	return ""
 }
 
 func (r *SoftwarePkgRepo) isSameCommitters(r1 *SoftwarePkgRepo) bool {

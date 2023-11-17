@@ -118,7 +118,7 @@ func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
 	return nil
 }
 
-// HandlePkgCodeAdapterDone
+// HandlePkgCIDone
 func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
