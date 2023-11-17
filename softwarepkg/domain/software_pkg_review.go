@@ -54,15 +54,20 @@ func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
 	return true
 }
 
-func (pkg *SoftwarePkg) clearReview(categories []dp.CheckItemCategory, items []CheckItem) {
+func (pkg *SoftwarePkg) clearReview(categories []dp.PkgModificationCategory, items []CheckItem) {
 	reviews := make([]userReview, len(pkg.Reviews))
 
 	for i := range pkg.Reviews {
 		reviews[i] = pkg.Reviews[i].internal(pkg)
 	}
 
+	m := map[string]bool{}
+	for i := range categories {
+		m[categories[i].PkgModificationCategory()] = true
+	}
+
 	for i := range items {
-		if v := &items[i]; v.isCategory(categories) {
+		if v := &items[i]; v.isCategory(m) {
 			for j := range reviews {
 				reviews[j].clear(v)
 			}
@@ -211,11 +216,13 @@ type CheckItemReviewInfo struct {
 
 // CheckItem
 type CheckItem struct {
-	Id       string
-	Name     string
-	Desc     string
-	Owner    dp.CommunityRole
-	Category dp.CheckItemCategory // TODO []dp.CheckItemCategory a item should be review again when multiple categories changed
+	Id    string
+	Name  string
+	Desc  string
+	Owner dp.CommunityRole
+
+	// This check item should be checked again when the relevant modifications happened.
+	Categories []dp.PkgModificationCategory
 
 	// If true, keep the review record of reviewer who is still the owner of this item
 	// else, clear all the records about this item.
@@ -242,9 +249,9 @@ func (item *CheckItem) canReview(roles []dp.CommunityRole) bool {
 	return !item.OnlyOwnerCanReview || item.isOwner(roles)
 }
 
-func (item *CheckItem) isCategory(categories []dp.CheckItemCategory) bool {
-	for i := range categories {
-		if dp.IsSameCheckItemCategory(item.Category, categories[i]) {
+func (item *CheckItem) isCategory(categories map[string]bool) bool {
+	for i := range item.Categories {
+		if categories[item.Categories[i].PkgModificationCategory()] {
 			return true
 		}
 	}

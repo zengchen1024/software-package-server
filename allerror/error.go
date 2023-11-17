@@ -14,6 +14,7 @@ const (
 	ErrorCodePkgExists       = "software_pkg_exists"
 	ErrorCodePkgNotFound     = "software_pkg_not_found"
 	ErrorCodeCIIsRunning     = "software_pkg_ci_is_running"
+	ErrorCodeCIIsWaiting     = "software_pkg_ci_is_waiting"
 	ErrorCodeCIIsNotReady    = "software_pkg_ci_is_not_ready"
 	ErrorCodeIncorrectPhase  = "software_pkg_incorrect_phase"
 	ErrorCodePkgCodeNotReady = "software_pkg_code_not_ready"
