@@ -9,7 +9,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgci"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgcodeadapter"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
@@ -24,7 +24,7 @@ type SoftwarePkgMessageService interface {
 }
 
 func NewSoftwarePkgMessageService(
-	ci pkgci.PkgCI,
+	code pkgcodeadapter.PkgCodeAdapter,
 	repo repository.SoftwarePkg,
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgIndirectMessage,
@@ -33,7 +33,7 @@ func NewSoftwarePkgMessageService(
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return softwarePkgMessageService{
-		ci:          ci,
+		code:        code,
 		repo:        repo,
 		robot:       robot,
 		manager:     manager,
@@ -43,7 +43,7 @@ func NewSoftwarePkgMessageService(
 }
 
 type softwarePkgMessageService struct {
-	ci          pkgci.PkgCI
+	code        pkgcodeadapter.PkgCodeAdapter
 	repo        repository.SoftwarePkg
 	robot       dp.Account
 	manager     pkgmanager.PkgManager
@@ -58,7 +58,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	files, err := s.ci.DownloadPkgCode(&pkg)
+	files, err := s.code.Download(&pkg)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
 	return nil
 }
 
-// HandlePkgCIDone
+// HandlePkgCodeAdapterDone
 func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) error {
 	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
 	if err != nil {
@@ -182,7 +182,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 	}
 
 	if cmd.isSuccess() {
-		if err := pkg.HandlePkgInitialized(cmd.RelevantPR); err != nil {
+		if err := pkg.HandleInitialized(cmd.RelevantPR); err != nil {
 			return err
 		}
 
@@ -196,7 +196,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 			return nil
 		}
 
-		if err := pkg.HandlePkgAlreadyExisted(); err != nil {
+		if err := pkg.HandleAlreadyExisted(); err != nil {
 			return err
 		}
 

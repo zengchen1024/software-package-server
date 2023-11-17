@@ -123,7 +123,7 @@ func main() {
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
-		nil,
+		nil, // TODO
 		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
 		pkgmanagerimpl.Instance(),
 		&producer{cfg.Topics.SoftwarePkgCodeChanged},

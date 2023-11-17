@@ -43,7 +43,7 @@ func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
 	return nil
 }
 
-func (p *producer) NotifyPkgAlreadyExisted(e message.EventMessage) error {
+func (p *producer) SendPkgAlreadyExistedEvent(e message.EventMessage) error {
 	return send(p.topics.SoftwarePkgAlreadyExisted, e)
 }
 

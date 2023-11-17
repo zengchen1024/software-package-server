@@ -35,7 +35,7 @@ func (s *pkgService) IsPkgExisted(pkg dp.PackageName) bool {
 	}
 
 	e := domain.NewSoftwarePkgAlreadyExistEvent(pkg)
-	err := s.message.NotifyPkgAlreadyExisted(&e)
+	err := s.message.SendPkgAlreadyExistedEvent(&e)
 	s.log(pkg, err)
 
 	return true
