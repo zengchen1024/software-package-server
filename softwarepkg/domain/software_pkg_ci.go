@@ -77,7 +77,7 @@ func (ci *SoftwarePkgCI) Status() dp.PackageCIStatus {
 		return nil
 	}
 
-	if ci.status.IsCIRunning() && ci.StartTime+config.CITimeout < utils.Now() {
+	if ci.status.IsCIRunning() && ci.StartTime+timeoutOfCI < utils.Now() {
 		return dp.PackageCIStatusTimeout
 	}
 

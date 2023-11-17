@@ -31,7 +31,7 @@ func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews [
 	approved, err := pkg.AddReview(&domain.UserReview{
 		Reviewer: *user,
 		Reviews:  reviews,
-	}, nil) // TODO nil
+	})
 	if err != nil {
 		return
 	}
