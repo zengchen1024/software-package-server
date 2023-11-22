@@ -9,24 +9,32 @@ import (
 
 type CmdToApplyNewSoftwarePkg struct {
 	Sig      dp.ImportingPkgSig
-	Repo     domain.SoftwarePkgRepo
 	Spec     dp.URL
 	SRPM     dp.URL
+	Repo     domain.SoftwarePkgRepo
 	Basic    domain.SoftwarePkgBasicInfo
 	Importer domain.User
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
-	PkgId string
+	PkgId    string
+	Importer domain.User
 
-	CmdToApplyNewSoftwarePkg
+	domain.SoftwarePkgUpdateInfo
 }
 
 type CmdToListPkgs = repository.OptToFindSoftwarePkgs
 
 type CmdToWriteSoftwarePkgReviewComment struct {
+	PkgId   string
 	Author  dp.Account
 	Content dp.ReviewComment
+}
+
+type CmdToAbandonPkg struct {
+	PkgId    string
+	Comment  dp.ReviewComment
+	Importer dp.Account
 }
 
 type NewSoftwarePkgDTO struct {
@@ -36,33 +44,33 @@ type NewSoftwarePkgDTO struct {
 // SoftwarePkgDTO
 type SoftwarePkgDTO struct {
 	Id        string `json:"id"`
-	Importer  string `json:"importer"`
-	PkgName   string `json:"pkg_name"`
-	Phase     string `json:"phase"`
-	CIStatus  string `json:"ci_status"`
-	AppliedAt string `json:"applied_at"`
-	PkgDesc   string `json:"desc"`
 	Sig       string `json:"sig"`
+	Phase     string `json:"phase"`
+	PkgName   string `json:"pkg_name"`
+	PkgDesc   string `json:"desc"`
 	Platform  string `json:"platform"`
+	RepoLink  string `json:"repo_link"`
+	CIStatus  string `json:"ci_status"`
+	Importer  string `json:"importer"`
+	AppliedAt string `json:"applied_at"`
 }
 
-func toSoftwarePkgDTO(v *domain.SoftwarePkg) SoftwarePkgDTO {
-	dto := SoftwarePkgDTO{
+func toSoftwarePkgDTO(v *repository.SoftwarePkgInfo) SoftwarePkgDTO {
+	return SoftwarePkgDTO{
 		Id:        v.Id,
 		Sig:       v.Sig.ImportingPkgSig(),
 		Phase:     v.Phase.PackagePhase(),
-		CIStatus:  v.CI.Status().PackageCIStatus(),
-		PkgDesc:   v.Basic.Desc.PackageDesc(),
-		PkgName:   v.Basic.Name.PackageName(),
-		Platform:  v.Repo.Platform.PackagePlatform(),
+		PkgName:   v.PkgName.PackageName(),
+		PkgDesc:   v.PkgDesc.PackageDesc(),
+		Platform:  v.Platform.PackagePlatform(),
+		RepoLink:  v.Platform.RepoLink(v.PkgName),
+		CIStatus:  v.CIStatus.PackageCIStatus(),
 		Importer:  v.Importer.Account(),
 		AppliedAt: utils.ToDate(v.AppliedAt),
 	}
-
-	return dto
 }
 
-func toSoftwarePkgDTOs(v []domain.SoftwarePkg) (r []SoftwarePkgDTO) {
+func toSoftwarePkgDTOs(v []repository.SoftwarePkgInfo) (r []SoftwarePkgDTO) {
 	if n := len(v); n > 0 {
 		r = make([]SoftwarePkgDTO, n)
 		for i := range v {
@@ -75,24 +83,35 @@ func toSoftwarePkgDTOs(v []domain.SoftwarePkg) (r []SoftwarePkgDTO) {
 
 // SoftwarePkgApplicationDTO
 type SoftwarePkgApplicationDTO struct {
-	SpecURL           string `json:"spec_url"`
-	Upstream          string `json:"upstream"`
-	SrcRPMURL         string `json:"src_rpm_url"`
-	PackageDesc       string `json:"desc"`
-	PackagePlatform   string `json:"platform"`
-	ImportingPkgSig   string `json:"sig"`
-	ReasonToImportPkg string `json:"reason"`
+	Id string `json:"id"`
+
+	Phase     string `json:"phase"`
+	CIStatus  string `json:"ci_status"`
+	Importer  string `json:"importer"`
+	AppliedAt string `json:"applied_at"`
+
+	Purpose  string `json:"purpose"`
+	PkgName  string `json:"name"`
+	PkgDesc  string `json:"desc"`
+	Upstream string `json:"upstream"`
+
+	Spec string `json:"spec"`
+	SRPM string `json:"srpm"`
+	// local path , failed reason
+
+	Sig        string   `json:"sig"`
+	RepoLink   string   `json:"repo_link"`
+	Committers []string `json:"committers"`
 }
 
 func toSoftwarePkgApplicationDTO(v *domain.SoftwarePkg) SoftwarePkgApplicationDTO {
 	return SoftwarePkgApplicationDTO{
-		SpecURL:           v.Code.Spec.Src.URL(),
-		Upstream:          v.Basic.Upstream.URL(),
-		SrcRPMURL:         v.Code.SRPM.Src.URL(),
-		PackageDesc:       v.Basic.Desc.PackageDesc(),
-		PackagePlatform:   v.Repo.Platform.PackagePlatform(),
-		ImportingPkgSig:   v.Sig.ImportingPkgSig(),
-		ReasonToImportPkg: v.Basic.Reason.ReasonToImportPkg(),
+		Spec:     v.Code.Spec.Src.URL(),
+		Upstream: v.Basic.Upstream.URL(),
+		SRPM:     v.Code.SRPM.Src.URL(),
+		PkgDesc:  v.Basic.Desc.PackageDesc(),
+		Sig:      v.Sig.ImportingPkgSig(),
+		Purpose:  v.Basic.Purpose.PurposeToImportPkg(),
 	}
 }
 
@@ -160,8 +179,6 @@ type SoftwarePkgApproverDTO struct {
 
 // SoftwarePkgReviewDTO
 type SoftwarePkgReviewDTO struct {
-	SoftwarePkgDTO
-
 	Logs        []SoftwarePkgOperationLogDTO  `json:"logs"`
 	Comments    []SoftwarePkgReviewCommentDTO `json:"comments"`
 	Application SoftwarePkgApplicationDTO     `json:"application"`
@@ -169,10 +186,9 @@ type SoftwarePkgReviewDTO struct {
 
 func toSoftwarePkgReviewDTO(v *domain.SoftwarePkg, comments []domain.SoftwarePkgReviewComment) SoftwarePkgReviewDTO {
 	return SoftwarePkgReviewDTO{
-		SoftwarePkgDTO: toSoftwarePkgDTO(v),
-		Logs:           toSoftwarePkgOperationLogDTOs(v.Logs),
-		Comments:       toSoftwarePkgReviewCommentDTOs(comments),
-		Application:    toSoftwarePkgApplicationDTO(v),
+		Logs:        toSoftwarePkgOperationLogDTOs(v.Logs),
+		Comments:    toSoftwarePkgReviewCommentDTOs(comments),
+		Application: toSoftwarePkgApplicationDTO(v),
 	}
 }
 
@@ -182,7 +198,7 @@ type SoftwarePkgsDTO struct {
 	Total int              `json:"total"`
 }
 
-func toSoftwarePkgsDTO(v []domain.SoftwarePkg, total int) SoftwarePkgsDTO {
+func toSoftwarePkgsDTO(v []repository.SoftwarePkgInfo, total int) SoftwarePkgsDTO {
 	return SoftwarePkgsDTO{
 		Pkgs:  toSoftwarePkgDTOs(v),
 		Total: total,

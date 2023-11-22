@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
@@ -16,117 +15,155 @@ const (
 )
 
 type softwarePkgRequest struct {
-	SpecUrl         string   `json:"spec_url"        binding:"required"`
-	Upstream        string   `json:"upstream"        binding:"required"`
-	SrcRPMURL       string   `json:"src_rpm_url"     binding:"required"`
-	PackageSig      string   `json:"sig"             binding:"required"`
-	PackageName     string   `json:"pkg_name"        binding:"required"`
-	PackageDesc     string   `json:"desc"            binding:"required"`
-	PackageReason   string   `json:"reason"          binding:"required"`
-	PackagePlatform string   `json:"platform"        binding:"required"`
-	Committers      []string `json:"committers"`
+	Name     string `json:"name"        binding:"required"`
+	Desc     string `json:"desc"        binding:"required"`
+	Purpose  string `json:"purpose"     binding:"required"`
+	Upstream string `json:"upstream"    binding:"required"`
+
+	Spec string `json:"spec"  binding:"required"`
+	SRPM string `json:"srpm"  binding:"required"`
+
+	Sig        string   `json:"sig"          binding:"required"`
+	RepoLink   string   `json:"repo_link"    binding:"required"`
+	Committers []string `json:"committers"   binding:"required"`
 }
 
-func (s *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAdapter) (
+func (req *softwarePkgRequest) toBasic() (basic domain.SoftwarePkgBasicInfo, err error) {
+	basic.Name, err = dp.NewPackageName(req.Name)
+	if err != nil {
+		return
+	}
+
+	basic.Desc, err = dp.NewPackageDesc(req.Desc)
+	if err != nil {
+		return
+	}
+
+	basic.Purpose, err = dp.NewPurposeToImportPkg(req.Purpose)
+	if err != nil {
+		return
+	}
+
+	basic.Upstream, err = dp.NewURL(req.Upstream)
+
+	return
+}
+
+func (req *softwarePkgRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
+	repo domain.SoftwarePkgRepo, err error,
+) {
+	repo.Platform, err = dp.NewPackagePlatformByRepoLink(req.RepoLink)
+	if err != nil {
+		return
+	}
+
+	repo.Committers, err = toCommitters(importer, ua, req.Committers, repo.Platform)
+
+	return
+}
+
+func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAdapter) (
 	cmd app.CmdToApplyNewSoftwarePkg, err error,
 ) {
 	cmd.Importer = *importer
 
-	basic := &cmd.Basic
+	if cmd.Basic, err = req.toBasic(); err != nil {
+		return
+	}
 
-	basic.Name, err = dp.NewPackageName(s.PackageName)
+	cmd.Spec, err = dp.NewURL(req.Spec)
 	if err != nil {
 		return
 	}
 
-	cmd.Spec, err = dp.NewURL(s.SpecUrl)
+	cmd.SRPM, err = dp.NewURL(req.SRPM)
 	if err != nil {
 		return
 	}
 
-	basic.Upstream, err = dp.NewURL(s.Upstream)
+	cmd.Sig, err = dp.NewImportingPkgSig(req.Sig)
 	if err != nil {
 		return
 	}
 
-	cmd.SRPM, err = dp.NewURL(s.SrcRPMURL)
-	if err != nil {
-		return
-	}
-
-	cmd.Sig, err = dp.NewImportingPkgSig(s.PackageSig)
-	if err != nil {
-		return
-	}
-
-	basic.Reason, err = dp.NewReasonToImportPkg(s.PackageReason)
-	if err != nil {
-		return
-	}
-
-	basic.Desc, err = dp.NewPackageDesc(s.PackageDesc)
-	if err != nil {
-		return
-	}
-
-	cmd.Repo.Platform, err = dp.NewPackagePlatform(s.PackagePlatform)
-	if err != nil {
-		return
-	}
-
-	users, err := toUsers(importer, ua, s.Committers, cmd.Repo.Platform)
-	if err != nil {
-		return
-	}
-
-	cmd.Repo.Committers = toCommitters(users)
+	cmd.Repo, err = req.toRepo(importer, ua)
 
 	return
 }
 
 type reqToUpdateSoftwarePkgApplication struct {
-	Upstream        string `json:"upstream"        binding:"required"`
-	PackageSig      string `json:"sig"             binding:"required"`
-	PackageName     string `json:"pkg_name"        binding:"required"`
-	PackageDesc     string `json:"desc"            binding:"required"`
-	PackageReason   string `json:"reason"          binding:"required"`
-	PackagePlatform string `json:"platform"        binding:"required"`
+	Desc     string `json:"desc"`
+	Purpose  string `json:"purpose"`
+	Upstream string `json:"upstream"`
+
+	Spec string `json:"spec"`
+	SRPM string `json:"srpm"`
+
+	Sig        string   `json:"sig"`
+	RepoLink   string   `json:"repo_link"`
+	Committers []string `json:"committers"`
 }
 
-func (s *reqToUpdateSoftwarePkgApplication) toCmd(pkgId string, importer *domain.User) (
+func (req *reqToUpdateSoftwarePkgApplication) toCmd(
+	pkgId string, importer *domain.User, ua useradapter.UserAdapter,
+) (
 	cmd app.CmdToUpdateSoftwarePkgApplication, err error,
 ) {
 	cmd.PkgId = pkgId
 	cmd.Importer = *importer
 
-	basic := &cmd.Basic
+	if req.Desc != "" {
+		if cmd.Desc, err = dp.NewPackageDesc(req.Desc); err != nil {
+			return
+		}
+	}
 
-	basic.Name, err = dp.NewPackageName(s.PackageName)
-	if err != nil {
+	if req.Purpose != "" {
+		cmd.Purpose, err = dp.NewPurposeToImportPkg(req.Purpose)
+		if err != nil {
+			return
+		}
+	}
+
+	if req.Upstream != "" {
+		if cmd.Upstream, err = dp.NewURL(req.Upstream); err != nil {
+			return
+		}
+	}
+
+	if req.Spec != "" {
+		if cmd.Spec, err = dp.NewURL(req.Spec); err != nil {
+			return
+		}
+	}
+
+	if req.SRPM != "" {
+		if cmd.SRPM, err = dp.NewURL(req.SRPM); err != nil {
+			return
+		}
+	}
+
+	if req.Sig != "" {
+		if cmd.Sig, err = dp.NewImportingPkgSig(req.Sig); err != nil {
+			return
+		}
+	}
+
+	if req.RepoLink == "" && len(req.Committers) == 0 {
 		return
 	}
 
-	basic.Upstream, err = dp.NewURL(s.Upstream)
-	if err != nil {
+	if !(req.RepoLink != "" && len(req.Committers) != 0) {
+		err = errors.New("repo_link and committers must be set at same time")
+
 		return
 	}
 
-	cmd.Sig, err = dp.NewImportingPkgSig(s.PackageSig)
-	if err != nil {
+	if cmd.Repo.Platform, err = dp.NewPackagePlatformByRepoLink(req.RepoLink); err != nil {
 		return
 	}
 
-	basic.Reason, err = dp.NewReasonToImportPkg(s.PackageReason)
-	if err != nil {
-		return
-	}
-
-	basic.Desc, err = dp.NewPackageDesc(s.PackageDesc)
-	if err != nil {
-		return
-	}
-
-	cmd.Repo.Platform, err = dp.NewPackagePlatform(s.PackagePlatform)
+	cmd.Repo.Committers, err = toCommitters(importer, ua, req.Committers, cmd.Repo.Platform)
 
 	return
 }
@@ -136,6 +173,7 @@ type softwarePkgListQuery struct {
 	PkgName      string `json:"pkg_name"       form:"pkg_name"`
 	Importer     string `json:"importer"       form:"importer"`
 	Platform     string `json:"platform"       form:"platform"`
+	LastId       string `json:"last_id"        form:"last_id"`
 	PageNum      int    `json:"page_num"       form:"page_num"`
 	CountPerPage int    `json:"count_per_page" form:"count_per_page"`
 }
@@ -165,17 +203,40 @@ func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
 		}
 	}
 
-	if s.PageNum > 0 {
-		pkg.PageNum = s.PageNum
-	} else {
-		pkg.PageNum = pageNum
+	if s.LastId != "" && s.PageNum > 0 {
+		err = errors.New("it can't set last_id and page_num at same time")
+
+		return
 	}
 
-	if s.CountPerPage > 0 {
-		pkg.CountPerPage = s.CountPerPage
-	} else {
-		pkg.CountPerPage = countPerPage
+	if s.LastId == "" {
+		if s.PageNum <= 0 || s.PageNum > config.MaxPageNum {
+			s.PageNum = pageNum
+		}
+		pkg.PageNum = s.PageNum
 	}
+
+	if s.CountPerPage <= 0 || s.CountPerPage > config.MaxCountPerPage {
+		s.CountPerPage = countPerPage
+	}
+	pkg.CountPerPage = s.CountPerPage
+
+	return
+}
+
+type reqToAbandonPkg struct {
+	Comment string `json:"comment"`
+}
+
+func (req *reqToAbandonPkg) toCmd(pkgId string, user *domain.User) (cmd app.CmdToAbandonPkg, err error) {
+	if req.Comment != "" {
+		if cmd.Comment, err = dp.NewReviewComment(req.Comment); err != nil {
+			return
+		}
+	}
+
+	cmd.PkgId = pkgId
+	cmd.Importer = user.Account
 
 	return
 }
@@ -184,10 +245,13 @@ type reviewCommentRequest struct {
 	Comment string `json:"comment" binding:"required"`
 }
 
-func (r reviewCommentRequest) toCmd(user *domain.User) (rc app.CmdToWriteSoftwarePkgReviewComment, err error) {
-	rc.Author = user.Account
+func (r reviewCommentRequest) toCmd(pkgId string, user *domain.User) (rc app.CmdToWriteSoftwarePkgReviewComment, err error) {
+	if rc.Content, err = dp.NewReviewComment(r.Comment); err != nil {
+		return
+	}
 
-	rc.Content, err = dp.NewReviewComment(r.Comment)
+	rc.PkgId = pkgId
+	rc.Author = user.Account
 
 	return
 }
@@ -240,52 +304,38 @@ func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
 	}, nil
 }
 
-func toUsers(importer *domain.User, ua useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
-	[]domain.User, error,
+func toCommitters(importer *domain.User, ua useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
+	[]domain.PkgCommitter, error,
 ) {
 	if len(committers) > 3 { // TODO config
 		return nil, errors.New("too many committers")
 	}
 
-	r := []domain.User{*importer}
+	platform := p.PackagePlatform()
+
+	platformId := importer.Id(platform)
+	if platformId == "" {
+		return nil, errors.New("no platform Id")
+	}
+
+	r := []domain.PkgCommitter{{Account: importer.Account, PlatformId: platformId}}
 
 	if len(committers) == 0 {
 		return r, nil
 	}
 
-	v := map[string]bool{}
 	for _, c := range committers {
-		v[c] = true
-	}
-	if k := importer.Account.Account(); v[k] {
-		delete(v, k)
-	}
+		if c == platformId {
+			continue
+		}
 
-	for c := range v {
-		u, err := ua.Find(c)
+		u, err := ua.Find(c, platform)
 		if err != nil {
 			return nil, err
 		}
 
-		if !u.ApplyTo(p) {
-			return nil, fmt.Errorf(
-				"committer doesn't have account of %s",
-				p.PackagePlatform(),
-			)
-		}
-
-		r = append(r, u)
+		r = append(r, domain.PkgCommitter{Account: u.Account, PlatformId: c})
 	}
 
 	return r, nil
-}
-
-func toCommitters(users []domain.User) []dp.Account {
-	v := make([]dp.Account, len(users))
-
-	for i := range users {
-		v[i] = users[i].Account
-	}
-
-	return v
 }

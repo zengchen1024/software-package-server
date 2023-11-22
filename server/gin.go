@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/server-common-lib/interrupts"
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
@@ -19,8 +20,8 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
 )
@@ -68,10 +69,11 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 	controller.AddRouteForSoftwarePkgController(
 		v1, softwarepkgapp.NewSoftwarePkgService(
-			repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
+			softwarepkgadapter.NewsoftwarePkgAdapter(
+				mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
+			),
 			pkgmanagerimpl.Instance(),
 			messageimpl.Producer(),
-			sensitivewordsimpl.Sensitive(),
 			translationimpl.Translation(),
 			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 		),

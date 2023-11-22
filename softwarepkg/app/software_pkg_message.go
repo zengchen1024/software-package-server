@@ -53,7 +53,7 @@ type softwarePkgMessageService struct {
 
 // DownloadPkgCode
 func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	pkg1, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg1, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return nil
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg1, version); err != nil {
+	if err = s.repo.SaveAndIgnoreReview(&pkg1, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -99,7 +99,7 @@ func (s softwarePkgMessageService) notifyPkgCodeChanged(pkg *domain.SoftwarePkg)
 
 // StartCI
 func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
 		return err
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -120,7 +120,7 @@ func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
 
 // HandlePkgCIDone
 func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) err
 
 	s.addCIComment(&cmd)
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -155,7 +155,7 @@ func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIDone) {
 
 // HandlePkgRepoCodePushed
 func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRepoCodePushed) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 		return err
 	}
 
-	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -176,7 +176,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 
 // HandlePkgInitialized
 func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
 	}
@@ -186,9 +186,9 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 			return err
 		}
 
-		if !pkg.Repo.Platform.IsLocalPlatform() {
-			//s.notifyPkgInitialized(&pkg, &cmd)
-		}
+		//if !pkg.Repo.Platform.IsLocalPlatform() {
+		//s.notifyPkgInitialized(&pkg, &cmd)
+		//}
 	} else {
 		if !cmd.isPkgAreadyExisted() {
 			logrus.Errorf("pkg init failed, pkgid:%s, err:%s", cmd.PkgId, cmd.FiledReason)
@@ -203,7 +203,7 @@ func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitia
 		s.addCommentForExistedPkg(&cmd)
 	}
 
-	if err := s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
@@ -241,7 +241,7 @@ func (s softwarePkgMessageService) ImportPkg(cmd CmdToHandlePkgAlreadyExisted) e
 		return err
 	}
 
-	if err = s.repo.AddSoftwarePkg(&v); err != nil {
+	if err = s.repo.Add(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			return nil
 		}

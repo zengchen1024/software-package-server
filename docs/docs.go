@@ -485,22 +485,46 @@ const docTemplate = `{
         "app.SoftwarePkgApplicationDTO": {
             "type": "object",
             "properties": {
+                "applied_at": {
+                    "type": "string"
+                },
+                "ci_status": {
+                    "type": "string"
+                },
+                "committers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "desc": {
                     "type": "string"
                 },
-                "platform": {
+                "id": {
                     "type": "string"
                 },
-                "reason": {
+                "importer": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phase": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "repo_link": {
                     "type": "string"
                 },
                 "sig": {
                     "type": "string"
                 },
-                "spec_url": {
+                "spec": {
                     "type": "string"
                 },
-                "src_rpm_url": {
+                "srpm": {
                     "type": "string"
                 },
                 "upstream": {
@@ -583,47 +607,17 @@ const docTemplate = `{
                 "application": {
                     "$ref": "#/definitions/app.SoftwarePkgApplicationDTO"
                 },
-                "applied_at": {
-                    "type": "string"
-                },
-                "ci_status": {
-                    "type": "string"
-                },
                 "comments": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
                     }
                 },
-                "desc": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "importer": {
-                    "type": "string"
-                },
                 "logs": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/app.SoftwarePkgOperationLogDTO"
                     }
-                },
-                "phase": {
-                    "type": "string"
-                },
-                "pkg_name": {
-                    "type": "string"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "repo_link": {
-                    "type": "string"
-                },
-                "sig": {
-                    "type": "string"
                 }
             }
         },
@@ -671,7 +665,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "pass": {
                     "type": "boolean"
@@ -688,28 +682,29 @@ const docTemplate = `{
         },
         "controller.reqToUpdateSoftwarePkgApplication": {
             "type": "object",
-            "required": [
-                "desc",
-                "pkg_name",
-                "platform",
-                "reason",
-                "sig",
-                "upstream"
-            ],
             "properties": {
+                "committers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "desc": {
                     "type": "string"
                 },
-                "pkg_name": {
+                "purpose": {
                     "type": "string"
                 },
-                "platform": {
-                    "type": "string"
-                },
-                "reason": {
+                "repo_link": {
                     "type": "string"
                 },
                 "sig": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "srpm": {
                     "type": "string"
                 },
                 "upstream": {
@@ -745,35 +740,42 @@ const docTemplate = `{
         "controller.softwarePkgRequest": {
             "type": "object",
             "required": [
+                "committers",
                 "desc",
-                "pkg_name",
-                "platform",
-                "reason",
+                "name",
+                "purpose",
+                "repo_link",
                 "sig",
-                "spec_url",
-                "src_rpm_url",
+                "spec",
+                "srpm",
                 "upstream"
             ],
             "properties": {
+                "committers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "desc": {
                     "type": "string"
                 },
-                "pkg_name": {
+                "name": {
                     "type": "string"
                 },
-                "platform": {
+                "purpose": {
                     "type": "string"
                 },
-                "reason": {
+                "repo_link": {
                     "type": "string"
                 },
                 "sig": {
                     "type": "string"
                 },
-                "spec_url": {
+                "spec": {
                     "type": "string"
                 },
-                "src_rpm_url": {
+                "srpm": {
                     "type": "string"
                 },
                 "upstream": {

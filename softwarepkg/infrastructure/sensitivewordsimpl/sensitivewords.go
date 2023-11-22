@@ -1,14 +1,12 @@
 package sensitivewordsimpl
 
 import (
-	"errors"
-
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core/auth/basic"
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core/region"
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/services/moderation/v3"
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/services/moderation/v3/model"
 
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
+	"github.com/opensourceways/software-package-server/allerror"
 )
 
 var instance *service
@@ -56,7 +54,7 @@ func (s *service) CheckSensitiveWords(content string) error {
 	}
 
 	if *resp.Result.Suggestion != "pass" {
-		return sensitivewords.NewErrorSensitiveInfo(errors.New("invalid text"))
+		return allerror.New(allerror.ErrorCodeSensitiveContent, "invalid text")
 	}
 
 	return nil

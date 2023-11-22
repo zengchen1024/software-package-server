@@ -59,9 +59,9 @@ func (cfg *metaDataRepo) setDefault() {
 
 // ExistingPkgDefaultInfo
 type ExistingPkgDefaultInfo struct {
-	Platform       string `json:"platform"          required:"true"`
-	ImporterName   string `json:"importer_name"     required:"true"`
-	ReasonToImport string `json:"reason_to_import"  required:"true"`
+	Platform        string `json:"platform"          required:"true"`
+	ImporterName    string `json:"importer_name"     required:"true"`
+	PurposeToImport string `json:"purpose_to_import"  required:"true"`
 }
 
 func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, err error) {
@@ -73,11 +73,7 @@ func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, er
 	}
 
 	// application
-	if info.Repo.Platform, err = dp.NewPackagePlatform(cfg.Platform); err != nil {
-		return
-	}
-
-	if info.Basic.Reason, err = dp.NewReasonToImportPkg(cfg.ReasonToImport); err != nil {
+	if info.Basic.Purpose, err = dp.NewPurposeToImportPkg(cfg.PurposeToImport); err != nil {
 		return
 	}
 

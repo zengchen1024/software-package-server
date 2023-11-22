@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 
+	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
@@ -82,6 +83,15 @@ func main() {
 
 	defer sigvalidatorimpl.Exit()
 
+	// mongo
+	if err := mongdblib.Init(&cfg.Mongo.DB); err != nil {
+		logrus.Errorf("init mongo failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer mongdblib.Close()
+
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Errorf("init db, err:%s", err.Error())
@@ -141,7 +151,11 @@ func main() {
 	// Domain
 	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter(), nil)
 
-	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
+	dp.Init(
+		&cfg.SoftwarePkg.DomainPrimitive,
+		sigvalidatorimpl.SigValidator(),
+		sensitivewordsimpl.Sensitive(),
+	)
 
 	middleware.Init(&cfg.Middleware)
 

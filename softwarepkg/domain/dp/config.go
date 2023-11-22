@@ -1,26 +1,23 @@
 package dp
 
-import (
-	"errors"
-	"strings"
-)
+import "strings"
 
 var config Config
 
-func Init(cfg *Config, sv SigValidator) {
+func Init(cfg *Config, sv SigValidator, words sensitiveWordsValidator) {
 	config = *cfg
 	sigValidator = sv
+	sensitiveWords = words
 }
 
 type Config struct {
-	// map platform -> community address. such as gitee -> https://gitee.com/src-openeuler/
-	SupportedPlatforms           map[string]string `json:"supported_platforms"       required:"true"`
-	SupportedLanguages           []string          `json:"supported_languages"       required:"true"`
-	LocalPlatform                string            `json:"local_platform"            required:"true"`
-	MaxLengthOfPackageName       int               `json:"max_length_of_pkg_name"`
-	MaxLengthOfPackageDesc       int               `json:"max_length_of_pkg_desc"`
-	MaxLengthOfReviewComment     int               `json:"max_length_of_review_comment"`
-	MaxLengthOfReasonToImportPkg int               `json:"max_length_of_reason_to_import_pkg"`
+	// map platform -> org address. such as gitee --> https://gitee.com/src-openeuler/
+	PlatformOrgLinks              map[string]string `json:"platform_org_links"            required:"true"`
+	SupportedLanguages            []string          `json:"supported_languages"       required:"true"`
+	MaxLengthOfPackageName        int               `json:"max_length_of_pkg_name"`
+	MaxLengthOfPackageDesc        int               `json:"max_length_of_pkg_desc"`
+	MaxLengthOfReviewComment      int               `json:"max_length_of_review_comment"`
+	MaxLengthOfPurposeToImportPkg int               `json:"max_length_of_purpose_to_import_pkg"`
 }
 
 func (cfg *Config) SetDefault() {
@@ -40,8 +37,8 @@ func (cfg *Config) SetDefault() {
 		cfg.MaxLengthOfReviewComment = 500
 	}
 
-	if cfg.MaxLengthOfReasonToImportPkg <= 0 {
-		cfg.MaxLengthOfReasonToImportPkg = 1000
+	if cfg.MaxLengthOfPurposeToImportPkg <= 0 {
+		cfg.MaxLengthOfPurposeToImportPkg = 1000
 	}
 }
 
@@ -49,19 +46,15 @@ func (cfg *Config) Validate() error {
 	cfg.toLower(cfg.SupportedLanguages)
 
 	m := map[string]string{}
-	for k, v := range cfg.SupportedPlatforms {
-		if !strings.HasSuffix(v, "/") {
-			v += "/"
+	for p, addr := range cfg.PlatformOrgLinks {
+		if !strings.HasSuffix(addr, "/") {
+			addr += "/"
 		}
 
-		m[strings.ToLower(k)] = v
+		m[strings.ToLower(p)] = addr
 	}
 
-	cfg.SupportedPlatforms = m
-
-	if !cfg.isValidPlatform(cfg.LocalPlatform) {
-		return errors.New("unkonw local platform")
-	}
+	cfg.PlatformOrgLinks = m
 
 	return nil
 }
@@ -77,7 +70,21 @@ func (cfg *Config) isValidLanguage(v string) bool {
 }
 
 func (cfg *Config) isValidPlatform(v string) bool {
-	return cfg.SupportedPlatforms[strings.ToLower(v)] != ""
+	return cfg.PlatformOrgLinks[v] != ""
+}
+
+func (cfg *Config) platformOfRepoLink(repoLink string) string {
+	for p, orgLink := range cfg.PlatformOrgLinks {
+		if strings.HasPrefix(repoLink, orgLink) {
+			return p
+		}
+	}
+
+	return ""
+}
+
+func (cfg *Config) orgLinkOfPlatform(v string) string {
+	return cfg.PlatformOrgLinks[v]
 }
 
 func (cfg *Config) has(v string, items []string) bool {

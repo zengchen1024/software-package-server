@@ -2,8 +2,7 @@ package main
 
 import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
-	"github.com/opensourceways/server-common-lib/utils"
-
+	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -11,7 +10,8 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
-	localutils "github.com/opensourceways/software-package-server/utils"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 func loadConfig(path string) (*Config, error) {
@@ -42,15 +42,16 @@ type postgresqlConfig struct {
 }
 
 type Config struct {
+	PkgCI        pkgciimpl.Config        `json:"ci"                   required:"true"`
+	Mongo        mongoConfig             `json:"mongo"                 required:"true"`
 	Kafka        kfklib.Config           `json:"kafka"                required:"true"`
-	Topics       Topics                  `json:"topics_to_subscribe"  required:"true"`
+	Topics       Topics                  `json:"topics"  required:"true"`
 	GroupName    string                  `json:"group_name"           required:"true"`
-	Encryption   localutils.Config       `json:"encryption"           required:"true"`
+	Encryption   utils.Config            `json:"encryption"           required:"true"`
 	Postgresql   postgresqlConfig        `json:"postgresql"           required:"true"`
 	PkgManager   pkgmanagerimpl.Config   `json:"pkg_manager"          required:"true"`
 	SoftwarePkg  domainConfig            `json:"software_pkg"         required:"true"`
 	SigValidator sigvalidatorimpl.Config `json:"sig"                  required:"true"`
-	PkgCI        pkgciimpl.Config        `json:"ci"                   required:"true"`
 }
 
 type Topics struct {
@@ -66,6 +67,11 @@ type Topics struct {
 	SoftwarePkgCodeChanged string `json:"software_pkg_code_changed"        required:"true"`
 }
 
+type mongoConfig struct {
+	DB          mongdblib.Config          `json:"db"`
+	Collections softwarepkgadapter.Config `json:"collections"`
+}
+
 type configValidate interface {
 	Validate() error
 }
@@ -76,6 +82,9 @@ type configSetDefault interface {
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
+		&cfg.PkgCI,
+		&cfg.Mongo,
+		&cfg.Mongo.Collections,
 		&cfg.Kafka,
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
@@ -84,7 +93,6 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.PkgManager,
 		&cfg.SigValidator,
-		&cfg.PkgCI,
 	}
 }
 
@@ -98,7 +106,7 @@ func (cfg *Config) setDefault() {
 }
 
 func (cfg *Config) validate() error {
-	if _, err := utils.BuildRequestBody(cfg, ""); err != nil {
+	if err := utils.CheckConfig(cfg, ""); err != nil {
 		return err
 	}
 

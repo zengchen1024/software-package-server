@@ -33,7 +33,7 @@ func (do *SoftwarePkgReviewCommentDO) toSoftwarePkgReviewComment() (
 		return
 	}
 
-	r.Content, err = dp.NewReviewComment(do.Content)
+	r.Content, err = dp.NewReviewCommentInternal(do.Content)
 
 	return
 }

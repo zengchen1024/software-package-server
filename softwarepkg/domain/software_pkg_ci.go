@@ -13,6 +13,14 @@ type pkgCI interface {
 	StartNewCI(pkg *SoftwarePkg) (int, error)
 }
 
+func NewSoftwarePkgCI(cid int, status dp.PackageCIStatus, startTime int64) SoftwarePkgCI {
+	return SoftwarePkgCI{
+		Id:        cid,
+		status:    status,
+		StartTime: startTime,
+	}
+}
+
 // SoftwarePkgCI
 type SoftwarePkgCI struct {
 	Id        int // The Id of running CI

@@ -218,7 +218,21 @@ func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctl.service.Abandon(ctx.Param("id"), &user); err != nil {
+	var req reqToAbandonPkg
+	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+		commonctl.SendBadRequestBody(ctx, err)
+
+		return
+	}
+
+	cmd, err := req.toCmd(ctx.Param("id"), &user)
+	if err != nil {
+		commonctl.SendBadRequestParam(ctx, err)
+
+		return
+	}
+
+	if err := ctl.service.Abandon(&cmd); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
@@ -250,15 +264,15 @@ func (ctl SoftwarePkgController) NewReviewComment(ctx *gin.Context) {
 		return
 	}
 
-	cmd, err := req.toCmd(&user)
+	cmd, err := req.toCmd(ctx.Param("id"), &user)
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 
 		return
 	}
 
-	if code, err := ctl.service.NewReviewComment(ctx.Param("id"), &cmd); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
+	if err := ctl.service.NewReviewComment(&cmd); err != nil {
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfCreate(ctx)
 	}
@@ -323,7 +337,7 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 		return
 	}
 
-	cmd, err := req.toCmd(ctx.Param("id"), &user)
+	cmd, err := req.toCmd(ctx.Param("id"), &user, ctl.userAdapter)
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 

@@ -21,7 +21,13 @@ var (
 	}
 
 	commandRegex = regexp.MustCompile(`(?m)^/([^\s]+)[\t ]*([^\n\r]*)`)
+
+	sensitiveWords sensitiveWordsValidator
 )
+
+type sensitiveWordsValidator interface {
+	CheckSensitiveWords(string) error
+}
 
 type ReviewComment interface {
 	ReviewComment() string
@@ -29,17 +35,37 @@ type ReviewComment interface {
 }
 
 func NewReviewComment(v string) (ReviewComment, error) {
+	if err := checkReviewComment(v); err != nil {
+		return nil, err
+	}
+
+	if err := sensitiveWords.CheckSensitiveWords(v); err != nil {
+		return nil, err
+	}
+
+	return reviewComment(v), nil
+}
+
+func NewReviewCommentInternal(v string) (ReviewComment, error) {
+	if err := checkReviewComment(v); err != nil {
+		return nil, err
+	}
+
+	return reviewComment(v), nil
+}
+
+func checkReviewComment(v string) error {
 	if v == "" {
-		return nil, errors.New("empty review comment")
+		return errors.New("empty review comment")
 	}
 
 	if max := config.MaxLengthOfReviewComment; utils.StrLen(v) > max {
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"the length of review comment should be less than %d", max,
 		)
 	}
 
-	return reviewComment(v), nil
+	return nil
 }
 
 type reviewComment string

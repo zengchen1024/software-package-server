@@ -7,26 +7,26 @@ import (
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-type ReasonToImportPkg interface {
-	ReasonToImportPkg() string
+type PurposeToImportPkg interface {
+	PurposeToImportPkg() string
 }
 
-func NewReasonToImportPkg(v string) (ReasonToImportPkg, error) {
+func NewPurposeToImportPkg(v string) (PurposeToImportPkg, error) {
 	if v == "" {
-		return nil, errors.New("empty reason")
+		return nil, errors.New("empty purpose")
 	}
 
-	if max := config.MaxLengthOfReasonToImportPkg; utils.StrLen(v) > max {
+	if max := config.MaxLengthOfPurposeToImportPkg; utils.StrLen(v) > max {
 		return nil, fmt.Errorf(
-			"the length of reason should be less than %d", max,
+			"the length of purpose should be less than %d", max,
 		)
 	}
 
-	return reasonToImportPkg(v), nil
+	return purposeToImportPkg(v), nil
 }
 
-type reasonToImportPkg string
+type purposeToImportPkg string
 
-func (v reasonToImportPkg) ReasonToImportPkg() string {
+func (v purposeToImportPkg) PurposeToImportPkg() string {
 	return string(v)
 }

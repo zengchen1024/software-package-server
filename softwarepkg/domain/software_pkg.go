@@ -22,6 +22,16 @@ var (
 	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
 )
 
+type SoftwarePkgUpdateInfo struct {
+	Sig      dp.ImportingPkgSig
+	Repo     SoftwarePkgRepo
+	Spec     dp.URL
+	SRPM     dp.URL
+	Desc     dp.PackageDesc
+	Purpose  dp.PurposeToImportPkg
+	Upstream dp.URL
+}
+
 type User struct {
 	Email   dp.Email
 	Account dp.Account
@@ -30,48 +40,45 @@ type User struct {
 	GithubID string
 }
 
-func (u *User) ApplyTo(p dp.PackagePlatform) bool {
-	v := p.PackagePlatform()
+func (u *User) Id(p string) string {
+	switch p {
+	case gitee:
+		return u.GiteeID
 
-	if v == gitee && u.GiteeID != "" {
-		return true
+	case github:
+		return u.GithubID
+
+	default:
+		return ""
 	}
-
-	if v == github && u.GithubID != "" {
-		return true
-	}
-
-	return false
 }
 
 type SoftwarePkgBasicInfo struct {
 	Name     dp.PackageName
 	Desc     dp.PackageDesc
-	Reason   dp.ReasonToImportPkg
+	Purpose  dp.PurposeToImportPkg
 	Upstream dp.URL
 }
 
-func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgBasicInfo) []string {
+func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgUpdateInfo) []string {
 	ms := []string{}
 
-	if basic.Name.PackageName() != info.Name.PackageName() {
-		ms = append(ms, pkgModificationPkgName)
-	}
+	if v := info.Desc; v != nil && v.PackageDesc() != basic.Desc.PackageDesc() {
+		basic.Desc = v
 
-	if basic.Desc.PackageDesc() != info.Desc.PackageDesc() {
 		ms = append(ms, pkgModificationPkgDesc)
 	}
 
-	if basic.Reason.ReasonToImportPkg() != info.Reason.ReasonToImportPkg() {
+	if v := info.Purpose; v != nil && v.PurposeToImportPkg() != basic.Purpose.PurposeToImportPkg() {
+		basic.Purpose = v
+
 		ms = append(ms, pkgModificationPkgReason)
 	}
 
-	if basic.Upstream.URL() != info.Upstream.URL() {
-		ms = append(ms, pkgModificationUpstream)
-	}
+	if v := info.Upstream; v != nil && v.URL() != basic.Upstream.URL() {
+		basic.Upstream = v
 
-	if len(ms) > 0 {
-		*basic = *info
+		ms = append(ms, pkgModificationUpstream)
 	}
 
 	return ms
@@ -118,7 +125,7 @@ func (entity *SoftwarePkg) otherCheckItems() []CheckItem {
 	}
 
 	for i := range entity.Repo.Committers {
-		c := entity.Repo.Committers[i].Account()
+		c := entity.Repo.Committers[i].Account.Account()
 
 		if c == entity.Importer.Account() {
 			continue
@@ -142,8 +149,16 @@ func (entity *SoftwarePkg) isCommitter(user dp.Account) bool {
 	return entity.Repo.isCommitter(user)
 }
 
-func (entity *SoftwarePkg) CanAddReviewComment() bool {
-	return entity.Phase.IsReviewing()
+func (entity *SoftwarePkg) CanAddReviewComment() error {
+	if entity.Phase.IsReviewing() {
+		return nil
+	}
+
+	return incorrectPhase
+}
+
+func (entity *SoftwarePkg) RepoLink() string {
+	return entity.Repo.repoLink(entity.Basic.Name)
 }
 
 func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeFile {
@@ -154,13 +169,13 @@ func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeFile) bool
 	return entity.Code.saveDownloadedFiles(files)
 }
 
-func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
+func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
 	if !entity.Phase.IsReviewing() {
-		return false, incorrectPhase
+		return incorrectPhase
 	}
 
 	if !entity.CI.isSuccess() {
-		return false, allerror.New(
+		return allerror.New(
 			allerror.ErrorCodeCIIsNotReady, "ci is not successful yet",
 		)
 	}
@@ -168,7 +183,7 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 	items := append(entity.otherCheckItems(), commonCheckItems...)
 
 	if err := entity.addReview(ur, items); err != nil {
-		return false, err
+		return err
 	}
 
 	entity.Logs = append(
@@ -178,12 +193,11 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) (bool, error) {
 		),
 	)
 
-	b := entity.doesPassReview(items)
-	if b {
+	if entity.doesPassReview(items) {
 		entity.Phase = dp.PackagePhaseCreatingRepo
 	}
 
-	return b, nil
+	return nil
 }
 
 func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
@@ -207,8 +221,8 @@ func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) Abandon(user *User) error {
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
+func (entity *SoftwarePkg) Abandon(user dp.Account) error {
+	if !dp.IsSameAccount(user, entity.Importer) {
 		return notfound
 	}
 
@@ -221,7 +235,7 @@ func (entity *SoftwarePkg) Abandon(user *User) error {
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionAbandon,
+			user, dp.PackageOperationLogActionAbandon,
 		),
 	)
 
@@ -255,14 +269,7 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) UpdateApplication(
-	user *User,
-	sig dp.ImportingPkgSig,
-	repo *SoftwarePkgRepo,
-	basic *SoftwarePkgBasicInfo,
-	spec dp.URL,
-	srpm dp.URL,
-) error {
+func (entity *SoftwarePkg) UpdateApplication(user *User, info *SoftwarePkgUpdateInfo) error {
 	if !dp.IsSameAccount(user.Account, entity.Importer) {
 		return notfound
 	}
@@ -271,20 +278,20 @@ func (entity *SoftwarePkg) UpdateApplication(
 		return incorrectPhase
 	}
 
-	ms := entity.Basic.update(basic)
+	ms := entity.Basic.update(info)
 
-	if entity.Sig.ImportingPkgSig() != sig.ImportingPkgSig() {
+	if v := info.Sig; v.ImportingPkgSig() != entity.Sig.ImportingPkgSig() {
+		entity.Sig = v
+
 		ms = append(ms, pkgModificationSig)
-
-		entity.Sig = sig
 	}
 
-	if v := entity.Repo.update(repo); v != "" {
+	if v := entity.Repo.update(&info.Repo); v != "" {
 		ms = append(ms, v)
 	}
 
-	if spec != nil || srpm != nil {
-		entity.Code.update(spec, srpm)
+	if info.Spec != nil || info.SRPM != nil {
+		entity.Code.update(info.Spec, info.SRPM)
 		ms = append(ms, pkgModificationCode)
 	}
 
@@ -292,7 +299,8 @@ func (entity *SoftwarePkg) UpdateApplication(
 		return errors.New("nothing changed")
 	}
 
-	entity.clearReview(ms, append(entity.otherCheckItems(), commonCheckItems...))
+	items := append(entity.otherCheckItems(), commonCheckItems...)
+	entity.clearReview(ms, items)
 
 	entity.Logs = append(
 		entity.Logs,
@@ -300,6 +308,12 @@ func (entity *SoftwarePkg) UpdateApplication(
 			user.Account, dp.PackageOperationLogActionUpdate,
 		),
 	)
+
+	/*
+		if entity.doesPassReview(items) {
+			entity.Phase = dp.PackagePhaseCreatingRepo
+		}
+	*/
 
 	return nil
 }
@@ -372,12 +386,12 @@ func NewSoftwarePkg(
 	importer *User,
 ) SoftwarePkg {
 	pkg := SoftwarePkg{
+		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting},
 		Sig:       sig,
 		Repo:      *repo,
 		Basic:     *basic,
-		Importer:  importer.Account,
-		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting},
 		Phase:     dp.PackagePhaseReviewing,
+		Importer:  importer.Account,
 		AppliedAt: utils.Now(),
 	}
 
