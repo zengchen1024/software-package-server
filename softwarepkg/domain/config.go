@@ -81,9 +81,6 @@ type checkItemConfig struct {
 	Desc  string `json:"desc"   required:"true"`
 	Owner string `json:"owner"  required:"true"`
 
-	// This check item should be checked again when the relevant modifications happened.
-	Modifications []string `json:"modifications" required:"true"`
-
 	// If true, keep the review record of reviewer, otherwise clear all the records about
 	// this item when relevant modifications happened.
 	// For example, the review about the item whether the user aggreed to
@@ -93,6 +90,9 @@ type checkItemConfig struct {
 	// If true, only the owner can review this item else anyone can review.
 	// For example, onlye sig maintainer can determine whether the sig of pkg is correct.
 	OnlyOwner bool `json:""`
+
+	// This check item should be checked again when the relevant modifications happened.
+	Modifications []string `json:"modifications" required:"true"`
 }
 
 func (cfg *checkItemConfig) toCheckItem() (item CheckItem, err error) {

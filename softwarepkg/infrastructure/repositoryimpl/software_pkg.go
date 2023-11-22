@@ -4,7 +4,6 @@ import (
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
 type softwarePkgImpl struct {
@@ -13,7 +12,7 @@ type softwarePkgImpl struct {
 	operationLog
 }
 
-func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
+func NewSoftwarePkg(cfg *Config) softwarePkgImpl {
 	return softwarePkgImpl{
 		softwarePkgBasic: softwarePkgBasic{
 			postgresql.NewDBTable(cfg.Table.SoftwarePkgBasic),
@@ -24,7 +23,7 @@ func NewSoftwarePkg(cfg *Config) repository.SoftwarePkg {
 	}
 }
 
-func (impl softwarePkgImpl) FindSoftwarePkg(pid string) (
+func (impl softwarePkgImpl) FindSoftwarePkg(pid string, ignoreReview bool) (
 	pkg domain.SoftwarePkg, version int, err error,
 ) {
 	pkg, version, err = impl.softwarePkgBasic.FindSoftwarePkg(pid)

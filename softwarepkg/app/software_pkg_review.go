@@ -1,15 +1,9 @@
 package app
 
-import (
-	"fmt"
-
-	"github.com/sirupsen/logrus"
-
-	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-)
+import "github.com/opensourceways/software-package-server/softwarepkg/domain"
 
 func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDTO, string, error) {
-	v, _, err := s.repo.FindSoftwarePkg(pid)
+	v, _, err := s.repo.Find(pid)
 	if err != nil {
 		return SoftwarePkgReviewDTO{}, errorCodeForFindingPkg(err), err
 	}
@@ -22,47 +16,25 @@ func (s *softwarePkgService) GetPkgReviewDetail(pid string) (SoftwarePkgReviewDT
 	return toSoftwarePkgReviewDTO(&v, comments), "", nil
 }
 
-func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error) {
-	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) error {
+	pkg, version, err := s.repo.Find(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
-	approved, err := pkg.AddReview(&domain.UserReview{
+	err = pkg.AddReview(&domain.UserReview{
 		Reviewer: *user,
 		Reviews:  reviews,
 	})
 	if err != nil {
-		return
+		return err
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
-		return
-	}
-
-	if approved {
-		s.notifyPkgApproved(&pkg)
-	}
-
-	return
-}
-
-func (s *softwarePkgService) notifyPkgApproved(pkg *domain.SoftwarePkg) {
-	e := domain.NewSoftwarePkgApprovedEvent(pkg)
-	err := s.message.NotifyPkgApproved(&e)
-
-	msg := fmt.Sprintf(
-		"notify that a pkg:%s/%s was approved", pkg.Id, pkg.Basic.Name.PackageName(),
-	)
-	if err == nil {
-		logrus.Debugf("successfully to %s", msg)
-	} else {
-		logrus.Errorf("failed to %s, err:%s", msg, err.Error())
-	}
+	return s.repo.Save(&pkg, version)
 }
 
 func (s *softwarePkgService) Reject(pid string, user *domain.Reviewer) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+	pkg, version, err := s.repo.FindAndIgnoreReview(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
@@ -71,5 +43,5 @@ func (s *softwarePkgService) Reject(pid string, user *domain.Reviewer) error {
 		return err
 	}
 
-	return s.repo.SaveSoftwarePkg(&pkg, version)
+	return s.repo.SaveAndIgnoreReview(&pkg, version)
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type UserAdapter interface {
-	Find(string) (domain.User, error)
+	Find(pid string, platform string) (domain.User, error)
 
 	//Roles(*domain.SoftwarePkg, *domain.Reviewer) []dp.CommunityRole
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/translation"
 )
@@ -18,14 +17,14 @@ type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
 	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
-	Abandon(string, *domain.User) error
+	Abandon(*CmdToAbandonPkg) error
 	Retest(string, *domain.User) error
 
-	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
 	Reject(string, *domain.Reviewer) error
+	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
 	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
 
-	NewReviewComment(string, *CmdToWriteSoftwarePkgReviewComment) (string, error)
+	NewReviewComment(*CmdToWriteSoftwarePkgReviewComment) error
 	TranslateReviewComment(*CmdToTranslateReviewComment) (
 		dto TranslatedReveiwCommentDTO, code string, err error,
 	)
@@ -41,7 +40,6 @@ func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgMessage,
-	sensitive sensitivewords.SensitiveWords,
 	translation translation.Translation,
 	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgService {
@@ -51,7 +49,6 @@ func NewSoftwarePkgService(
 		repo:        repo,
 		robot:       robot,
 		message:     message,
-		sensitive:   sensitive,
 		translation: translation,
 		pkgService:  service.NewPkgService(manager, message),
 		commentRepo: commentRepo,
@@ -62,7 +59,6 @@ type softwarePkgService struct {
 	repo        repository.SoftwarePkg
 	robot       dp.Account
 	message     message.SoftwarePkgMessage
-	sensitive   sensitivewords.SensitiveWords
 	pkgService  service.SoftwarePkgService
 	translation translation.Translation
 	commentRepo repository.SoftwarePkgComment
@@ -80,7 +76,7 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 		return
 	}
 
-	if err = s.repo.AddSoftwarePkg(&v); err != nil {
+	if err = s.repo.Add(&v); err != nil {
 		if commonrepo.IsErrorDuplicateCreating(err) {
 			err = errorSoftwarePkgExists
 		}
@@ -106,30 +102,31 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 }
 
 func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
-	v, total, err := s.repo.FindSoftwarePkgs(*cmd)
+	v, err := s.repo.FindAll(cmd)
 	if err != nil || len(v) == 0 {
 		return SoftwarePkgsDTO{}, nil
 	}
 
-	return toSoftwarePkgsDTO(v, total), nil
+	// TODO
+	return toSoftwarePkgsDTO(v, 0), nil
 }
 
 func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(cmd.PkgId)
+	pkg, version, err := s.repo.Find(cmd.PkgId)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
-	err = pkg.UpdateApplication(&cmd.Importer, cmd.Sig, &cmd.Repo, &cmd.Basic, cmd.Spec, cmd.SRPM)
-	if err != nil {
+	if err = pkg.UpdateApplication(&cmd.Importer, &cmd.SoftwarePkgUpdateInfo); err != nil {
 		return err
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err = s.repo.Save(&pkg, version); err != nil {
 		return err
 	}
 
 	if cmd.Spec != nil || cmd.SRPM != nil {
+		// it may need reload even if the spec or srpm does not change.
 		e := domain.NewSoftwarePkgCodeUpdatedEvent(&pkg)
 
 		if err1 := s.message.SendPkgCodeUpdatedEvent(&e); err1 != nil {
@@ -147,21 +144,37 @@ func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplic
 	return nil
 }
 
-func (s *softwarePkgService) Abandon(pid string, user *domain.User) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+func (s *softwarePkgService) Abandon(cmd *CmdToAbandonPkg) error {
+	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
-	if err = pkg.Abandon(user); err != nil {
+	if err = pkg.Abandon(cmd.Importer); err != nil {
 		return err
 	}
 
-	return s.repo.SaveSoftwarePkg(&pkg, version)
+	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
+		return err
+	}
+
+	if cmd.Comment == nil {
+		return nil
+	}
+
+	comment := domain.NewSoftwarePkgReviewComment(cmd.Importer, cmd.Comment)
+	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when abandonning a pkg:%s, err:%s",
+			cmd.PkgId, err.Error(),
+		)
+	}
+
+	return nil
 }
 
 func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
-	pkg, version, err := s.repo.FindSoftwarePkg(pid)
+	pkg, version, err := s.repo.FindAndIgnoreReview(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
@@ -170,7 +183,7 @@ func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
 		return err
 	}
 
-	if err = s.repo.SaveSoftwarePkg(&pkg, version); err != nil {
+	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		return err
 	}
 

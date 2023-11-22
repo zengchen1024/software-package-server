@@ -11,7 +11,8 @@ type OptToFindSoftwarePkgs struct {
 	Platform dp.PackagePlatform
 	Importer dp.Account
 
-	PageNum      int
+	LastId       string // the id of pkg which is the last item of previous page
+	PageNum      int    // it can't set both PageNum and LastId
 	CountPerPage int
 }
 
@@ -21,15 +22,30 @@ type TranslatedReviewCommentIndex struct {
 	Language  dp.Language
 }
 
+// SoftwarePkgInfo
+type SoftwarePkgInfo struct {
+	Id        string
+	Sig       dp.ImportingPkgSig
+	Phase     dp.PackagePhase
+	PkgName   dp.PackageName
+	PkgDesc   dp.PackageDesc
+	Platform  dp.PackagePlatform
+	CIStatus  dp.PackageCIStatus
+	Importer  dp.Account
+	AppliedAt int64
+}
+
+// SoftwarePkgAdapter
 type SoftwarePkg interface {
-	// AddSoftwarePkg adds a new pkg
-	AddSoftwarePkg(*domain.SoftwarePkg) error
+	Add(*domain.SoftwarePkg) error
 
-	SaveSoftwarePkg(pkg *domain.SoftwarePkg, version int) error
+	Find(pid string) (domain.SoftwarePkg, int, error)
+	Save(pkg *domain.SoftwarePkg, version int) error
 
-	FindSoftwarePkg(pid string) (domain.SoftwarePkg, int, error)
+	FindAndIgnoreReview(pid string) (domain.SoftwarePkg, int, error)
+	SaveAndIgnoreReview(pkg *domain.SoftwarePkg, version int) error
 
-	FindSoftwarePkgs(OptToFindSoftwarePkgs) (r []domain.SoftwarePkg, total int, err error)
+	FindAll(*OptToFindSoftwarePkgs) (r []SoftwarePkgInfo, err error)
 }
 
 type SoftwarePkgComment interface {

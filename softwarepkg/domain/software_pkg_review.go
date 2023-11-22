@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"errors"
+
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
@@ -17,23 +19,45 @@ type maintainer interface {
 var maintainerInstance maintainer
 
 func (pkg *SoftwarePkg) addReview(ur *UserReview, items []CheckItem) error {
+	if ur.isEmpty() {
+		b, i := pkg.oldReviewer(&ur.Reviewer)
+		if !b {
+			return errors.New("invalid review")
+		}
+
+		v := pkg.Reviews
+		n := len(v) - 1
+		if i != n {
+			v[i] = v[n]
+		}
+		pkg.Reviews = v[:n]
+
+		return nil
+	}
+
 	uri := ur.internal(pkg)
 
 	if err := uri.validate(items); err != nil {
 		return err
 	}
 
-	for i := range pkg.Reviews {
-		if dp.IsSameAccount(pkg.Reviews[i].Reviewer.Account, ur.Reviewer.Account) {
-			pkg.Reviews[i] = *ur
+	if b, i := pkg.oldReviewer(&ur.Reviewer); b {
+		pkg.Reviews[i] = *ur
+	} else {
+		pkg.Reviews = append(pkg.Reviews, *ur)
+	}
 
-			return nil
+	return nil
+}
+
+func (pkg *SoftwarePkg) oldReviewer(reviewer *Reviewer) (bool, int) {
+	for i := range pkg.Reviews {
+		if dp.IsSameAccount(pkg.Reviews[i].Reviewer.Account, reviewer.Account) {
+			return true, i
 		}
 	}
 
-	pkg.Reviews = append(pkg.Reviews, *ur)
-
-	return nil
+	return false, 0
 }
 
 func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
@@ -100,6 +124,10 @@ type UserReview struct {
 	Reviewer
 
 	Reviews []CheckItemReviewInfo
+}
+
+func (r *UserReview) isEmpty() bool {
+	return len(r.Reviews) == 0
 }
 
 func (r *UserReview) internal(pkg *SoftwarePkg) userReview {

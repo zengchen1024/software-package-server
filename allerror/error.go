@@ -11,13 +11,14 @@ const (
 	ErrorCodeTooManyRequest   = "too_many_request"
 	ErrorCodeSensitiveContent = "sensitive_content"
 
-	ErrorCodePkgExists       = "software_pkg_exists"
-	ErrorCodePkgNotFound     = "software_pkg_not_found"
-	ErrorCodeCIIsRunning     = "software_pkg_ci_is_running"
-	ErrorCodeCIIsWaiting     = "software_pkg_ci_is_waiting"
-	ErrorCodeCIIsNotReady    = "software_pkg_ci_is_not_ready"
-	ErrorCodeIncorrectPhase  = "software_pkg_incorrect_phase"
-	ErrorCodePkgCodeNotReady = "software_pkg_code_not_ready"
+	ErrorCodePkgExists         = "software_pkg_exists"
+	ErrorCodePkgNotFound       = "software_pkg_not_found"
+	ErrorCodeCIIsRunning       = "software_pkg_ci_is_running"
+	ErrorCodeCIIsWaiting       = "software_pkg_ci_is_waiting"
+	ErrorCodeCIIsNotReady      = "software_pkg_ci_is_not_ready"
+	ErrorCodeIncorrectPhase    = "software_pkg_incorrect_phase"
+	ErrorCodePkgCodeNotReady   = "software_pkg_code_not_ready"
+	ErrorCodePkgCommentIllegal = "software_pkg_comment_illegal"
 )
 
 // errorImpl

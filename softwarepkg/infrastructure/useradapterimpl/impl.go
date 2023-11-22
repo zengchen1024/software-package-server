@@ -1,8 +1,6 @@
 package useradapterimpl
 
 import (
-	"errors"
-
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/cacheagent"
@@ -26,6 +24,7 @@ func Init(cfg *Config) error {
 
 	instance.agent = v
 	instance.tcSig = cfg.TCSig
+	instance.om = omClient{cfg.OM}
 
 	return err
 }
@@ -44,30 +43,12 @@ func UserAdapter() *userAdapterImpl {
 type userAdapterImpl struct {
 	agent *cacheagent.Agent
 	tcSig string
+
+	om omClient
 }
 
-func (impl *userAdapterImpl) HasPermission(info *domain.SoftwarePkg, user *domain.User) (
-	has bool, isTC bool,
-) {
-	v := impl.agent.GetData()
-	m, ok := v.(*sigData)
-	if !ok {
-		return
-	}
-
-	if has = m.isSigMaintainer(user.GiteeID, impl.tcSig); has {
-		isTC = true
-	} else {
-		has = m.isSigMaintainer(
-			user.GiteeID, info.Sig.ImportingPkgSig(),
-		)
-	}
-
-	return
-}
-
-func (impl *userAdapterImpl) Find(giteeAccount string) (domain.User, error) {
-	return domain.User{}, errors.New("unimplemented")
+func (impl *userAdapterImpl) Find(pid, platform string) (domain.User, error) {
+	return impl.om.getUserInfo(pid, platform)
 }
 
 func (impl *userAdapterImpl) Roles(pkg *domain.SoftwarePkg, user *domain.Reviewer) (tc bool, sigMaitainer bool) {

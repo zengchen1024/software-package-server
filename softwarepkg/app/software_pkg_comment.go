@@ -1,43 +1,23 @@
 package app
 
 import (
-	"errors"
-
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/sensitivewords"
 )
 
-func (s *softwarePkgService) NewReviewComment(
-	pid string, cmd *CmdToWriteSoftwarePkgReviewComment,
-) (code string, err error) {
-	if err = s.sensitive.CheckSensitiveWords(cmd.Content.ReviewComment()); err != nil {
-		if sensitivewords.IsErrorSensitiveInfo(err) {
-			code = errorSoftwarePkgCommentIllegal
-		}
-
-		return
-	}
-
-	pkg, _, err := s.repo.FindSoftwarePkg(pid)
+func (s *softwarePkgService) NewReviewComment(cmd *CmdToWriteSoftwarePkgReviewComment) error {
+	pkg, _, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
-		code = errorCodeForFindingPkg(err)
-
-		return
+		return parseErrorForFindingPkg(err)
 	}
 
-	if !pkg.CanAddReviewComment() {
-		code = errorSoftwarePkgCannotComment
-		err = errors.New("can't comment now")
-
-		return
+	if err := pkg.CanAddReviewComment(); err != nil {
+		return err
 	}
 
 	// TODO: there is a critical case that the comment can't be added now
 	comment := domain.NewSoftwarePkgReviewComment(cmd.Author, cmd.Content)
-	err = s.commentRepo.AddReviewComment(pid, &comment)
-
-	return
+	return s.commentRepo.AddReviewComment(cmd.PkgId, &comment)
 }
 
 func (s *softwarePkgService) TranslateReviewComment(

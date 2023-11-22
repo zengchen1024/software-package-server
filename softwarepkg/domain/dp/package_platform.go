@@ -2,10 +2,22 @@ package dp
 
 import "errors"
 
+const (
+	Gitee  = "gitee"
+	Github = "github"
+)
+
 type PackagePlatform interface {
 	PackagePlatform() string
-	IsLocalPlatform() bool
-	RepoLink(PackageName) URL
+	RepoLink(name PackageName) string
+}
+
+func NewPackagePlatformByRepoLink(repoLink string) (PackagePlatform, error) {
+	if v := config.platformOfRepoLink(repoLink); v != "" {
+		return packagePlatform(v), nil
+	}
+
+	return nil, errors.New("invalid org link")
 }
 
 func NewPackagePlatform(v string) (PackagePlatform, error) {
@@ -22,14 +34,6 @@ func (v packagePlatform) PackagePlatform() string {
 	return string(v)
 }
 
-func (v packagePlatform) IsLocalPlatform() bool {
-	return string(v) == config.LocalPlatform
-}
-
-func (v packagePlatform) RepoLink(name PackageName) URL {
-	return dpURL(config.SupportedPlatforms[string(v)] + name.PackageName())
-}
-
-func IsSamePlatform(a, b PackagePlatform) bool {
-	return a != nil && b != nil && a.PackagePlatform() == b.PackagePlatform()
+func (v packagePlatform) RepoLink(name PackageName) string {
+	return config.orgLinkOfPlatform(string(v)) + name.PackageName()
 }

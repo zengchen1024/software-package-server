@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	kfklib "github.com/opensourceways/kafka-lib/agent"
+	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
@@ -21,6 +22,7 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/utils"
 )
 
@@ -82,7 +84,7 @@ func main() {
 
 	// Domain
 	domain.Init(&cfg.SoftwarePkg.Config, nil, pkgciimpl.PkgCI())
-	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator())
+	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator(), nil)
 
 	// Pkg manager
 	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
@@ -90,6 +92,15 @@ func main() {
 
 		return
 	}
+
+	// mongo
+	if err := mongdblib.Init(&cfg.Mongo.DB); err != nil {
+		logrus.Errorf("init mongo failed, err:%s", err.Error())
+
+		return
+	}
+
+	defer mongdblib.Close()
 
 	// Postgresql
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
@@ -124,7 +135,9 @@ func main() {
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
 		nil, // TODO
-		repositoryimpl.NewSoftwarePkg(&cfg.Postgresql.Config),
+		softwarepkgadapter.NewsoftwarePkgAdapter(
+			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
+		),
 		pkgmanagerimpl.Instance(),
 		&producer{cfg.Topics.SoftwarePkgCodeChanged},
 		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),

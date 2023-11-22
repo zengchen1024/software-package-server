@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/opensourceways/server-common-lib/utils"
+	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
@@ -13,9 +13,10 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
+	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/translationimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
-	localutils "github.com/opensourceways/software-package-server/utils"
+	"github.com/opensourceways/software-package-server/utils"
 )
 
 func LoadConfig(path string) (*Config, error) {
@@ -52,11 +53,17 @@ type postgresqlConfig struct {
 	repositoryimpl.Config
 }
 
+type mongoConfig struct {
+	DB          mongdblib.Config          `json:"db"`
+	Collections softwarepkgadapter.Config `json:"collections"`
+}
+
 type Config struct {
 	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
 	CLA            clavalidatorimpl.Config   `json:"cla"                  required:"true"`
 	User           useradapterimpl.Config    `json:"user"                 required:"true"`
-	Encryption     localutils.Config         `json:"encryption"           required:"true"`
+	Mongo          mongoConfig               `json:"mongo"                 required:"true"`
+	Encryption     utils.Config              `json:"encryption"           required:"true"`
 	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
 	Middleware     middleware.Config         `json:"middleware"           required:"true"`
 	Postgresql     postgresqlConfig          `json:"postgresql"           required:"true"`
@@ -69,11 +76,12 @@ type Config struct {
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.MQ,
-		&cfg.Encryption,
 		&cfg.CLA,
 		&cfg.User,
+		&cfg.Mongo,
+		&cfg.Mongo.Collections,
+		&cfg.Encryption,
 		&cfg.PkgManager,
-		&cfg.SensitiveWords,
 		&cfg.Middleware,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Config,
@@ -81,6 +89,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.Translation,
 		&cfg.SigValidator,
+		&cfg.SensitiveWords,
 	}
 }
 
@@ -94,7 +103,7 @@ func (cfg *Config) SetDefault() {
 }
 
 func (cfg *Config) Validate() error {
-	if _, err := utils.BuildRequestBody(cfg, ""); err != nil {
+	if err := utils.CheckConfig(cfg, ""); err != nil {
 		return err
 	}
 

@@ -66,7 +66,7 @@ func (s softwarePkgBasic) FindSoftwarePkg(pid string) (
 }
 
 func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs) (
-	r []domain.SoftwarePkg, total int, err error,
+	r []repository.SoftwarePkgInfo, total int, err error,
 ) {
 
 	var filter []postgresql.ColumnFilter
@@ -115,14 +115,18 @@ func (s softwarePkgBasic) FindSoftwarePkgs(pkgs repository.OptToFindSoftwarePkgs
 		return
 	}
 
-	r = make([]domain.SoftwarePkg, len(dos))
-	for i := range dos {
-		if r[i], err = dos[i].toSoftwarePkg(); err != nil {
-			return
-		}
-	}
-
 	return
+	/*
+
+		r = make([]domain.SoftwarePkg, len(dos))
+		for i := range dos {
+			if r[i], err = dos[i].toSoftwarePkg(); err != nil {
+				return
+			}
+		}
+
+		return
+	*/
 }
 
 func (s softwarePkgBasic) AddSoftwarePkg(pkg *domain.SoftwarePkg) error {

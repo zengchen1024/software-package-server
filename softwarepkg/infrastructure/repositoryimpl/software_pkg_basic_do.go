@@ -40,7 +40,7 @@ func (s softwarePkgBasic) toSoftwarePkgBasicDO(pkg *domain.SoftwarePkg, do *Soft
 		PackageDesc:     basic.Desc.PackageDesc(),
 		PackagePlatform: pkg.Repo.Platform.PackagePlatform(),
 		Sig:             pkg.Sig.ImportingPkgSig(),
-		ReasonToImport:  basic.Reason.ReasonToImportPkg(),
+		PurposeToImport: basic.Purpose.PurposeToImportPkg(),
 		AppliedAt:       pkg.AppliedAt,
 		UpdatedAt:       pkg.AppliedAt,
 	}
@@ -66,7 +66,7 @@ type SoftwarePkgBasicDO struct {
 	PackageName     string                 `gorm:"column:package_name"                             json:"package_name"`
 	PackageDesc     string                 `gorm:"column:package_desc"                             json:"package_desc"`
 	ImporterEmail   string                 `gorm:"column:importer_email"                           json:"importer_email"`
-	ReasonToImport  string                 `gorm:"column:reason_to_import"                         json:"reason_to_import"`
+	PurposeToImport string                 `gorm:"column:reason_to_import"                         json:"reason_to_import"`
 	PackagePlatform string                 `gorm:"column:package_platform"                         json:"package_platform"`
 	CIPRNum         int                    `gorm:"column:ci_pr_num"                                json:"ci_pr_num"`
 	AppliedAt       int64                  `gorm:"column:applied_at"                               json:"applied_at"`
@@ -124,7 +124,7 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) 
 		return
 	}
 
-	if basic.Reason, err = dp.NewReasonToImportPkg(do.ReasonToImport); err != nil {
+	if basic.Purpose, err = dp.NewPurposeToImportPkg(do.PurposeToImport); err != nil {
 		return
 	}
 
@@ -133,10 +133,6 @@ func (do *SoftwarePkgBasicDO) toSoftwarePkgApplication(pkg *domain.SoftwarePkg) 
 	}
 
 	if basic.Upstream, err = dp.NewURL(do.Upstream); err != nil {
-		return
-	}
-
-	if pkg.Repo.Platform, err = dp.NewPackagePlatform(do.PackagePlatform); err != nil {
 		return
 	}
 
