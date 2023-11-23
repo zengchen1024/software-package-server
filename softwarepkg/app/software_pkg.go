@@ -15,19 +15,18 @@ import (
 
 type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, error)
-	ListPkgs(*CmdToListPkgs) (SoftwarePkgsDTO, error)
-	UpdateApplication(*CmdToUpdateSoftwarePkgApplication) error
+
 	Abandon(*CmdToAbandonPkg) error
+
+	Update(*CmdToUpdateSoftwarePkgApplication) error
 	Retest(string, *domain.User) error
+
+	Get(string) (SoftwarePkgDTO, error)
+	ListPkgs(*CmdToListPkgs) (SoftwarePkgSummariesDTO, error)
 
 	Reject(string, *domain.Reviewer) error
 	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
-	GetPkgReviewDetail(string) (SoftwarePkgReviewDTO, string, error)
-
-	NewReviewComment(*CmdToWriteSoftwarePkgReviewComment) error
-	TranslateReviewComment(*CmdToTranslateReviewComment) (
-		dto TranslatedReveiwCommentDTO, code string, err error,
-	)
+	GetReview(pid string, user *domain.User) ([]CheckItemUserReviewDTO, error)
 }
 
 var (
@@ -40,18 +39,14 @@ func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgMessage,
-	translation translation.Translation,
-	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgService {
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return &softwarePkgService{
-		repo:        repo,
-		robot:       robot,
-		message:     message,
-		translation: translation,
-		pkgService:  service.NewPkgService(manager, message),
-		commentRepo: commentRepo,
+		repo:       repo,
+		robot:      robot,
+		message:    message,
+		pkgService: service.NewPkgService(manager, message),
 	}
 }
 
@@ -101,23 +96,28 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 	return
 }
 
-func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (SoftwarePkgsDTO, error) {
-	v, err := s.repo.FindAll(cmd)
-	if err != nil || len(v) == 0 {
-		return SoftwarePkgsDTO{}, nil
+func (s *softwarePkgService) ListPkgs(cmd *CmdToListPkgs) (dto SoftwarePkgSummariesDTO, err error) {
+	v, total, err := s.repo.FindAll(cmd)
+	if err != nil {
+		return
 	}
 
-	// TODO
-	return toSoftwarePkgsDTO(v, 0), nil
+	dto.Total = total
+
+	if len(v) > 0 {
+		dto.Pkgs = toSoftwarePkgSummaryDTOs(v)
+	}
+
+	return
 }
 
-func (s *softwarePkgService) UpdateApplication(cmd *CmdToUpdateSoftwarePkgApplication) error {
+func (s *softwarePkgService) Update(cmd *CmdToUpdateSoftwarePkgApplication) error {
 	pkg, version, err := s.repo.Find(cmd.PkgId)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
-	if err = pkg.UpdateApplication(&cmd.Importer, &cmd.SoftwarePkgUpdateInfo); err != nil {
+	if err = pkg.Update(&cmd.Importer, &cmd.SoftwarePkgUpdateInfo); err != nil {
 		return err
 	}
 
@@ -207,4 +207,17 @@ func (s *softwarePkgService) addCommentToRetest(pkgId string) {
 			pkgId, err.Error(),
 		)
 	}
+}
+
+func (s *softwarePkgService) Get(pid string) (dto SoftwarePkgDTO, err error) {
+	v, _, err := s.repo.Find(pid)
+	if err != nil {
+		err = parseErrorForFindingPkg(err)
+
+		return
+	}
+
+	toSoftwarePkgDTO(&v, &dto)
+
+	return
 }

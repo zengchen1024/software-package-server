@@ -14,18 +14,19 @@ const (
 	countPerPage = 10
 )
 
+// softwarePkgRequest
 type softwarePkgRequest struct {
-	Name     string `json:"name"        binding:"required"`
+	Name     string `json:"pkg_name"    binding:"required"`
 	Desc     string `json:"desc"        binding:"required"`
-	Purpose  string `json:"purpose"     binding:"required"`
+	Purpose  string `json:"reason"      binding:"required"`
 	Upstream string `json:"upstream"    binding:"required"`
 
-	Spec string `json:"spec"  binding:"required"`
-	SRPM string `json:"srpm"  binding:"required"`
+	Spec string `json:"spec_url"     binding:"required"`
+	SRPM string `json:"src_rpm_url"  binding:"required"`
 
-	Sig        string   `json:"sig"          binding:"required"`
-	RepoLink   string   `json:"repo_link"    binding:"required"`
-	Committers []string `json:"committers"   binding:"required"`
+	Sig string `json:"sig"          binding:"required"`
+
+	softwarePkgRepoRequest
 }
 
 func (req *softwarePkgRequest) toBasic() (basic domain.SoftwarePkgBasicInfo, err error) {
@@ -45,19 +46,6 @@ func (req *softwarePkgRequest) toBasic() (basic domain.SoftwarePkgBasicInfo, err
 	}
 
 	basic.Upstream, err = dp.NewURL(req.Upstream)
-
-	return
-}
-
-func (req *softwarePkgRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
-	repo domain.SoftwarePkgRepo, err error,
-) {
-	repo.Platform, err = dp.NewPackagePlatformByRepoLink(req.RepoLink)
-	if err != nil {
-		return
-	}
-
-	repo.Committers, err = toCommitters(importer, ua, req.Committers, repo.Platform)
 
 	return
 }
@@ -86,25 +74,26 @@ func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserA
 		return
 	}
 
-	cmd.Repo, err = req.toRepo(importer, ua)
+	cmd.Repo, err, _ = req.toRepo(importer, ua)
 
 	return
 }
 
-type reqToUpdateSoftwarePkgApplication struct {
+// reqToUpdateSoftwarePkg
+type reqToUpdateSoftwarePkg struct {
 	Desc     string `json:"desc"`
-	Purpose  string `json:"purpose"`
+	Purpose  string `json:"reason"`
 	Upstream string `json:"upstream"`
 
-	Spec string `json:"spec"`
-	SRPM string `json:"srpm"`
+	Spec string `json:"spec_url"`
+	SRPM string `json:"src_rpm_url"`
 
 	Sig        string   `json:"sig"`
 	RepoLink   string   `json:"repo_link"`
 	Committers []string `json:"committers"`
 }
 
-func (req *reqToUpdateSoftwarePkgApplication) toCmd(
+func (req *reqToUpdateSoftwarePkg) toCmd(
 	pkgId string, importer *domain.User, ua useradapter.UserAdapter,
 ) (
 	cmd app.CmdToUpdateSoftwarePkgApplication, err error,
@@ -159,21 +148,24 @@ func (req *reqToUpdateSoftwarePkgApplication) toCmd(
 		return
 	}
 
-	if cmd.Repo.Platform, err = dp.NewPackagePlatformByRepoLink(req.RepoLink); err != nil {
-		return
+	v := softwarePkgRepoRequest{
+		RepoLink:   req.RepoLink,
+		Committers: req.Committers,
 	}
 
-	cmd.Repo.Committers, err = toCommitters(importer, ua, req.Committers, cmd.Repo.Platform)
+	cmd.Repo, err, _ = v.toRepo(importer, ua)
 
 	return
 }
 
+// softwarePkgListQuery
 type softwarePkgListQuery struct {
 	Phase        string `json:"phase"          form:"phase"`
 	PkgName      string `json:"pkg_name"       form:"pkg_name"`
 	Importer     string `json:"importer"       form:"importer"`
 	Platform     string `json:"platform"       form:"platform"`
 	LastId       string `json:"last_id"        form:"last_id"`
+	Count        bool   `json:"count"       form:"count"`
 	PageNum      int    `json:"page_num"       form:"page_num"`
 	CountPerPage int    `json:"count_per_page" form:"count_per_page"`
 }
@@ -224,6 +216,7 @@ func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
 	return
 }
 
+// reqToAbandonPkg
 type reqToAbandonPkg struct {
 	Comment string `json:"comment"`
 }
@@ -241,33 +234,7 @@ func (req *reqToAbandonPkg) toCmd(pkgId string, user *domain.User) (cmd app.CmdT
 	return
 }
 
-type reviewCommentRequest struct {
-	Comment string `json:"comment" binding:"required"`
-}
-
-func (r reviewCommentRequest) toCmd(pkgId string, user *domain.User) (rc app.CmdToWriteSoftwarePkgReviewComment, err error) {
-	if rc.Content, err = dp.NewReviewComment(r.Comment); err != nil {
-		return
-	}
-
-	rc.PkgId = pkgId
-	rc.Author = user.Account
-
-	return
-}
-
-type translationCommentRequest struct {
-	Language string `json:"language"`
-}
-
-func (t translationCommentRequest) toCmd(pkgId, commentId string) (cmd app.CmdToTranslateReviewComment, err error) {
-	cmd.PkgId = pkgId
-	cmd.CommentId = commentId
-	cmd.Language, err = dp.NewLanguage(t.Language)
-
-	return
-}
-
+// reviewRequest
 type reviewRequest struct {
 	Reviews []checkItemReviewInfo `json:"reviews" binding:"required"`
 }
@@ -304,38 +271,67 @@ func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
 	}, nil
 }
 
-func toCommitters(importer *domain.User, ua useradapter.UserAdapter, committers []string, p dp.PackagePlatform) (
-	[]domain.PkgCommitter, error,
+// softwarePkgRepoRequest
+type softwarePkgRepoRequest struct {
+	RepoLink   string   `json:"repo_link"    binding:"required"`
+	Committers []string `json:"committers"   binding:"required"`
+}
+
+func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
+	repo domain.SoftwarePkgRepo, err error, invalidCommitter []string,
 ) {
-	if len(committers) > 3 { // TODO config
-		return nil, errors.New("too many committers")
+	if len(req.Committers) > 2 { // TODO config
+		err = errors.New("too many committers")
+
+		return
 	}
 
-	platform := p.PackagePlatform()
-
-	platformId := importer.Id(platform)
-	if platformId == "" {
-		return nil, errors.New("no platform Id")
+	m := map[string]bool{}
+	for _, c := range req.Committers {
+		m[c] = true
 	}
 
-	r := []domain.PkgCommitter{{Account: importer.Account, PlatformId: platformId}}
+	if len(m) != len(req.Committers) {
+		err = errors.New("duplicate committers")
 
-	if len(committers) == 0 {
-		return r, nil
+		return
 	}
 
-	for _, c := range committers {
-		if c == platformId {
+	// platform
+	if repo.Platform, err = dp.NewPackagePlatformByRepoLink(req.RepoLink); err != nil {
+		return
+	}
+	platform := repo.Platform.PackagePlatform()
+
+	// importer
+	importerId := importer.Id(platform)
+	if importerId == "" {
+		err = errors.New("no platform Id")
+
+		return
+	}
+
+	r := []domain.PkgCommitter{{Account: importer.Account, PlatformId: importerId}}
+
+	// committers
+	for _, c := range req.Committers {
+		if c == importerId {
 			continue
 		}
 
-		u, err := ua.Find(c, platform)
-		if err != nil {
-			return nil, err
+		if u, err1 := ua.Find(c, platform); err1 != nil {
+			err = err1
+			invalidCommitter = append(invalidCommitter, c)
+		} else {
+			r = append(r, domain.PkgCommitter{Account: u.Account, PlatformId: c})
 		}
-
-		r = append(r, domain.PkgCommitter{Account: u.Account, PlatformId: c})
 	}
 
-	return r, nil
+	repo.Committers = r
+
+	return
+}
+
+type checkCommittersResp struct {
+	InvalidCommitters []string `json:"invalid_committers"`
 }

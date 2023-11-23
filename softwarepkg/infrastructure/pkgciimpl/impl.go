@@ -109,12 +109,12 @@ func (impl *pkgCIImpl) DownloadPkgCode(pkg *domain.SoftwarePkg) error {
 
 	if v := &pkg.Code.Spec; v.Dirty {
 		v.Dirty = false
-		v.Local = nil // TODO
+		v.DownloadAddr = nil // TODO
 	}
 
 	if v := &pkg.Code.SRPM; v.Dirty {
 		v.Dirty = false
-		v.Local = nil // TODO
+		v.DownloadAddr = nil // TODO
 	}
 
 	return nil

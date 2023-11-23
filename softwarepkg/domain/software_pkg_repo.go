@@ -70,3 +70,13 @@ func (r *SoftwarePkgRepo) committersMap() map[string]bool {
 
 	return m
 }
+
+func (r *SoftwarePkgRepo) CommitterIds() []string {
+	v := make([]string, len(r.Committers))
+
+	for i := range r.Committers {
+		v[i] = r.Committers[i].PlatformId
+	}
+
+	return v
+}

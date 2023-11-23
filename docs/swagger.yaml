@@ -1,10 +1,44 @@
 definitions:
+  app.CheckItemReviewDTO:
+    properties:
+      agree:
+        type: integer
+      desc:
+        type: string
+      disagree:
+        type: integer
+      has_result:
+        description: HasResult if true, the pass is the result, otherwise the pass
+          is meaningless.
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      owner:
+        type: string
+      pass:
+        type: boolean
+      reviews:
+        items:
+          $ref: '#/definitions/app.UserCheckItemReviewDTO'
+        type: array
+    type: object
   app.NewSoftwarePkgDTO:
     properties:
       id:
         type: string
     type: object
-  app.SoftwarePkgApplicationDTO:
+  app.SoftwarePkgCodeFileDTO:
+    properties:
+      download_addr:
+        type: string
+      name:
+        type: string
+      src:
+        type: string
+    type: object
+  app.SoftwarePkgDTO:
     properties:
       applied_at:
         type: string
@@ -20,24 +54,61 @@ definitions:
         type: string
       importer:
         type: string
-      name:
-        type: string
+      logs:
+        items:
+          $ref: '#/definitions/app.SoftwarePkgOperationLogDTO'
+        type: array
       phase:
         type: string
-      purpose:
+      pkg_name:
+        type: string
+      platform:
+        type: string
+      reason:
         type: string
       repo_link:
         type: string
+      reviews:
+        $ref: '#/definitions/app.SoftwarePkgReviewDTO'
       sig:
         type: string
       spec:
-        type: string
+        $ref: '#/definitions/app.SoftwarePkgCodeFileDTO'
       srpm:
-        type: string
+        $ref: '#/definitions/app.SoftwarePkgCodeFileDTO'
       upstream:
         type: string
     type: object
-  app.SoftwarePkgDTO:
+  app.SoftwarePkgOperationLogDTO:
+    properties:
+      action:
+        type: string
+      time:
+        type: string
+      user:
+        type: string
+    type: object
+  app.SoftwarePkgReviewDTO:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/app.CheckItemReviewDTO'
+        type: array
+      reviewers:
+        items:
+          type: string
+        type: array
+    type: object
+  app.SoftwarePkgSummariesDTO:
+    properties:
+      pkgs:
+        items:
+          $ref: '#/definitions/app.SoftwarePkgSummaryDTO'
+        type: array
+      total:
+        type: integer
+    type: object
+  app.SoftwarePkgSummaryDTO:
     properties:
       applied_at:
         type: string
@@ -60,54 +131,22 @@ definitions:
       sig:
         type: string
     type: object
-  app.SoftwarePkgOperationLogDTO:
-    properties:
-      action:
-        type: string
-      time:
-        type: string
-      user:
-        type: string
-    type: object
-  app.SoftwarePkgReviewCommentDTO:
-    properties:
-      author:
-        type: string
-      content:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      since_creation:
-        type: integer
-    type: object
-  app.SoftwarePkgReviewDTO:
-    properties:
-      application:
-        $ref: '#/definitions/app.SoftwarePkgApplicationDTO'
-      comments:
-        items:
-          $ref: '#/definitions/app.SoftwarePkgReviewCommentDTO'
-        type: array
-      logs:
-        items:
-          $ref: '#/definitions/app.SoftwarePkgOperationLogDTO'
-        type: array
-    type: object
-  app.SoftwarePkgsDTO:
-    properties:
-      pkgs:
-        items:
-          $ref: '#/definitions/app.SoftwarePkgDTO'
-        type: array
-      total:
-        type: integer
-    type: object
   app.TranslatedReveiwCommentDTO:
     properties:
       content:
         type: string
+    type: object
+  app.UserCheckItemReviewDTO:
+    properties:
+      account:
+        type: string
+      comment:
+        type: string
+      owner:
+        description: if the reviewer is the owner of item
+        type: boolean
+      pass:
+        type: boolean
     type: object
   controller.ResponseData:
     properties:
@@ -116,6 +155,13 @@ definitions:
       data: {}
       msg:
         type: string
+    type: object
+  controller.checkCommittersResp:
+    properties:
+      invalid_committers:
+        items:
+          type: string
+        type: array
     type: object
   controller.checkItemReviewInfo:
     properties:
@@ -133,7 +179,12 @@ definitions:
       signed:
         type: boolean
     type: object
-  controller.reqToUpdateSoftwarePkgApplication:
+  controller.reqToAbandonPkg:
+    properties:
+      comment:
+        type: string
+    type: object
+  controller.reqToUpdateSoftwarePkg:
     properties:
       committers:
         items:
@@ -141,15 +192,15 @@ definitions:
         type: array
       desc:
         type: string
-      purpose:
+      reason:
         type: string
       repo_link:
         type: string
       sig:
         type: string
-      spec:
+      spec_url:
         type: string
-      srpm:
+      src_rpm_url:
         type: string
       upstream:
         type: string
@@ -170,6 +221,18 @@ definitions:
     required:
     - reviews
     type: object
+  controller.softwarePkgRepoRequest:
+    properties:
+      committers:
+        items:
+          type: string
+        type: array
+      repo_link:
+        type: string
+    required:
+    - committers
+    - repo_link
+    type: object
   controller.softwarePkgRequest:
     properties:
       committers:
@@ -178,29 +241,29 @@ definitions:
         type: array
       desc:
         type: string
-      name:
+      pkg_name:
         type: string
-      purpose:
+      reason:
         type: string
       repo_link:
         type: string
       sig:
         type: string
-      spec:
+      spec_url:
         type: string
-      srpm:
+      src_rpm_url:
         type: string
       upstream:
         type: string
     required:
     - committers
     - desc
-    - name
-    - purpose
+    - pkg_name
+    - reason
     - repo_link
     - sig
-    - spec
-    - srpm
+    - spec_url
+    - src_rpm_url
     - upstream
     type: object
   controller.translationCommentRequest:
@@ -260,27 +323,43 @@ paths:
       - application/json
       description: list software packages
       parameters:
+      - description: phase of the softwarepkg
+        in: query
+        name: phase
+        type: string
+      - description: name of the softwarepkg
+        in: query
+        name: pkg_name
+        type: string
       - description: importer of the softwarePkg
         in: query
         name: importer
         type: string
-      - description: phase of the softwarePkg
+      - description: platform of the softwarePkg
         in: query
-        name: phase
+        name: platform
         type: string
-      - description: count per page
+      - description: last software pkg id of previous page
         in: query
-        name: count_per_page
-        type: integer
+        name: last_id
+        type: string
+      - description: whether count total num of the pkgs
+        in: query
+        name: count
+        type: boolean
       - description: page num which starts from 1
         in: query
         name: page_num
+        type: integer
+      - description: count per page
+        in: query
+        name: count_per_page
         type: integer
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/app.SoftwarePkgsDTO'
+            $ref: '#/definitions/app.SoftwarePkgSummariesDTO'
         "400":
           description: Bad Request
           schema:
@@ -327,7 +406,7 @@ paths:
         name: param
         required: true
         schema:
-          $ref: '#/definitions/controller.reqToUpdateSoftwarePkgApplication'
+          $ref: '#/definitions/controller.reqToUpdateSoftwarePkg'
       responses:
         "202":
           description: Accepted
@@ -355,7 +434,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/app.SoftwarePkgReviewDTO'
+            $ref: '#/definitions/app.SoftwarePkgDTO'
         "400":
           description: Bad Request
           schema:
@@ -374,6 +453,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: comment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.reqToAbandonPkg'
       responses:
         "202":
           description: Accepted
@@ -409,7 +494,7 @@ paths:
       summary: reject software package
       tags:
       - SoftwarePkg
-  /v1/softwarepkg/{id}/rerunci:
+  /v1/softwarepkg/{id}/retest:
     put:
       consumes:
       - application/json
@@ -433,6 +518,28 @@ paths:
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review:
+    get:
+      consumes:
+      - application/json
+      description: get user review on software package
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.SoftwarePkgDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: get user review on software package
+      tags:
+      - SoftwarePkg
     post:
       consumes:
       - application/json
@@ -445,7 +552,7 @@ paths:
         type: string
       - description: body of reviewing a software package
         in: body
-        name: param
+        name: body
         required: true
         schema:
           $ref: '#/definitions/controller.reviewRequest'
@@ -462,6 +569,28 @@ paths:
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/review/comment:
+    get:
+      consumes:
+      - application/json
+      description: list software package review comment
+      parameters:
+      - description: id of software package
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: list software package review comment
+      tags:
+      - SoftwarePkg
     post:
       consumes:
       - application/json
@@ -522,6 +651,30 @@ paths:
           schema:
             $ref: '#/definitions/controller.ResponseData'
       summary: translate review comment
+      tags:
+      - SoftwarePkg
+  /v1/softwarepkg/committers:
+    post:
+      consumes:
+      - application/json
+      description: check committer of software package
+      parameters:
+      - description: body of checking committers
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.softwarePkgRepoRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.checkCommittersResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.ResponseData'
+      summary: check committer of software package
       tags:
       - SoftwarePkg
 swagger: "2.0"

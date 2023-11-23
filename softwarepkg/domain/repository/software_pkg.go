@@ -11,6 +11,7 @@ type OptToFindSoftwarePkgs struct {
 	Platform dp.PackagePlatform
 	Importer dp.Account
 
+	Count        bool   // count the num of pkgs
 	LastId       string // the id of pkg which is the last item of previous page
 	PageNum      int    // it can't set both PageNum and LastId
 	CountPerPage int
@@ -45,7 +46,7 @@ type SoftwarePkg interface {
 	FindAndIgnoreReview(pid string) (domain.SoftwarePkg, int, error)
 	SaveAndIgnoreReview(pkg *domain.SoftwarePkg, version int) error
 
-	FindAll(*OptToFindSoftwarePkgs) (r []SoftwarePkgInfo, err error)
+	FindAll(*OptToFindSoftwarePkgs) (r []SoftwarePkgInfo, total int64, err error)
 }
 
 type SoftwarePkgComment interface {

@@ -84,8 +84,8 @@ func toCodeInfoDO(f *domain.SoftwarePkgCodeInfo) codeInfoDO {
 		Dirty:     f.Dirty,
 		UpdatedAt: f.UpdatedAt,
 	}
-	if f.Local != nil {
-		do.Local = f.Local.URL()
+	if f.DownloadAddr != nil {
+		do.DownloadAddr = f.DownloadAddr.URL()
 	}
 
 	return do
@@ -341,10 +341,10 @@ func (do *committerDO) toDomain(c *domain.PkgCommitter) (err error) {
 
 // codeInfoDO
 type codeInfoDO struct {
-	Src       string `bson:"src"          json:"src"         required:"true"`
-	Local     string `bson:"local"        json:"local"`
-	Dirty     bool   `bson:"dirty"        json:"dirty"`
-	UpdatedAt int64  `bson:"updated_at"   json:"updated_at"`
+	Src          string `bson:"src"            json:"src"         required:"true"`
+	Dirty        bool   `bson:"dirty"          json:"dirty"`
+	UpdatedAt    int64  `bson:"updated_at"     json:"updated_at"`
+	DownloadAddr string `bson:"download_addr"  json:"download_addr"`
 }
 
 func (do *codeInfoDO) toDomain(f *domain.SoftwarePkgCodeInfo) (err error) {
@@ -352,8 +352,8 @@ func (do *codeInfoDO) toDomain(f *domain.SoftwarePkgCodeInfo) (err error) {
 		return
 	}
 
-	if do.Local != "" {
-		if f.Local, err = dp.NewURL(do.Local); err != nil {
+	if do.DownloadAddr != "" {
+		if f.DownloadAddr, err = dp.NewURL(do.DownloadAddr); err != nil {
 			return
 		}
 	}

@@ -75,20 +75,38 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "phase of the softwarepkg",
+                        "name": "phase",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of the softwarepkg",
+                        "name": "pkg_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "importer of the softwarePkg",
                         "name": "importer",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "phase of the softwarePkg",
-                        "name": "phase",
+                        "description": "platform of the softwarePkg",
+                        "name": "platform",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "count per page",
-                        "name": "count_per_page",
+                        "type": "string",
+                        "description": "last software pkg id of previous page",
+                        "name": "last_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "whether count total num of the pkgs",
+                        "name": "count",
                         "in": "query"
                     },
                     {
@@ -96,13 +114,19 @@ const docTemplate = `{
                         "description": "page num which starts from 1",
                         "name": "page_num",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "count per page",
+                        "name": "count_per_page",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/app.SoftwarePkgsDTO"
+                            "$ref": "#/definitions/app.SoftwarePkgSummariesDTO"
                         }
                     },
                     "400": {
@@ -173,7 +197,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.reqToUpdateSoftwarePkgApplication"
+                            "$ref": "#/definitions/controller.reqToUpdateSoftwarePkg"
                         }
                     }
                 ],
@@ -182,6 +206,43 @@ const docTemplate = `{
                         "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/softwarepkg/committers": {
+            "post": {
+                "description": "check committer of software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "check committer of software package",
+                "parameters": [
+                    {
+                        "description": "body of checking committers",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.softwarePkgRepoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.checkCommittersResp"
                         }
                     },
                     "400": {
@@ -216,7 +277,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/app.SoftwarePkgReviewDTO"
+                            "$ref": "#/definitions/app.SoftwarePkgDTO"
                         }
                     },
                     "400": {
@@ -245,6 +306,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "comment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.reqToAbandonPkg"
+                        }
                     }
                 ],
                 "responses": {
@@ -298,7 +368,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/softwarepkg/{id}/rerunci": {
+        "/v1/softwarepkg/{id}/retest": {
             "put": {
                 "description": "rerun ci of software package",
                 "consumes": [
@@ -334,6 +404,39 @@ const docTemplate = `{
             }
         },
         "/v1/softwarepkg/{id}/review": {
+            "get": {
+                "description": "get user review on software package",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "get user review on software package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.SoftwarePkgDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "review software package",
                 "consumes": [
@@ -353,7 +456,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "body of reviewing a software package",
-                        "name": "param",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -378,6 +481,39 @@ const docTemplate = `{
             }
         },
         "/v1/softwarepkg/{id}/review/comment": {
+            "get": {
+                "description": "list software package review comment",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SoftwarePkg"
+                ],
+                "summary": "list software package review comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of software package",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ResponseData"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "create a new software package review comment",
                 "consumes": [
@@ -474,6 +610,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "app.CheckItemReviewDTO": {
+            "type": "object",
+            "properties": {
+                "agree": {
+                    "type": "integer"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "disagree": {
+                    "type": "integer"
+                },
+                "has_result": {
+                    "description": "HasResult if true, the pass is the result, otherwise the pass is meaningless.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "pass": {
+                    "type": "boolean"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.UserCheckItemReviewDTO"
+                    }
+                }
+            }
+        },
         "app.NewSoftwarePkgDTO": {
             "type": "object",
             "properties": {
@@ -482,7 +654,21 @@ const docTemplate = `{
                 }
             }
         },
-        "app.SoftwarePkgApplicationDTO": {
+        "app.SoftwarePkgCodeFileDTO": {
+            "type": "object",
+            "properties": {
+                "download_addr": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "src": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgDTO": {
             "type": "object",
             "properties": {
                 "applied_at": {
@@ -506,33 +692,90 @@ const docTemplate = `{
                 "importer": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgOperationLogDTO"
+                    }
                 },
                 "phase": {
                     "type": "string"
                 },
-                "purpose": {
+                "pkg_name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "reason": {
                     "type": "string"
                 },
                 "repo_link": {
                     "type": "string"
                 },
+                "reviews": {
+                    "$ref": "#/definitions/app.SoftwarePkgReviewDTO"
+                },
                 "sig": {
                     "type": "string"
                 },
                 "spec": {
-                    "type": "string"
+                    "$ref": "#/definitions/app.SoftwarePkgCodeFileDTO"
                 },
                 "srpm": {
-                    "type": "string"
+                    "$ref": "#/definitions/app.SoftwarePkgCodeFileDTO"
                 },
                 "upstream": {
                     "type": "string"
                 }
             }
         },
-        "app.SoftwarePkgDTO": {
+        "app.SoftwarePkgOperationLogDTO": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgReviewDTO": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.CheckItemReviewDTO"
+                    }
+                },
+                "reviewers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "app.SoftwarePkgSummariesDTO": {
+            "type": "object",
+            "properties": {
+                "pkgs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/app.SoftwarePkgSummaryDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "app.SoftwarePkgSummaryDTO": {
             "type": "object",
             "properties": {
                 "applied_at": {
@@ -567,79 +810,29 @@ const docTemplate = `{
                 }
             }
         },
-        "app.SoftwarePkgOperationLogDTO": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "time": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
-                }
-            }
-        },
-        "app.SoftwarePkgReviewCommentDTO": {
-            "type": "object",
-            "properties": {
-                "author": {
-                    "type": "string"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "since_creation": {
-                    "type": "integer"
-                }
-            }
-        },
-        "app.SoftwarePkgReviewDTO": {
-            "type": "object",
-            "properties": {
-                "application": {
-                    "$ref": "#/definitions/app.SoftwarePkgApplicationDTO"
-                },
-                "comments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
-                    }
-                },
-                "logs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgOperationLogDTO"
-                    }
-                }
-            }
-        },
-        "app.SoftwarePkgsDTO": {
-            "type": "object",
-            "properties": {
-                "pkgs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/app.SoftwarePkgDTO"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
         "app.TranslatedReveiwCommentDTO": {
             "type": "object",
             "properties": {
                 "content": {
                     "type": "string"
+                }
+            }
+        },
+        "app.UserCheckItemReviewDTO": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "owner": {
+                    "description": "if the reviewer is the owner of item",
+                    "type": "boolean"
+                },
+                "pass": {
+                    "type": "boolean"
                 }
             }
         },
@@ -652,6 +845,17 @@ const docTemplate = `{
                 "data": {},
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.checkCommittersResp": {
+            "type": "object",
+            "properties": {
+                "invalid_committers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -680,7 +884,15 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.reqToUpdateSoftwarePkgApplication": {
+        "controller.reqToAbandonPkg": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.reqToUpdateSoftwarePkg": {
             "type": "object",
             "properties": {
                 "committers": {
@@ -692,7 +904,7 @@ const docTemplate = `{
                 "desc": {
                     "type": "string"
                 },
-                "purpose": {
+                "reason": {
                     "type": "string"
                 },
                 "repo_link": {
@@ -701,10 +913,10 @@ const docTemplate = `{
                 "sig": {
                     "type": "string"
                 },
-                "spec": {
+                "spec_url": {
                     "type": "string"
                 },
-                "srpm": {
+                "src_rpm_url": {
                     "type": "string"
                 },
                 "upstream": {
@@ -737,17 +949,35 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.softwarePkgRepoRequest": {
+            "type": "object",
+            "required": [
+                "committers",
+                "repo_link"
+            ],
+            "properties": {
+                "committers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "repo_link": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.softwarePkgRequest": {
             "type": "object",
             "required": [
                 "committers",
                 "desc",
-                "name",
-                "purpose",
+                "pkg_name",
+                "reason",
                 "repo_link",
                 "sig",
-                "spec",
-                "srpm",
+                "spec_url",
+                "src_rpm_url",
                 "upstream"
             ],
             "properties": {
@@ -760,10 +990,10 @@ const docTemplate = `{
                 "desc": {
                     "type": "string"
                 },
-                "name": {
+                "pkg_name": {
                     "type": "string"
                 },
-                "purpose": {
+                "reason": {
                     "type": "string"
                 },
                 "repo_link": {
@@ -772,10 +1002,10 @@ const docTemplate = `{
                 "sig": {
                     "type": "string"
                 },
-                "spec": {
+                "spec_url": {
                     "type": "string"
                 },
-                "srpm": {
+                "src_rpm_url": {
                     "type": "string"
                 },
                 "upstream": {
