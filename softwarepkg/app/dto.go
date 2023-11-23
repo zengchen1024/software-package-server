@@ -263,7 +263,7 @@ type CheckItemUserReviewDTO struct {
 	Owner string `json:"owner"`
 
 	// Reviewed if true, the user reviewed this item before, otherwise the pass is meaningless.
-	Reviewed  bool   `json:"has_result"`
+	Reviewed  bool   `json:"reviewed"`
 	CanReview bool   `json:"can_review"`
 	Pass      bool   `json:"pass"`
 	Comment   string `json:"comment"`

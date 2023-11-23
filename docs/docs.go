@@ -658,10 +658,6 @@ const docTemplate = `{
                 "desc": {
                     "type": "string"
                 },
-                "has_result": {
-                    "description": "Reviewed if true, the user reviewed this item before, otherwise the pass is meaningless.",
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -672,6 +668,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pass": {
+                    "type": "boolean"
+                },
+                "reviewed": {
+                    "description": "Reviewed if true, the user reviewed this item before, otherwise the pass is meaningless.",
                     "type": "boolean"
                 }
             }
