@@ -24,6 +24,27 @@ definitions:
           $ref: '#/definitions/app.UserCheckItemReviewDTO'
         type: array
     type: object
+  app.CheckItemUserReviewDTO:
+    properties:
+      can_review:
+        type: boolean
+      comment:
+        type: string
+      desc:
+        type: string
+      has_result:
+        description: Reviewed if true, the user reviewed this item before, otherwise
+          the pass is meaningless.
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      owner:
+        type: string
+      pass:
+        type: boolean
+    type: object
   app.NewSoftwarePkgDTO:
     properties:
       id:
@@ -87,6 +108,19 @@ definitions:
         type: string
       user:
         type: string
+    type: object
+  app.SoftwarePkgReviewCommentDTO:
+    properties:
+      author:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      since_creation:
+        type: integer
     type: object
   app.SoftwarePkgReviewDTO:
     properties:
@@ -532,7 +566,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/app.SoftwarePkgDTO'
+            $ref: '#/definitions/app.CheckItemUserReviewDTO'
         "400":
           description: Bad Request
           schema:
@@ -580,10 +614,10 @@ paths:
         required: true
         type: string
       responses:
-        "202":
-          description: Accepted
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/controller.ResponseData'
+            $ref: '#/definitions/app.SoftwarePkgReviewCommentDTO'
         "400":
           description: Bad Request
           schema:
