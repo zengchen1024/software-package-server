@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -17,6 +18,29 @@ type maintainer interface {
 }
 
 var maintainerInstance maintainer
+
+func (pkg *SoftwarePkg) UserReview(user *User) UserReview {
+	account := user.Account.Account()
+
+	for i := range pkg.Reviews {
+		if item := &pkg.Reviews[i]; item.Account.Account() == account {
+			item.initRole(pkg)
+
+			return *item
+		}
+	}
+
+	v := UserReview{
+		Reviewer: Reviewer{
+			Account: user.Account,
+			GiteeID: user.GiteeID,
+		},
+	}
+
+	v.initRole(pkg)
+
+	return v
+}
 
 func (pkg *SoftwarePkg) addReview(ur *UserReview, items []CheckItem) error {
 	if ur.isEmpty() {
@@ -35,9 +59,9 @@ func (pkg *SoftwarePkg) addReview(ur *UserReview, items []CheckItem) error {
 		return nil
 	}
 
-	uri := ur.internal(pkg)
+	ur.initRole(pkg)
 
-	if err := uri.validate(items); err != nil {
+	if err := ur.validate(items); err != nil {
 		return err
 	}
 
@@ -61,16 +85,14 @@ func (pkg *SoftwarePkg) oldReviewer(reviewer *Reviewer) (bool, int) {
 }
 
 func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
-	reviews := make([]userReview, len(pkg.Reviews))
-
 	for i := range pkg.Reviews {
-		reviews[i] = pkg.Reviews[i].internal(pkg)
+		pkg.Reviews[i].initRole(pkg)
 	}
 
 	for i := range items {
-		rf := checkItemReview(&items[i], reviews)
+		rf := checkItemReview(&items[i], pkg.Reviews)
 
-		if !dp.IsCheckItemPass(rf.Result()) {
+		if hasResult, pass := rf.Result(); !hasResult || !pass {
 			return false
 		}
 	}
@@ -79,12 +101,6 @@ func (pkg *SoftwarePkg) doesPassReview(items []CheckItem) bool {
 }
 
 func (pkg *SoftwarePkg) clearReview(pkgms []string, items []CheckItem) {
-	reviews := make([]userReview, len(pkg.Reviews))
-
-	for i := range pkg.Reviews {
-		reviews[i] = pkg.Reviews[i].internal(pkg)
-	}
-
 	ms := map[string]bool{}
 	for i := range pkgms {
 		ms[pkgms[i]] = true
@@ -92,14 +108,30 @@ func (pkg *SoftwarePkg) clearReview(pkgms []string, items []CheckItem) {
 
 	for i := range items {
 		if v := &items[i]; !v.Keep && v.needRecheck(ms) {
-			for j := range reviews {
-				reviews[j].clear(v)
+			for j := range pkg.Reviews {
+				pkg.Reviews[j].clearOn(v)
 			}
 		}
 	}
 }
 
-func checkItemReview(item *CheckItem, reviews []userReview) (rf CheckItemReview) {
+func (pkg *SoftwarePkg) CheckItemReviews() []CheckItemReview {
+	items := pkg.CheckItems()
+
+	for i := range pkg.Reviews {
+		pkg.Reviews[i].initRole(pkg)
+	}
+
+	r := make([]CheckItemReview, len(items))
+	for i := range items {
+		r[i] = checkItemReview(&items[i], pkg.Reviews)
+
+	}
+
+	return r
+}
+
+func checkItemReview(item *CheckItem, reviews []UserReview) (rf CheckItemReview) {
 	rf.Item = item
 
 	if len(reviews) == 0 {
@@ -109,7 +141,7 @@ func checkItemReview(item *CheckItem, reviews []userReview) (rf CheckItemReview)
 	rs := make([]UserCheckItemReview, 0, len(reviews))
 
 	for i := range reviews {
-		if v, exist := reviews[i].userCheckItemReview(item); exist {
+		if v, exist := reviews[i].checkItemReview(item); exist {
 			rs = append(rs, v)
 		}
 	}
@@ -124,13 +156,29 @@ type UserReview struct {
 	Reviewer
 
 	Reviews []CheckItemReviewInfo
+
+	roles map[string]bool
 }
 
 func (r *UserReview) isEmpty() bool {
 	return len(r.Reviews) == 0
 }
 
-func (r *UserReview) internal(pkg *SoftwarePkg) userReview {
+func (r *UserReview) clearOn(item *CheckItem) {
+	for i := range r.Reviews {
+		if v := &r.Reviews[i]; v.Id == item.Id {
+			n := len(r.Reviews) - 1
+			if i != n {
+				r.Reviews[i] = r.Reviews[n]
+			}
+			r.Reviews = r.Reviews[:n]
+
+			return
+		}
+	}
+}
+
+func (r *UserReview) initRole(pkg *SoftwarePkg) {
 	tc, sigMaitainer := maintainerInstance.Roles(pkg, &r.Reviewer)
 
 	roles := map[string]bool{}
@@ -154,10 +202,7 @@ func (r *UserReview) internal(pkg *SoftwarePkg) userReview {
 		}
 	}
 
-	return userReview{
-		UserReview: r,
-		roles:      roles,
-	}
+	r.roles = roles
 }
 
 func (r *UserReview) checkItemReviewInfo(item *CheckItem) *CheckItemReviewInfo {
@@ -170,14 +215,7 @@ func (r *UserReview) checkItemReviewInfo(item *CheckItem) *CheckItemReviewInfo {
 	return nil
 }
 
-// userReview
-type userReview struct {
-	*UserReview
-
-	roles map[string]bool
-}
-
-func (r *userReview) validate(items []CheckItem) error {
+func (r *UserReview) validate(items []CheckItem) error {
 	for i := range items {
 		info := r.checkItemReviewInfo(&items[i])
 
@@ -189,21 +227,15 @@ func (r *userReview) validate(items []CheckItem) error {
 	return nil
 }
 
-func (r *userReview) clear(item *CheckItem) {
-	for i := range r.Reviews {
-		if v := &r.Reviews[i]; v.Id == item.Id {
-			n := len(r.Reviews) - 1
-			if i != n {
-				r.Reviews[i] = r.Reviews[n]
-			}
-			r.Reviews = r.Reviews[:n]
-
-			return
-		}
+func (r *UserReview) CheckItemReview(item *CheckItem) (bool, *CheckItemReviewInfo) {
+	if v := item.canReview(r.roles); !v {
+		return false, nil
 	}
+
+	return true, r.checkItemReviewInfo(item)
 }
 
-func (r *userReview) userCheckItemReview(item *CheckItem) (UserCheckItemReview, bool) {
+func (r *UserReview) checkItemReview(item *CheckItem) (UserCheckItemReview, bool) {
 	info := r.checkItemReviewInfo(item)
 	if info == nil {
 		return UserCheckItemReview{}, false
@@ -211,7 +243,7 @@ func (r *userReview) userCheckItemReview(item *CheckItem) (UserCheckItemReview, 
 
 	return UserCheckItemReview{
 		Reviewer:            &r.Reviewer,
-		isOwner:             item.isOwnerOfItem(r.roles),
+		IsOwner:             item.isOwnerOfItem(r.roles),
 		CheckItemReviewInfo: info,
 	}, true
 }
@@ -222,28 +254,37 @@ type CheckItemReview struct {
 	Reviews []UserCheckItemReview
 }
 
-func (r *CheckItemReview) Result() dp.CheckItemReviewResult {
+// return has result, pass
+func (r *CheckItemReview) Result() (bool, bool) {
 	if len(r.Reviews) == 0 {
-		return dp.CheckItemNoIdea
+		return false, false
 	}
 
 	pass := false
 
 	for i := range r.Reviews {
-		if v := &r.Reviews[i]; v.isOwner {
+		if v := &r.Reviews[i]; v.IsOwner {
 			if !v.Pass {
-				return dp.CheckItemNotPass
+				return true, false
 			}
 
 			pass = true
 		}
 	}
 
-	if pass {
-		return dp.CheckItemPass
+	return pass, pass
+}
+
+func (r *CheckItemReview) Stat() (agree, disagree int) {
+	for i := range r.Reviews {
+		if r.Reviews[i].Pass {
+			agree++
+		} else {
+			disagree++
+		}
 	}
 
-	return dp.CheckItemNoIdea
+	return
 }
 
 // UserCheckItemReview
@@ -251,7 +292,7 @@ type UserCheckItemReview struct {
 	*Reviewer
 	*CheckItemReviewInfo
 
-	isOwner bool
+	IsOwner bool
 }
 
 // CheckItemReviewInfo
@@ -298,4 +339,23 @@ func (item *CheckItem) needRecheck(ms map[string]bool) bool {
 	}
 
 	return false
+}
+
+func (item *CheckItem) OwnerDesc(pkg *SoftwarePkg) string {
+	switch item.Owner.CommunityRole() {
+	case dp.CommunityRoleTC.CommunityRole():
+		return "TC members"
+
+	case dp.CommunityRoleCommitter.CommunityRole():
+		return item.Id
+
+	case dp.CommunityRoleSigMaintainer.CommunityRole():
+		return item.Id + " Sig Maintainer"
+
+	case dp.CommunityRoleRepoMember.CommunityRole():
+		return item.Id + " Sig Maintainer or committers: " + strings.Join(pkg.Repo.CommitterIds(), ", ")
+
+	default:
+		return ""
+	}
 }

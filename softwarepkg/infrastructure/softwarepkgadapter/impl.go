@@ -109,36 +109,30 @@ func (impl *softwarePkgAdapter) save(pkg *domain.SoftwarePkg, version int, ignor
 }
 
 func (impl *softwarePkgAdapter) FindAll(opt *repository.OptToFindSoftwarePkgs) (
-	[]repository.SoftwarePkgInfo, error,
+	[]repository.SoftwarePkgInfo, int64, error,
 ) {
-	filter := bson.M{}
-	if opt.Phase != nil {
-		filter[fieldPhase] = opt.Phase.PackagePhase()
-	}
-
-	if opt.Platform != nil {
-		filter[fieldRepoPlatform] = opt.Platform.PackagePlatform()
-	}
-
-	if opt.Importer != nil {
-		filter[fieldImporter] = opt.Importer.Account()
-	}
-
-	// TODO check
-	if opt.PkgName != nil {
-		filter[fieldPrimaryKey] = bson.M{
-			mongodbCmdRegex: opt.PkgName.PackageName(),
-			"$options":      "i",
-		}
-	}
+	var err error
+	var lastId primitive.ObjectID
 
 	if opt.LastId != "" {
-		v, err := primitive.ObjectIDFromHex(opt.LastId)
-		if err != nil {
-			return nil, err
+		if lastId, err = primitive.ObjectIDFromHex(opt.LastId); err != nil {
+			return nil, 0, err
 		}
+	}
 
-		filter[fieldIndex] = bson.M{mongodbCmdLt: v}
+	filter := impl.listFilter(opt)
+
+	// total
+	var total int64
+	if opt.Count {
+		if total, err = impl.dao.Count(filter); err != nil {
+			return nil, 0, err
+		}
+	}
+
+	// list
+	if opt.LastId != "" {
+		filter[fieldIndex] = bson.M{mongodbCmdLt: lastId}
 	}
 
 	project := bson.M{
@@ -154,20 +148,41 @@ func (impl *softwarePkgAdapter) FindAll(opt *repository.OptToFindSoftwarePkgs) (
 
 	var docs []softwarePkgDO
 
-	err := impl.dao.Paginate(
+	err = impl.dao.Paginate(
 		filter, project, bson.M{fieldIndex: -1},
 		int64(opt.PageNum), int64(opt.CountPerPage), &docs,
 	)
 	if err != nil || len(docs) == 0 {
-		return nil, err
+		return nil, total, err
 	}
 
 	r := make([]repository.SoftwarePkgInfo, len(docs))
 	for i := range docs {
-		if err := docs[i].toSoftwarePkgInfo(&r[i]); err != nil {
-			return nil, err
+		if err = docs[i].toSoftwarePkgInfo(&r[i]); err != nil {
+			return nil, 0, err
 		}
 	}
 
-	return r, nil
+	return r, total, nil
+}
+
+func (impl *softwarePkgAdapter) listFilter(opt *repository.OptToFindSoftwarePkgs) bson.M {
+	filter := bson.M{}
+	if opt.Phase != nil {
+		filter[fieldPhase] = opt.Phase.PackagePhase()
+	}
+
+	if opt.Platform != nil {
+		filter[fieldRepoPlatform] = opt.Platform.PackagePlatform()
+	}
+
+	if opt.Importer != nil {
+		filter[fieldImporter] = opt.Importer.Account()
+	}
+
+	if opt.PkgName != nil {
+		filter[fieldPrimaryKey] = impl.dao.LikeFilter(opt.PkgName.PackageName(), true)
+	}
+
+	return filter
 }

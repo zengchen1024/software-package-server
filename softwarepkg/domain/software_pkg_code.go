@@ -67,12 +67,12 @@ type SoftwarePkgCodeInfo struct {
 }
 
 func (f *SoftwarePkgCodeInfo) isReady() bool {
-	return f.Local != nil && !f.Dirty
+	return f.DownloadAddr != nil && !f.Dirty
 }
 
 func (f *SoftwarePkgCodeInfo) update(src dp.URL) {
 	f.Src = src
-	f.Local = nil
+	f.DownloadAddr = nil
 	f.Dirty = true
 	// f.Reason = ""
 	f.UpdatedAt = utils.Now()
@@ -80,7 +80,7 @@ func (f *SoftwarePkgCodeInfo) update(src dp.URL) {
 
 func (f *SoftwarePkgCodeInfo) saveDownloadedFile(file *SoftwarePkgCodeFile) bool {
 	if !f.isReady() && f.isSame(file) {
-		f.Local = file.Local
+		f.DownloadAddr = file.DownloadAddr
 		f.Dirty = false
 
 		return true
@@ -99,9 +99,9 @@ func (f *SoftwarePkgCodeInfo) fileToDownload() *SoftwarePkgCodeFile {
 
 // SoftwarePkgCodeFile
 type SoftwarePkgCodeFile struct {
-	Src       dp.URL // Src is the url user inputed
-	Local     dp.URL // Local is the url that is the local address of the file
-	UpdatedAt int64  // UpdatedAt is the time when user changes the Src or wants to reload
+	Src          dp.URL // Src is the url user inputed
+	UpdatedAt    int64  // UpdatedAt is the time when user changes the Src or wants to reload
+	DownloadAddr dp.URL
 }
 
 func (f *SoftwarePkgCodeFile) FileName() string {

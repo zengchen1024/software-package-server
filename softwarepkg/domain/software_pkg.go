@@ -3,7 +3,6 @@ package domain
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -115,7 +114,7 @@ func (entity *SoftwarePkg) CheckItems() []CheckItem {
 func (entity *SoftwarePkg) otherCheckItems() []CheckItem {
 	v := []CheckItem{
 		{
-			Id:            strconv.Itoa(len(commonCheckItems) + 1),
+			Id:            entity.Sig.ImportingPkgSig(),
 			Name:          "Sig",
 			Desc:          fmt.Sprintf("软件包被%s Sig接纳", entity.Sig.ImportingPkgSig()),
 			Owner:         dp.CommunityRoleSigMaintainer,
@@ -269,7 +268,7 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) UpdateApplication(user *User, info *SoftwarePkgUpdateInfo) error {
+func (entity *SoftwarePkg) Update(user *User, info *SoftwarePkgUpdateInfo) error {
 	if !dp.IsSameAccount(user.Account, entity.Importer) {
 		return notfound
 	}

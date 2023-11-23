@@ -1,19 +1,20 @@
 package dp
 
 const (
-	checkItemReviewResultPass    = "pass"
-	checkItemReviewResultNoIdea  = "no_idea"
+	checkItemReviewResultPass = "pass"
+	//checkItemReviewResultNoIdea  = "no_idea"
 	checkItemReviewResultNotPass = "not_pass"
 )
 
 var (
-	CheckItemPass    = checkItemReviewResult(checkItemReviewResultPass)
-	CheckItemNoIdea  = checkItemReviewResult(checkItemReviewResultNoIdea)
+	CheckItemPass = checkItemReviewResult(checkItemReviewResultPass)
+	//CheckItemNoIdea  = checkItemReviewResult(checkItemReviewResultNoIdea)
 	CheckItemNotPass = checkItemReviewResult(checkItemReviewResultNotPass)
 )
 
 type CheckItemReviewResult interface {
 	CheckItemReviewResult() string
+	IsPass() bool
 }
 
 type checkItemReviewResult string

@@ -27,17 +27,54 @@ func AddRouteForSoftwarePkgController(
 	}
 
 	m := middleware.UserChecking().CheckUser
-	r.POST("/v1/softwarepkg", m, ctl.ApplyNewPkg)
-	r.GET("/v1/softwarepkg", ctl.ListPkgs)
-	r.GET("/v1/softwarepkg/:id", ctl.Get)
-	r.PUT("/v1/softwarepkg/:id", m, ctl.UpdateApplication)
 
-	r.POST("/v1/softwarepkg/:id/review", m, ctl.Review)
-	r.PUT("/v1/softwarepkg/:id/reject", m, ctl.Reject)
+	r.POST("/v1/softwarepkg/committers", m, ctl.CheckCommitters)
+	r.POST("/v1/softwarepkg", m, ctl.ApplyNewPkg)
 	r.PUT("/v1/softwarepkg/:id/abandon", m, ctl.Abandon)
-	r.PUT("/v1/softwarepkg/:id/rerunci", m, ctl.RerunCI)
-	r.POST("/v1/softwarepkg/:id/review/comment", m, ctl.NewReviewComment)
-	r.POST("/v1/softwarepkg/:id/review/comment/:cid/translate", m, ctl.TranslateReviewComment)
+	r.PUT("/v1/softwarepkg/:id", m, ctl.Update)
+	r.PUT("/v1/softwarepkg/:id/retest", m, ctl.Retest)
+	r.GET("/v1/softwarepkg/:id", ctl.Get)
+	r.GET("/v1/softwarepkg", ctl.ListPkgs)
+
+	r.PUT("/v1/softwarepkg/:id/reject", m, ctl.Reject)
+	r.POST("/v1/softwarepkg/:id/review", m, ctl.Review)
+	r.GET("/v1/softwarepkg/:id/review", m, ctl.GetReview)
+}
+
+// CheckCommitter
+// @Summary check committer of software package
+// @Description check committer of software package
+// @Tags  SoftwarePkg
+// @Accept json
+// @Param  body  body   softwarePkgRepoRequest   true  "body of checking committers"
+// @Success 201 {object} checkCommittersResp
+// @Failure 400 {object} ResponseData
+// @Router /v1/softwarepkg/committers [post]
+func (ctl SoftwarePkgController) CheckCommitters(ctx *gin.Context) {
+	var req softwarePkgRepoRequest
+	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+		commonctl.SendBadRequestBody(ctx, err)
+
+		return
+	}
+
+	user, err := middleware.UserChecking().FetchUser(ctx)
+	if err != nil {
+		commonctl.SendFailedResp(ctx, "", err)
+
+		return
+	}
+
+	_, err, invalidCommitters := req.toRepo(&user, ctl.userAdapter)
+	if err != nil {
+		if len(invalidCommitters) > 0 {
+			commonctl.SendRespOfPost(ctx, checkCommittersResp{invalidCommitters})
+		} else {
+			commonctl.SendBadRequestParam(ctx, err)
+		}
+	} else {
+		commonctl.SendRespOfPost(ctx, checkCommittersResp{})
+	}
 }
 
 // ApplyNewPkg
@@ -83,11 +120,15 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 // @Description list software packages
 // @Tags  SoftwarePkg
 // @Accept json
+// @param    phase            query	 string   false    "phase of the softwarepkg"
+// @param    pkg_name         query	 string   false    "name of the softwarepkg"
 // @Param    importer         query	 string   false    "importer of the softwarePkg"
-// @Param    phase            query	 string   false    "phase of the softwarePkg"
-// @Param    count_per_page   query	 int      false    "count per page"
+// @Param    platform         query	 string   false    "platform of the softwarePkg"
+// @Param    last_id          query	 string   false    "last software pkg id of previous page"
+// @Param    count            query	 bool     false    "whether count total num of the pkgs"
 // @Param    page_num         query	 int      false    "page num which starts from 1"
-// @Success 200 {object} app.SoftwarePkgsDTO
+// @Param    count_per_page   query	 int      false    "count per page"
+// @Success 200 {object} app.SoftwarePkgSummariesDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg [get]
 func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
@@ -118,12 +159,36 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 // @Tags  SoftwarePkg
 // @Accept json
 // @Param    id         path	string  true    "id of software package"
-// @Success 200 {object} app.SoftwarePkgReviewDTO
+// @Success 200 {object} app.SoftwarePkgDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id} [get]
 func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
-	if v, code, err := ctl.service.GetPkgReviewDetail(ctx.Param("id")); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
+	if v, err := ctl.service.Get(ctx.Param("id")); err != nil {
+		commonctl.SendError(ctx, err)
+	} else {
+		commonctl.SendRespOfGet(ctx, v)
+	}
+}
+
+// GetReview
+// @Summary get user review on software package
+// @Description get user review on software package
+// @Tags  SoftwarePkg
+// @Accept json
+// @Param    id         path	string  true    "id of software package"
+// @Success 200 {object} app.SoftwarePkgDTO
+// @Failure 400 {object} ResponseData
+// @Router /v1/softwarepkg/{id}/review [get]
+func (ctl SoftwarePkgController) GetReview(ctx *gin.Context) {
+	user, err := middleware.UserChecking().FetchUser(ctx)
+	if err != nil {
+		commonctl.SendFailedResp(ctx, "", err)
+
+		return
+	}
+
+	if v, err := ctl.service.GetReview(ctx.Param("id"), &user); err != nil {
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfGet(ctx, v)
 	}
@@ -135,7 +200,7 @@ func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 // @Tags  SoftwarePkg
 // @Accept json
 // @Param  id     path   string         true  "id of software package"
-// @Param  param  body   reviewRequest  true  "body of reviewing a software package"
+// @Param  body   body   reviewRequest  true  "body of reviewing a software package"
 // @Success 201 {object} ResponseData
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id}/review [post]
@@ -206,7 +271,8 @@ func (ctl SoftwarePkgController) Reject(ctx *gin.Context) {
 // @Description abandon software package
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param	id  path	 string	 true	"id of software package"
+// @Param  id    path   string            true  "id of software package"
+// @Param  body  body   reqToAbandonPkg   true  "comment"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id}/abandon [put]
@@ -239,90 +305,18 @@ func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
 	}
 }
 
-// NewReviewComment
-// @Summary create a new software package review comment
-// @Description create a new software package review comment
-// @Tags  SoftwarePkg
-// @Accept json
-// @Param	param  body	 reviewCommentRequest	 true	"body of creating a new software package review comment"
-// @Param	id     path	 string	                 true	"id of software package"
-// @Success 201 {object} ResponseData
-// @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/review/comment [post]
-func (ctl SoftwarePkgController) NewReviewComment(ctx *gin.Context) {
-	user, err := middleware.UserChecking().FetchUser(ctx)
-	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
-
-		return
-	}
-
-	var req reviewCommentRequest
-	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
-		commonctl.SendBadRequestBody(ctx, err)
-
-		return
-	}
-
-	cmd, err := req.toCmd(ctx.Param("id"), &user)
-	if err != nil {
-		commonctl.SendBadRequestParam(ctx, err)
-
-		return
-	}
-
-	if err := ctl.service.NewReviewComment(&cmd); err != nil {
-		commonctl.SendError(ctx, err)
-	} else {
-		commonctl.SendRespOfCreate(ctx)
-	}
-}
-
-// TranslateReviewComment
-// @Summary translate review comment
-// @Description translate review comment
-// @Tags  SoftwarePkg
-// @Accept json
-// @Param    id       path       string                      true    "id of software package"
-// @Param    cid      path       string                      true    "cid of review comment"
-// @Param    param    body       translationCommentRequest   true    "body of translate review comment"
-// @Success 201 {object} app.TranslatedReveiwCommentDTO
-// @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/review/comment/{cid}/translate [post]
-func (ctl SoftwarePkgController) TranslateReviewComment(ctx *gin.Context) {
-	var req translationCommentRequest
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
-		commonctl.SendBadRequestParam(ctx, err)
-
-		return
-	}
-
-	cmd, err := req.toCmd(ctx.Param("id"), ctx.Param("cid"))
-	if err != nil {
-		commonctl.SendBadRequestParam(ctx, err)
-
-		return
-	}
-
-	if v, code, err := ctl.service.TranslateReviewComment(&cmd); err != nil {
-		commonctl.SendFailedResp(ctx, code, err)
-	} else {
-		commonctl.SendRespOfPost(ctx, v)
-	}
-}
-
-// UpdateApplication
+// Update
 // @Summary update application of software package
 // @Description update application of software package
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param  id     path  string                             true  "id of software package"
-// @Param  param  body  reqToUpdateSoftwarePkgApplication  true  "body of updating software package application"
+// @Param  id     path  string                  true  "id of software package"
+// @Param  param  body  reqToUpdateSoftwarePkg  true  "body of updating software package application"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/:id [put]
-func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
-	var req reqToUpdateSoftwarePkgApplication
+func (ctl SoftwarePkgController) Update(ctx *gin.Context) {
+	var req reqToUpdateSoftwarePkg
 
 	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
@@ -344,7 +338,7 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 		return
 	}
 
-	if err = ctl.service.UpdateApplication(&cmd); err != nil {
+	if err = ctl.service.Update(&cmd); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)
@@ -359,8 +353,8 @@ func (ctl SoftwarePkgController) UpdateApplication(ctx *gin.Context) {
 // @Param	id  path	 string	 true	"id of software package"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/rerunci [put]
-func (ctl SoftwarePkgController) RerunCI(ctx *gin.Context) {
+// @Router /v1/softwarepkg/{id}/retest [put]
+func (ctl SoftwarePkgController) Retest(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
 		commonctl.SendFailedResp(ctx, "", err)

@@ -7,19 +7,19 @@ import (
 )
 
 const (
-	mongodbCmdOr        = "$or"
-	mongodbCmdIn        = "$in"
-	mongodbCmdRegex     = "$regex"
-	mongodbCmdElemMatch = "$elemMatch"
-
 	mongodbCmdLt = "$lt"
 )
 
 type dao interface {
-	InsertDocIfNotExists(filter, doc bson.M) (string, error)
 	IsDocNotExists(error) bool
 	IsDocExists(error) bool
+
+	LikeFilter(v string, caseInsensitive bool) bson.M
 	DocIdFilter(s string) (bson.M, error)
+
+	InsertDocIfNotExists(filter, doc bson.M) (string, error)
+
+	Count(filter bson.M) (n int64, err error)
 	GetDoc(filter, project bson.M, result interface{}) error
 	UpdateDoc(filter bson.M, doc bson.M, version int) error
 	Paginate(filter, project, sortBy bson.M, pageNum, countPerPage int64, result interface{}) error

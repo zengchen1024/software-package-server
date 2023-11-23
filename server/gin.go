@@ -67,17 +67,27 @@ func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
+	repo := softwarepkgadapter.NewsoftwarePkgAdapter(
+		mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
+	)
+
 	controller.AddRouteForSoftwarePkgController(
-		v1, softwarepkgapp.NewSoftwarePkgService(
-			softwarepkgadapter.NewsoftwarePkgAdapter(
-				mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
-			),
+		v1,
+		softwarepkgapp.NewSoftwarePkgService(
+			repo,
 			pkgmanagerimpl.Instance(),
 			messageimpl.Producer(),
+		),
+		useradapterimpl.UserAdapter(),
+	)
+
+	controller.AddRouteForSoftwarePkgCommentController(
+		v1,
+		softwarepkgapp.NewSoftwarePkgCommentAppService(
+			repo,
 			translationimpl.Translation(),
 			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
 		),
-		useradapterimpl.UserAdapter(),
 	)
 }
 
