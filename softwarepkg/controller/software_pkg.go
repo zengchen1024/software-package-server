@@ -176,7 +176,7 @@ func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 // @Tags  SoftwarePkg
 // @Accept json
 // @Param    id         path	string  true    "id of software package"
-// @Success 200 {object} app.SoftwarePkgDTO
+// @Success 200 {object} app.CheckItemUserReviewDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id}/review [get]
 func (ctl SoftwarePkgController) GetReview(ctx *gin.Context) {

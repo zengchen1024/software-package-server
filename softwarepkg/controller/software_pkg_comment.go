@@ -73,7 +73,7 @@ func (ctl SoftwarePkgCommentController) NewReviewComment(ctx *gin.Context) {
 // @Tags  SoftwarePkg
 // @Accept json
 // @Param	id     path	 string	                 true	"id of software package"
-// @Success 202 {object} ResponseData
+// @Success 200 {object} app.SoftwarePkgReviewCommentDTO
 // @Failure 400 {object} ResponseData
 // @Router /v1/softwarepkg/{id}/review/comment [get]
 func (ctl SoftwarePkgCommentController) List(ctx *gin.Context) {

@@ -426,7 +426,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/app.SoftwarePkgDTO"
+                            "$ref": "#/definitions/app.CheckItemUserReviewDTO"
                         }
                     },
                     "400": {
@@ -500,10 +500,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
+                            "$ref": "#/definitions/app.SoftwarePkgReviewCommentDTO"
                         }
                     },
                     "400": {
@@ -646,6 +646,36 @@ const docTemplate = `{
                 }
             }
         },
+        "app.CheckItemUserReviewDTO": {
+            "type": "object",
+            "properties": {
+                "can_review": {
+                    "type": "boolean"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "has_result": {
+                    "description": "Reviewed if true, the user reviewed this item before, otherwise the pass is meaningless.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "pass": {
+                    "type": "boolean"
+                }
+            }
+        },
         "app.NewSoftwarePkgDTO": {
             "type": "object",
             "properties": {
@@ -741,6 +771,26 @@ const docTemplate = `{
                 },
                 "user": {
                     "type": "string"
+                }
+            }
+        },
+        "app.SoftwarePkgReviewCommentDTO": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "since_creation": {
+                    "type": "integer"
                 }
             }
         },
