@@ -59,11 +59,11 @@ func setRouter(engine *gin.Engine, cfg *config.Config) {
 func setApiV1(v1 *gin.RouterGroup, cfg *config.Config) {
 	initSoftwarePkgService(v1, cfg)
 
+	controller.Init(&cfg.API)
+
 	controller.AddRouteForSigController(v1, sigvalidatorimpl.SigValidator())
 
-	controller.AddRouteForCLAController(
-		v1, clavalidatorimpl.Instance(),
-	)
+	controller.AddRouteForCLAController(v1, clavalidatorimpl.Instance())
 }
 
 func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
@@ -76,7 +76,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 		softwarepkgapp.NewSoftwarePkgService(
 			repo,
 			pkgmanagerimpl.Instance(),
-			messageimpl.Producer(),
+			messageimpl.Producer(&cfg.MQ.Topics),
 		),
 		useradapterimpl.UserAdapter(),
 	)
@@ -86,7 +86,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 		softwarepkgapp.NewSoftwarePkgCommentAppService(
 			repo,
 			translationimpl.Translation(),
-			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
+			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table),
 		),
 	)
 }

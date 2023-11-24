@@ -13,10 +13,11 @@ func Init(cfg *Config, sv SigValidator, words sensitiveWordsValidator) {
 type Config struct {
 	// map platform -> org address. such as gitee --> https://gitee.com/src-openeuler/
 	PlatformOrgLinks              map[string]string `json:"platform_org_links"            required:"true"`
-	SupportedLanguages            []string          `json:"supported_languages"       required:"true"`
+	SupportedLanguages            []string          `json:"supported_languages"`
 	MaxLengthOfPackageName        int               `json:"max_length_of_pkg_name"`
 	MaxLengthOfPackageDesc        int               `json:"max_length_of_pkg_desc"`
 	MaxLengthOfReviewComment      int               `json:"max_length_of_review_comment"`
+	MaxLengthOfCheckItemComment   int               `json:"max_length_of_check_item_comment"`
 	MaxLengthOfPurposeToImportPkg int               `json:"max_length_of_purpose_to_import_pkg"`
 }
 
@@ -34,7 +35,11 @@ func (cfg *Config) SetDefault() {
 	}
 
 	if cfg.MaxLengthOfReviewComment <= 0 {
-		cfg.MaxLengthOfReviewComment = 500
+		cfg.MaxLengthOfReviewComment = 1500
+	}
+
+	if cfg.MaxLengthOfCheckItemComment <= 0 {
+		cfg.MaxLengthOfCheckItemComment = 500
 	}
 
 	if cfg.MaxLengthOfPurposeToImportPkg <= 0 {

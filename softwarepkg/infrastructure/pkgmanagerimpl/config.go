@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	ExistingPkgs ExistingPkgsConfig `json:"existing_pkgs"  required:"true"`
+	ExistingPkgs ExistingPkgsConfig `json:"existing_pkgs"`
 	AccessToken  string             `json:"access_token"   required:"true"`
 }
 
@@ -22,8 +22,8 @@ func (cfg *Config) Token() func() []byte {
 
 // ExistingPkgsConfig
 type ExistingPkgsConfig struct {
-	DefaultInfo      ExistingPkgDefaultInfo `json:"default_info"        required:"true"`
-	MetaDataRepo     metaDataRepo           `json:"meta_data_repo"      required:"true"`
+	DefaultInfo      ExistingPkgDefaultInfo `json:"default_info"`
+	MetaDataRepo     metaDataRepo           `json:"meta_data_repo"`
 	OrgOfPkgRepo     string                 `json:"org_of_pkg_repo"     required:"true"`
 	MetaDataEndpoint string                 `json:"meta_data_endpoint"  required:"true"`
 }

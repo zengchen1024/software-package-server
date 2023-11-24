@@ -15,13 +15,13 @@ type softwarePkgCommentImpl struct {
 	translationComment
 }
 
-func NewSoftwarePkgComment(cfg *Config) repository.SoftwarePkgComment {
+func NewSoftwarePkgComment(table *Table) repository.SoftwarePkgComment {
 	return softwarePkgCommentImpl{
 		reviewComment: reviewComment{
-			postgresql.NewDBTable(cfg.Table.ReviewComment),
+			postgresql.NewDBTable(table.ReviewComment),
 		},
 		translationComment: translationComment{
-			postgresql.NewDBTable(cfg.Table.TranslationComment),
+			postgresql.NewDBTable(table.TranslationComment),
 		},
 	}
 }

@@ -12,8 +12,8 @@ const (
 	pkgModificationCode      = "code"
 	pkgModificationPkgName   = "pkg_name"
 	pkgModificationPkgDesc   = "pkg_desc"
+	pkgModificationPurpose   = "purpose"
 	pkgModificationUpstream  = "upstream"
-	pkgModificationPkgReason = "pkg_reason"
 	pkgModificationCommitter = "committer"
 )
 
@@ -38,8 +38,8 @@ func pkgModification(v string) (string, error) {
 	case pkgModificationCode:
 	case pkgModificationPkgName:
 	case pkgModificationPkgDesc:
+	case pkgModificationPurpose:
 	case pkgModificationUpstream:
-	case pkgModificationPkgReason:
 	case pkgModificationCommitter:
 	default:
 		return "", errors.New("invalid pkg modification")
@@ -50,7 +50,7 @@ func pkgModification(v string) (string, error) {
 
 type Config struct {
 	CITimeout  int64             `json:"ci_timeout"`
-	CheckItems []checkItemConfig `json:"check_items"`
+	CheckItems []checkItemConfig `json:"check_items" required:"true"`
 
 	checkItems []CheckItem
 }
@@ -89,7 +89,7 @@ type checkItemConfig struct {
 
 	// If true, only the owner can review this item else anyone can review.
 	// For example, onlye sig maintainer can determine whether the sig of pkg is correct.
-	OnlyOwner bool `json:""`
+	OnlyOwner bool `json:"only_owner"`
 
 	// This check item should be checked again when the relevant modifications happened.
 	Modifications []string `json:"modifications" required:"true"`

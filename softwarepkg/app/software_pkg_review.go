@@ -29,7 +29,7 @@ func (s *softwarePkgService) GetReview(pid string, user *domain.User) ([]CheckIt
 		if canReview && info != nil {
 			r[i].Pass = info.Pass
 			r[i].Reviewed = true
-			r[i].Comment = info.Comment
+			r[i].Comment = info.Comment.ReviewComment()
 		}
 	}
 

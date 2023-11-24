@@ -13,7 +13,7 @@ type Config struct {
 	// Interval the unit is hour
 	Interval int `json:"interval" required:"true"`
 
-	OM omConfig `json:"om" required:"true"`
+	OM omConfig `json:"om"`
 }
 
 func (cfg *Config) SetDefault() {

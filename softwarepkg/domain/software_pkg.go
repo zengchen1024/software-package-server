@@ -71,7 +71,7 @@ func (basic *SoftwarePkgBasicInfo) update(info *SoftwarePkgUpdateInfo) []string 
 	if v := info.Purpose; v != nil && v.PurposeToImportPkg() != basic.Purpose.PurposeToImportPkg() {
 		basic.Purpose = v
 
-		ms = append(ms, pkgModificationPkgReason)
+		ms = append(ms, pkgModificationPurpose)
 	}
 
 	if v := info.Upstream; v != nil && v.URL() != basic.Upstream.URL() {

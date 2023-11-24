@@ -299,7 +299,7 @@ type UserCheckItemReview struct {
 type CheckItemReviewInfo struct {
 	Id      string
 	Pass    bool
-	Comment string
+	Comment dp.ReviewComment
 }
 
 // CheckItem

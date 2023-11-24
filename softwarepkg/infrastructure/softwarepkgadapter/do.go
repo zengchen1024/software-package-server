@@ -143,9 +143,11 @@ func toCheckItemReviewDOs(reviews []domain.CheckItemReviewInfo) []checkItemRevie
 		item := &reviews[i]
 
 		v[i] = checkItemReviewInfoDO{
-			Id:      item.Id,
-			Pass:    item.Pass,
-			Comment: item.Comment,
+			Id:   item.Id,
+			Pass: item.Pass,
+		}
+		if item.Comment != nil {
+			v[i].Comment = item.Comment.ReviewComment()
 		}
 	}
 
@@ -440,7 +442,9 @@ func (do *userReviewDO) toDomain(review *domain.UserReview) (err error) {
 
 	reviews := make([]domain.CheckItemReviewInfo, len(do.Reviews))
 	for i := range do.Reviews {
-		do.Reviews[i].toDomain(&reviews[i])
+		if err = do.Reviews[i].toDomain(&reviews[i]); err != nil {
+			return
+		}
 	}
 
 	review.Reviews = reviews
@@ -455,8 +459,12 @@ type checkItemReviewInfoDO struct {
 	Comment string `bson:"comment"   json:"comment"`
 }
 
-func (do *checkItemReviewInfoDO) toDomain(info *domain.CheckItemReviewInfo) {
+func (do *checkItemReviewInfoDO) toDomain(info *domain.CheckItemReviewInfo) (err error) {
 	info.Id = do.Id
 	info.Pass = do.Pass
-	info.Comment = do.Comment
+	if do.Comment != "" {
+		info.Comment, err = dp.NewCheckItemComment(do.Comment)
+	}
+
+	return
 }
