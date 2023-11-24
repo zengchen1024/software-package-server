@@ -75,6 +75,7 @@ func main() {
 	}
 
 	// Sig Validator
+	logrus.Debugln("sig validator")
 	if err := sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
 		logrus.Errorf("init sig validator failed, err:%s", err.Error())
 
@@ -84,6 +85,7 @@ func main() {
 	defer sigvalidatorimpl.Exit()
 
 	// mongo
+	logrus.Debugln("mongo")
 	if err := mongdblib.Init(&cfg.Mongo.DB); err != nil {
 		logrus.Errorf("init mongo failed, err:%s", err.Error())
 
@@ -93,6 +95,7 @@ func main() {
 	defer mongdblib.Close()
 
 	// Postgresql
+	logrus.Debugln("pg")
 	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
 		logrus.Errorf("init db, err:%s", err.Error())
 
@@ -100,6 +103,7 @@ func main() {
 	}
 
 	// Translation
+	logrus.Debugln("Translation")
 	err = translationimpl.Init(
 		&cfg.Translation, cfg.SoftwarePkg.DomainPrimitive.SupportedLanguages,
 	)
@@ -110,6 +114,7 @@ func main() {
 	}
 
 	// Sensitive words
+	logrus.Debugln("Sensitive")
 	if err = sensitivewordsimpl.Init(&cfg.SensitiveWords); err != nil {
 		logrus.Errorf("init sensitivewords err:%s", err.Error())
 
@@ -117,6 +122,7 @@ func main() {
 	}
 
 	// Pkg manager
+	logrus.Debugln("pkg manager")
 	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
 		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
 
@@ -131,6 +137,7 @@ func main() {
 	}
 
 	// MQ
+	logrus.Debugln("mq")
 	if err = kfklib.Init(&cfg.MQ.Config, log, nil, "", true); err != nil {
 		logrus.Errorf("init mq, err:%s", err.Error())
 
@@ -140,6 +147,7 @@ func main() {
 	defer kfklib.Exit()
 
 	// Maintainer
+	logrus.Debugln("maintainer")
 	if err := useradapterimpl.Init(&cfg.User); err != nil {
 		logrus.Errorf("init maintainer failed, err:%s", err.Error())
 
@@ -162,5 +170,6 @@ func main() {
 	clavalidatorimpl.Init(&cfg.CLA)
 
 	// run
+	logrus.Debugln("start server")
 	server.StartWebServer(o.service.Port, o.service.GracePeriod, cfg)
 }
