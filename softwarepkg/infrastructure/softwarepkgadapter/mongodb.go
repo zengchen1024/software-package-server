@@ -36,6 +36,6 @@ func genDoc(doc interface{}) (m bson.M, err error) {
 	return
 }
 
-type Config struct {
+type Collections struct {
 	SoftwarePkg string `json:"software_pkg" required:"true"`
 }

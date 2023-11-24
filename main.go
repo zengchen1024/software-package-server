@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
@@ -16,7 +17,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/messageimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sensitivewordsimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
@@ -131,13 +131,13 @@ func main() {
 	}
 
 	// MQ
-	if err = messageimpl.Init(&cfg.MQ, log); err != nil {
+	if err = kfklib.Init(&cfg.MQ.Config, log, nil, "", true); err != nil {
 		logrus.Errorf("init mq, err:%s", err.Error())
 
 		return
 	}
 
-	defer messageimpl.Exit()
+	defer kfklib.Exit()
 
 	// Maintainer
 	if err := useradapterimpl.Init(&cfg.User); err != nil {

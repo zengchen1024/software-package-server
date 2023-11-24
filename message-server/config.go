@@ -36,9 +36,8 @@ type domainConfig struct {
 }
 
 type postgresqlConfig struct {
-	DB postgresql.Config `json:"db" required:"true"`
-
-	repositoryimpl.Config
+	DB    postgresql.Config    `json:"db"`
+	Table repositoryimpl.Table `json:"table"`
 }
 
 type Config struct {
@@ -68,8 +67,8 @@ type Topics struct {
 }
 
 type mongoConfig struct {
-	DB          mongdblib.Config          `json:"db"`
-	Collections softwarepkgadapter.Config `json:"collections"`
+	DB          mongdblib.Config               `json:"db"`
+	Collections softwarepkgadapter.Collections `json:"collections"`
 }
 
 type configValidate interface {
@@ -88,7 +87,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Kafka,
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
-		&cfg.Postgresql.Config,
+		&cfg.Postgresql.Table,
 		&cfg.SoftwarePkg.Config,
 		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.PkgManager,

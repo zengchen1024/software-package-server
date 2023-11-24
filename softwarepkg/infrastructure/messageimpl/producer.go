@@ -6,10 +6,8 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
 )
 
-var producerInstance *producer
-
-func Producer() *producer {
-	return producerInstance
+func Producer(topic *Topics) *producer {
+	return &producer{*topic}
 }
 
 type producer struct {

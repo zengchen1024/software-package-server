@@ -3,27 +3,12 @@ package dp
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/opensourceways/software-package-server/utils"
 )
 
-const (
-	cmdAPPROVE = "APPROVE"
-	cmdReject  = "REJECT"
-)
-
-var (
-	validCmds = map[string]bool{
-		cmdAPPROVE: true,
-		cmdReject:  true,
-	}
-
-	commandRegex = regexp.MustCompile(`(?m)^/([^\s]+)[\t ]*([^\n\r]*)`)
-
-	sensitiveWords sensitiveWordsValidator
-)
+var sensitiveWords sensitiveWordsValidator
 
 type sensitiveWordsValidator interface {
 	CheckSensitiveWords(string) error
@@ -31,11 +16,63 @@ type sensitiveWordsValidator interface {
 
 type ReviewComment interface {
 	ReviewComment() string
-	ParseReviewComment() (isCmd, isApprove bool)
 }
 
 func NewReviewComment(v string) (ReviewComment, error) {
-	if err := checkReviewComment(v); err != nil {
+	return newReviewComment(v, config.MaxLengthOfReviewComment)
+}
+
+func NewReviewCommentInternal(v string) (ReviewComment, error) {
+	return newReviewCommentInternal(v, config.MaxLengthOfReviewComment)
+}
+
+func CheckMultiComments(cs []string) error {
+	maxLen := config.MaxLengthOfReviewComment
+
+	s := strings.Join(cs, ".")
+	n := utils.StrLen(s)
+	if n == 0 {
+		return nil
+	}
+	if n <= maxLen {
+		return sensitiveWords.CheckSensitiveWords(s)
+	}
+
+	s = ""
+	n = 0
+	for _, c := range cs {
+		n1 := utils.StrLen(c)
+
+		if n2 := n1 + n; n2 > maxLen {
+			if err := sensitiveWords.CheckSensitiveWords(s); err != nil {
+				return err
+			}
+
+			s = c
+			n = n1
+		} else {
+			s += c
+			n = n2
+		}
+	}
+
+	if s != "" {
+		return sensitiveWords.CheckSensitiveWords(s)
+	}
+
+	return nil
+}
+
+func NewCheckItemComment(v string) (ReviewComment, error) {
+	if v == "" {
+		return nil, nil
+	}
+
+	return newReviewCommentInternal(v, config.MaxLengthOfCheckItemComment)
+}
+
+func newReviewComment(v string, maxLen int) (ReviewComment, error) {
+	if err := checkReviewComment(v, maxLen); err != nil {
 		return nil, err
 	}
 
@@ -46,64 +83,31 @@ func NewReviewComment(v string) (ReviewComment, error) {
 	return reviewComment(v), nil
 }
 
-func NewReviewCommentInternal(v string) (ReviewComment, error) {
-	if err := checkReviewComment(v); err != nil {
+func newReviewCommentInternal(v string, maxLen int) (ReviewComment, error) {
+	if err := checkReviewComment(v, maxLen); err != nil {
 		return nil, err
 	}
 
 	return reviewComment(v), nil
 }
 
-func checkReviewComment(v string) error {
+func checkReviewComment(v string, maxLen int) error {
 	if v == "" {
 		return errors.New("empty review comment")
 	}
 
-	if max := config.MaxLengthOfReviewComment; utils.StrLen(v) > max {
+	if utils.StrLen(v) > maxLen {
 		return fmt.Errorf(
-			"the length of review comment should be less than %d", max,
+			"the length of review comment should be less than %d", maxLen,
 		)
 	}
 
 	return nil
 }
 
+// reviewComment
 type reviewComment string
 
 func (v reviewComment) ReviewComment() string {
 	return string(v)
-}
-
-func (v reviewComment) ParseReviewComment() (isCmd, isApprove bool) {
-	if cmd := parseReviewCommand(string(v)); cmd != "" {
-		isCmd = true
-		isApprove = cmd == cmdAPPROVE
-	}
-
-	return
-}
-
-func parseReviewCommand(comment string) string {
-	v := parseCommentCommands(comment)
-	n := len(v)
-	if n == 0 {
-		return ""
-	}
-
-	for i := n - 1; i >= 0; i-- {
-		if validCmds[v[i]] {
-			return v[i]
-		}
-	}
-
-	return ""
-}
-
-func parseCommentCommands(comment string) (r []string) {
-	items := commandRegex.FindAllStringSubmatch(comment, -1)
-	for i := range items {
-		r = append(r, strings.ToUpper(items[i][1]))
-	}
-
-	return
 }

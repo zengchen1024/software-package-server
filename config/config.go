@@ -1,10 +1,12 @@
 package config
 
 import (
+	kfklib "github.com/opensourceways/kafka-lib/agent"
 	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
 
 	"github.com/opensourceways/software-package-server/common/controller/middleware"
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/softwarepkg/controller"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/clavalidatorimpl"
@@ -41,41 +43,49 @@ type configSetDefault interface {
 	SetDefault()
 }
 
+// domainConfig
 type domainConfig struct {
 	domain.Config
 
-	DomainPrimitive dp.Config `json:"domain_primitive"  required:"true"`
+	DomainPrimitive dp.Config `json:"domain_primitive"`
 }
 
 type postgresqlConfig struct {
-	DB postgresql.Config `json:"db" required:"true"`
-
-	repositoryimpl.Config
+	DB    postgresql.Config    `json:"db"`
+	Table repositoryimpl.Table `json:"table"`
 }
 
 type mongoConfig struct {
-	DB          mongdblib.Config          `json:"db"`
-	Collections softwarepkgadapter.Config `json:"collections"`
+	DB          mongdblib.Config               `json:"db"`
+	Collections softwarepkgadapter.Collections `json:"collections"`
+}
+
+type kafkaConfig struct {
+	kfklib.Config
+
+	Topics messageimpl.Topics `json:"topics"`
 }
 
 type Config struct {
-	MQ             messageimpl.Config        `json:"mq"                   required:"true"`
-	CLA            clavalidatorimpl.Config   `json:"cla"                  required:"true"`
-	User           useradapterimpl.Config    `json:"user"                 required:"true"`
-	Mongo          mongoConfig               `json:"mongo"                 required:"true"`
-	Encryption     utils.Config              `json:"encryption"           required:"true"`
-	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"          required:"true"`
-	Middleware     middleware.Config         `json:"middleware"           required:"true"`
-	Postgresql     postgresqlConfig          `json:"postgresql"           required:"true"`
-	SoftwarePkg    domainConfig              `json:"software_pkg"         required:"true"`
-	Translation    translationimpl.Config    `json:"translation"          required:"true"`
-	SigValidator   sigvalidatorimpl.Config   `json:"sig"                  required:"true"`
-	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"      required:"true"`
+	MQ             kafkaConfig               `json:"mq"`
+	API            controller.Config         `json:"api"`
+	CLA            clavalidatorimpl.Config   `json:"cla"`
+	User           useradapterimpl.Config    `json:"user"`
+	Mongo          mongoConfig               `json:"mongo"`
+	Encryption     utils.Config              `json:"encryption"`
+	PkgManager     pkgmanagerimpl.Config     `json:"pkg_manager"`
+	Middleware     middleware.Config         `json:"middleware"`
+	Postgresql     postgresqlConfig          `json:"postgresql"`
+	SoftwarePkg    domainConfig              `json:"software_pkg"`
+	Translation    translationimpl.Config    `json:"translation"`
+	SigValidator   sigvalidatorimpl.Config   `json:"sig"`
+	SensitiveWords sensitivewordsimpl.Config `json:"sensitive_words"`
 }
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.MQ,
+		&cfg.API,
 		&cfg.CLA,
 		&cfg.User,
 		&cfg.Mongo,
@@ -84,7 +94,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.PkgManager,
 		&cfg.Middleware,
 		&cfg.Postgresql.DB,
-		&cfg.Postgresql.Config,
+		&cfg.Postgresql.Table,
 		&cfg.SoftwarePkg.Config,
 		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.Translation,

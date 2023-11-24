@@ -140,7 +140,7 @@ func main() {
 		),
 		pkgmanagerimpl.Instance(),
 		&producer{cfg.Topics.SoftwarePkgCodeChanged},
-		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Config),
+		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table),
 	)
 
 	// run

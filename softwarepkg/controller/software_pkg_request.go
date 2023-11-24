@@ -242,11 +242,16 @@ type reviewRequest struct {
 func (req *reviewRequest) toCmd() (reviews []domain.CheckItemReviewInfo, err error) {
 	reviews = make([]domain.CheckItemReviewInfo, len(req.Reviews))
 
+	cs := make([]string, len(req.Reviews))
 	for i := range req.Reviews {
 		if reviews[i], err = req.Reviews[i].toInfo(); err != nil {
 			return
 		}
+
+		cs[i] = req.Reviews[i].Comment
 	}
+
+	err = dp.CheckMultiComments(cs)
 
 	return
 }
@@ -257,18 +262,23 @@ type checkItemReviewInfo struct {
 	Comment string `json:"comment"`
 }
 
-func (req *checkItemReviewInfo) toInfo() (domain.CheckItemReviewInfo, error) {
+func (req *checkItemReviewInfo) toInfo() (info domain.CheckItemReviewInfo, err error) {
 	if !req.Pass && req.Comment == "" {
-		return domain.CheckItemReviewInfo{}, errors.New(
-			"lack of reasons for failure",
-		)
+		err = errors.New("lack of comment")
+
+		return
 	}
 
-	return domain.CheckItemReviewInfo{
-		Id:      req.Id,
-		Pass:    req.Pass,
-		Comment: req.Comment,
-	}, nil
+	c, err := dp.NewCheckItemComment(req.Comment)
+	if err != nil {
+		return
+	}
+
+	info.Id = req.Id
+	info.Pass = req.Pass
+	info.Comment = c
+
+	return
 }
 
 // softwarePkgRepoRequest
@@ -280,7 +290,7 @@ type softwarePkgRepoRequest struct {
 func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
 	repo domain.SoftwarePkgRepo, err error, invalidCommitter []string,
 ) {
-	if len(req.Committers) > 2 { // TODO config
+	if len(req.Committers) > config.MaxNumOfCommitters {
 		err = errors.New("too many committers")
 
 		return
