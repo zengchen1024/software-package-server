@@ -88,7 +88,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.API,
 		&cfg.CLA,
 		&cfg.User,
-		&cfg.Mongo,
+		&cfg.Mongo.DB,
 		&cfg.Mongo.Collections,
 		&cfg.Encryption,
 		&cfg.PkgManager,
