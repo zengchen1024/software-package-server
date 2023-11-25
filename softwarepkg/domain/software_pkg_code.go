@@ -7,8 +7,8 @@ import (
 
 // SoftwarePkgCode
 type SoftwarePkgCode struct {
-	Spec SoftwarePkgCodeInfo
-	SRPM SoftwarePkgCodeInfo
+	Spec SoftwarePkgCodeFile
+	SRPM SoftwarePkgCodeFile
 }
 
 func (code *SoftwarePkgCode) isReady() bool {
@@ -25,8 +25,8 @@ func (code *SoftwarePkgCode) update(spec, srpm dp.URL) {
 	}
 }
 
-func (code *SoftwarePkgCode) filesToDownload() []SoftwarePkgCodeFile {
-	r := []SoftwarePkgCodeFile{}
+func (code *SoftwarePkgCode) filesToDownload() []SoftwarePkgCodeSourceFile {
+	r := []SoftwarePkgCodeSourceFile{}
 
 	if v := code.Spec.fileToDownload(); v != nil {
 		r = append(r, *v)
@@ -39,7 +39,7 @@ func (code *SoftwarePkgCode) filesToDownload() []SoftwarePkgCodeFile {
 	return r
 }
 
-func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeFile) bool {
+func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeSourceFile) bool {
 	spec := false
 	srpm := false
 
@@ -58,27 +58,27 @@ func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeFile) bo
 	return spec || srpm
 }
 
-// SoftwarePkgCodeInfo
-type SoftwarePkgCodeInfo struct {
-	SoftwarePkgCodeFile
+// SoftwarePkgCodeFile
+type SoftwarePkgCodeFile struct {
+	SoftwarePkgCodeSourceFile
 
 	Dirty bool // if true, the code should be updated.
+
 	//Reason string // the reason why can't download the code file
 }
 
-func (f *SoftwarePkgCodeInfo) isReady() bool {
+func (f *SoftwarePkgCodeFile) isReady() bool {
 	return f.DownloadAddr != nil && !f.Dirty
 }
 
-func (f *SoftwarePkgCodeInfo) update(src dp.URL) {
+func (f *SoftwarePkgCodeFile) update(src dp.URL) {
 	f.Src = src
-	f.DownloadAddr = nil
 	f.Dirty = true
-	// f.Reason = ""
 	f.UpdatedAt = utils.Now()
+	f.DownloadAddr = nil
 }
 
-func (f *SoftwarePkgCodeInfo) saveDownloadedFile(file *SoftwarePkgCodeFile) bool {
+func (f *SoftwarePkgCodeFile) saveDownloadedFile(file *SoftwarePkgCodeSourceFile) bool {
 	if !f.isReady() && f.isSame(file) {
 		f.DownloadAddr = file.DownloadAddr
 		f.Dirty = false
@@ -89,25 +89,25 @@ func (f *SoftwarePkgCodeInfo) saveDownloadedFile(file *SoftwarePkgCodeFile) bool
 	return false
 }
 
-func (f *SoftwarePkgCodeInfo) fileToDownload() *SoftwarePkgCodeFile {
+func (f *SoftwarePkgCodeFile) fileToDownload() *SoftwarePkgCodeSourceFile {
 	if !f.isReady() {
-		return &f.SoftwarePkgCodeFile
+		return &f.SoftwarePkgCodeSourceFile
 	}
 
 	return nil
 }
 
-// SoftwarePkgCodeFile
-type SoftwarePkgCodeFile struct {
+// SoftwarePkgCodeSourceFile
+type SoftwarePkgCodeSourceFile struct {
 	Src          dp.URL // Src is the url user inputed
 	UpdatedAt    int64  // UpdatedAt is the time when user changes the Src or wants to reload
 	DownloadAddr dp.URL
 }
 
-func (f *SoftwarePkgCodeFile) FileName() string {
+func (f *SoftwarePkgCodeSourceFile) FileName() string {
 	return f.Src.FileName()
 }
 
-func (f *SoftwarePkgCodeFile) isSame(f1 *SoftwarePkgCodeFile) bool {
+func (f *SoftwarePkgCodeSourceFile) isSame(f1 *SoftwarePkgCodeSourceFile) bool {
 	return f.UpdatedAt == f1.UpdatedAt && f.Src.URL() == f1.Src.URL()
 }

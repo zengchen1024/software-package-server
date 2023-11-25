@@ -2,6 +2,7 @@ package pkgciimpl
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
 	libutils "github.com/opensourceways/server-common-lib/utils"
@@ -9,6 +10,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 var instance *pkgCIImpl
@@ -101,54 +103,64 @@ func (impl *pkgCIImpl) ClearCI(pkg *domain.SoftwarePkg) error {
 	return nil
 }
 
-func (impl *pkgCIImpl) DownloadPkgCode(pkg *domain.SoftwarePkg) error {
-	branch := pkg.Basic.Name.PackageName()
-	if err := impl.createBranch(pkg, branch); err != nil {
-		return err
-	}
-
-	if v := &pkg.Code.Spec; v.Dirty {
-		v.Dirty = false
-		v.DownloadAddr = nil // TODO
-	}
-
-	if v := &pkg.Code.SRPM; v.Dirty {
-		v.Dirty = false
-		v.DownloadAddr = nil // TODO
-	}
-
-	return nil
-}
-
 func (impl *pkgCIImpl) closePR(id int) error {
 	return impl.cli.ClosePR(impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, int32(id))
 }
 
-func (impl *pkgCIImpl) createBranch(info *domain.SoftwarePkg, branch string) error {
+func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) error {
+	if len(files) == 0 {
+		return nil
+	}
+
+	other := []string{"-", "-", "-", "-"}
+	specIndex, srpmIndex := 0, 2
+	for _, item := range files {
+		i := specIndex
+		v := item.FileName()
+		if dp.IsSRPM(v) {
+			i = srpmIndex
+		}
+
+		other[i] = item.Src.URL()
+		other[i+1] = v
+	}
+
 	cfg := &impl.cfg
-
-	code := &info.Code
-	spec := "-"
-	if code.Spec.Dirty {
-		spec = code.Spec.Src.URL()
-	}
-
-	srpm := "-"
-	if code.SRPM.Dirty {
-		srpm = code.SRPM.Src.URL()
-	}
-
 	params := []string{
 		cfg.PRScript,
 		impl.ciRepoDir,
 		cfg.GitUser.Token,
 		cfg.TargetBranch,
-		branch,
-		spec,
-		srpm,
+		name.PackageName(),
 	}
 
-	return impl.runcmd(params)
+	params = append(params, other...)
+
+	out, err, _ := libutils.RunCmd(params...)
+	if err != nil {
+		return err
+	}
+
+	// fetch download addr
+	for _, item := range files {
+		f := ""
+		lfs := false
+		if dp.IsSRPM(item.FileName()) {
+			f = name.PackageName() + ".src.rpm"
+			lfs = strings.Contains(string(out), f)
+		} else {
+			f = name.PackageName() + ".spec"
+		}
+
+		v, err := cfg.CIRepo.fileAddr(f, lfs)
+		if err != nil {
+			return err
+		}
+
+		item.DownloadAddr = v
+	}
+
+	return nil
 }
 
 func (impl *pkgCIImpl) runcmd(params []string) error {

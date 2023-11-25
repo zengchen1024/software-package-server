@@ -3,6 +3,8 @@ package pkgciimpl
 import (
 	"fmt"
 	"strings"
+
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
 type Config struct {
@@ -23,9 +25,19 @@ type GitUser struct {
 }
 
 type CIRepo struct {
-	Org  string `json:"org"     required:"true"`
-	Repo string `json:"repo"    required:"true"`
-	Link string `json:"link"    required:"true"`
+	Org         string `json:"org"     required:"true"`
+	Repo        string `json:"repo"    required:"true"`
+	Link        string `json:"link"    required:"true"`
+	FileAddr    string `json:"file_addr"    required:"true"`
+	LFSFileAddr string `json:"lfs_file_addr"    required:"true"`
+}
+
+func (cfg *CIRepo) fileAddr(name string, lfs bool) (dp.URL, error) {
+	if lfs {
+		return dp.NewURL(fmt.Sprintf(cfg.LFSFileAddr, name))
+	}
+
+	return dp.NewURL(fmt.Sprintf(cfg.LFSFileAddr, name))
 }
 
 func (cfg *CIRepo) cloneURL(user *GitUser) string {

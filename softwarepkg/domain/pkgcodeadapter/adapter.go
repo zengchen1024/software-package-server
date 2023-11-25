@@ -1,8 +1,11 @@
 package pkgcodeadapter
 
-import "github.com/opensourceways/software-package-server/softwarepkg/domain"
+import (
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+)
 
 type PkgCodeAdapter interface {
-	Download(pkg *domain.SoftwarePkg) ([]domain.SoftwarePkgCodeFile, error)
+	Download([]domain.SoftwarePkgCodeSourceFile, dp.PackageName) error
 	Clear(pkg *domain.SoftwarePkg) error
 }

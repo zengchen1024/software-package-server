@@ -58,8 +58,12 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	files, err := s.code.Download(&pkg)
-	if err != nil {
+	files := pkg.FilesToDownload()
+	if len(files) == 0 {
+		return nil
+	}
+
+	if err := s.code.Download(files, pkg.Basic.Name); err != nil {
 		return err
 	}
 

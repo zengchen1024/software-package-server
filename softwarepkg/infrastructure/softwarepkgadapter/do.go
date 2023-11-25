@@ -78,7 +78,7 @@ func toSoftwarePkgCIDO(ci *domain.SoftwarePkgCI) softwarePkgCIDO {
 	}
 }
 
-func toCodeInfoDO(f *domain.SoftwarePkgCodeInfo) codeInfoDO {
+func toCodeInfoDO(f *domain.SoftwarePkgCodeFile) codeInfoDO {
 	do := codeInfoDO{
 		Src:       f.Src.URL(),
 		Dirty:     f.Dirty,
@@ -349,7 +349,7 @@ type codeInfoDO struct {
 	DownloadAddr string `bson:"download_addr"  json:"download_addr"`
 }
 
-func (do *codeInfoDO) toDomain(f *domain.SoftwarePkgCodeInfo) (err error) {
+func (do *codeInfoDO) toDomain(f *domain.SoftwarePkgCodeFile) (err error) {
 	if f.Src, err = dp.NewURL(do.Src); err != nil {
 		return
 	}
