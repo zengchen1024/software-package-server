@@ -5,7 +5,7 @@ import (
 	"os"
 
 	kfklib "github.com/opensourceways/kafka-lib/agent"
-	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
+	"github.com/opensourceways/mongodb-lib/mongodblib"
 	"github.com/opensourceways/server-common-lib/logrusutil"
 	liboptions "github.com/opensourceways/server-common-lib/options"
 	"github.com/sirupsen/logrus"
@@ -86,13 +86,13 @@ func main() {
 
 	// mongo
 	logrus.Debugln("mongo")
-	if err := mongdblib.Init(&cfg.Mongo.DB); err != nil {
+	if err := mongodblib.Init(&cfg.Mongo.DB); err != nil {
 		logrus.Errorf("init mongo failed, err:%s", err.Error())
 
 		return
 	}
 
-	defer mongdblib.Close()
+	defer mongodblib.Close()
 
 	// Postgresql
 	logrus.Debugln("pg")
@@ -117,14 +117,6 @@ func main() {
 	logrus.Debugln("Sensitive")
 	if err = sensitivewordsimpl.Init(&cfg.SensitiveWords); err != nil {
 		logrus.Errorf("init sensitivewords err:%s", err.Error())
-
-		return
-	}
-
-	// Pkg manager
-	logrus.Debugln("pkg manager")
-	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
-		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
 
 		return
 	}
@@ -164,6 +156,14 @@ func main() {
 		sigvalidatorimpl.SigValidator(),
 		sensitivewordsimpl.Sensitive(),
 	)
+
+	// Pkg manager depends on the domain, so it should be initialized after domain
+	logrus.Debugln("pkg manager")
+	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
+		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
+
+		return
+	}
 
 	middleware.Init(&cfg.Middleware)
 
