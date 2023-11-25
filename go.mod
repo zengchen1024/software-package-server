@@ -1,6 +1,6 @@
 module github.com/opensourceways/software-package-server
 
-go 1.21
+go 1.21.0
 
 require (
 	github.com/gin-gonic/gin v1.9.1
@@ -8,7 +8,7 @@ require (
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.33
 	github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96
 	github.com/opensourceways/kafka-lib v0.0.0-20231114071554-b2af9944cf3a
-	github.com/opensourceways/mongodb-lib v0.0.0-20231124020104-fa089812ed0c
+	github.com/opensourceways/mongodb-lib v0.0.0-20231124113433-cbd78312df69
 	github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c
 	github.com/opensourceways/server-common-lib v0.0.0-20231016134644-4bd7efe825a9
 	github.com/sirupsen/logrus v1.9.3
