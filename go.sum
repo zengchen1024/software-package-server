@@ -212,8 +212,8 @@ github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96 h1:pIQtlAO
 github.com/opensourceways/go-gitee v0.0.0-20220714075315-cb246f1dfb96/go.mod h1:yvVsEMhp7frMblzN1sco4C7cRlnlpqkkn3O2JQNdRu0=
 github.com/opensourceways/kafka-lib v0.0.0-20231114071554-b2af9944cf3a h1:5xXuRZvvHGqn9qsPJLZfR0hnKYJxBfjrA6jMApZJJDY=
 github.com/opensourceways/kafka-lib v0.0.0-20231114071554-b2af9944cf3a/go.mod h1:SEGf1d1Eui0F39CQlH/zR7ccxuBiE0NIneW8N1tyC0k=
-github.com/opensourceways/mongodb-lib v0.0.0-20231124020104-fa089812ed0c h1:RNxCaSD28b3qhUQL3owBcVJkWho1txkL+ON98OqtCl0=
-github.com/opensourceways/mongodb-lib v0.0.0-20231124020104-fa089812ed0c/go.mod h1:So6wwAi6Vd7X4S0V4yDatk6S1039DDx+SmPdJ/O93EU=
+github.com/opensourceways/mongodb-lib v0.0.0-20231124113433-cbd78312df69 h1:7GKIzhU14PNELKQYYS56pisT8eJyQtfuNMU+uc58wfY=
+github.com/opensourceways/mongodb-lib v0.0.0-20231124113433-cbd78312df69/go.mod h1:So6wwAi6Vd7X4S0V4yDatk6S1039DDx+SmPdJ/O93EU=
 github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c h1:NsaRmwIs+u4lOcHxgWTOxj+04YH2qneZE7OX7LzxG1s=
 github.com/opensourceways/robot-gitee-lib v0.0.0-20230323030221-ef1078bbd55c/go.mod h1:Q4RDKbIhM+mOrXnDkeChGErGsPwhD4rUZkPOv4iX6pc=
 github.com/opensourceways/server-common-lib v0.0.0-20231016134644-4bd7efe825a9 h1:e48y2V5hHju5qU6+tU0QxAqUN6AfYmFHGhy6mvOT7jg=
