@@ -117,7 +117,7 @@ func main() {
 	}
 
 	// ci
-	if err = pkgciimpl.Init(&cfg.PkgCI); err != nil {
+	if err = pkgciimpl.Init(&cfg.CI); err != nil {
 		logrus.Errorf("init pkg ci failed, err:%s", err.Error())
 
 		return
@@ -134,7 +134,7 @@ func main() {
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
-		nil, // TODO
+		nil, // TODO download code
 		softwarepkgadapter.NewsoftwarePkgAdapter(
 			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
 		),

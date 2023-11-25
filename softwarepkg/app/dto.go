@@ -132,7 +132,7 @@ type SoftwarePkgCodeFileDTO struct {
 	DownloadAddr string `json:"download_addr"`
 }
 
-func toSoftwarePkgCodeFileDTO(v *domain.SoftwarePkgCodeInfo) SoftwarePkgCodeFileDTO {
+func toSoftwarePkgCodeFileDTO(v *domain.SoftwarePkgCodeFile) SoftwarePkgCodeFileDTO {
 	r := SoftwarePkgCodeFileDTO{
 		Src:  v.Src.URL(),
 		Name: v.FileName(),

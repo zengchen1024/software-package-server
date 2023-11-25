@@ -160,11 +160,11 @@ func (entity *SoftwarePkg) RepoLink() string {
 	return entity.Repo.repoLink(entity.Basic.Name)
 }
 
-func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeFile {
+func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeSourceFile {
 	return entity.Code.filesToDownload()
 }
 
-func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeFile) bool {
+func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile) bool {
 	return entity.Code.saveDownloadedFiles(files)
 }
 
