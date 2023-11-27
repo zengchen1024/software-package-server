@@ -27,7 +27,7 @@ func (impl *softwarePkgAdapter) Add(pkg *domain.SoftwarePkg) error {
 	}
 	doc[fieldVersion] = 0
 
-	_, err = impl.dao.InsertDocIfNotExists(do.docFilter(), doc)
+	pkg.Id, err = impl.dao.InsertDocIfNotExists(do.docFilter(), doc)
 	if err != nil && impl.dao.IsDocExists(err) {
 		err = commonrepo.NewErrorDuplicateCreating(err)
 	}

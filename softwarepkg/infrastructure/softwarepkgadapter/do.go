@@ -175,6 +175,8 @@ type softwarePkgDO struct {
 }
 
 func (do *softwarePkgDO) toDomain(pkg *domain.SoftwarePkg) (err error) {
+	pkg.Id = do.Id.Hex()
+
 	if pkg.Sig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
 		return
 	}
