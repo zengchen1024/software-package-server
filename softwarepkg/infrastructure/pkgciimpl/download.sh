@@ -4,7 +4,7 @@ set -euo pipefail
 
 repo_dir=$1
 git_token=$2
-master_branch=$3
+main_branch=$3
 branch_name=$4
 spec_url=$5
 spec_file_name=$6
@@ -24,7 +24,7 @@ checkout_branch() {
     git checkout -- .
     git clean -fd
 
-    git checkout $master_branch
+    git checkout $main_branch
 
     set +e
     git rev-parse --verify "$branch_name" 2>/dev/null
@@ -127,7 +127,7 @@ commit() {
 
     git push -f origin "$branch_name"
 
-    git checkout $master_branch
+    git checkout $main_branch
 }
 
 cd $repo_dir

@@ -156,6 +156,14 @@ func (entity *SoftwarePkg) CanAddReviewComment() error {
 	return incorrectPhase
 }
 
+func (entity *SoftwarePkg) PackageName() dp.PackageName {
+	return entity.Basic.Name
+}
+
+func (entity *SoftwarePkg) CIId() int {
+	return entity.CI.Id
+}
+
 func (entity *SoftwarePkg) RepoLink() string {
 	return entity.Repo.repoLink(entity.Basic.Name)
 }
