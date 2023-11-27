@@ -10,7 +10,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/service"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/translation"
 )
 
 type SoftwarePkgService interface {
@@ -39,14 +38,16 @@ func NewSoftwarePkgService(
 	repo repository.SoftwarePkg,
 	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgMessage,
+	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgService {
 	robot, _ := dp.NewAccount(softwarePkgRobot)
 
 	return &softwarePkgService{
-		repo:       repo,
-		robot:      robot,
-		message:    message,
-		pkgService: service.NewPkgService(manager, message),
+		repo:        repo,
+		robot:       robot,
+		message:     message,
+		pkgService:  service.NewPkgService(manager, message),
+		commentRepo: commentRepo,
 	}
 }
 
@@ -55,7 +56,6 @@ type softwarePkgService struct {
 	robot       dp.Account
 	message     message.SoftwarePkgMessage
 	pkgService  service.SoftwarePkgService
-	translation translation.Translation
 	commentRepo repository.SoftwarePkgComment
 }
 

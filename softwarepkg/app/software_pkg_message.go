@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
@@ -18,8 +16,9 @@ type SoftwarePkgMessageService interface {
 	DownloadPkgCode(cmd CmdToDownloadPkgCode) error
 	StartCI(cmd CmdToStartCI) error
 	HandlePkgCIDone(CmdToHandlePkgCIDone) error
+
 	HandlePkgRepoCodePushed(CmdToHandlePkgRepoCodePushed) error
-	//HandlePkgInitialized(CmdToHandlePkgInitialized) error
+
 	ImportPkg(CmdToHandlePkgAlreadyExisted) error
 }
 
@@ -93,7 +92,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 func (s softwarePkgMessageService) notifyPkgCodeChanged(pkg *domain.SoftwarePkg) {
 	e := domain.NewSoftwarePkgCodeChangeedEvent(pkg)
 
-	if err := s.message.SendSoftwarePkgCodeChangedEvent(&e); err != nil {
+	if err := s.message.SendPkgCodeChangedEvent(&e); err != nil {
 		logrus.Errorf(
 			"failed to send pkg code changed event, pkg:%s, err:%s",
 			pkg.Id, err.Error(),
@@ -176,61 +175,6 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 	}
 
 	return nil
-}
-
-// HandlePkgInitialized
-func (s softwarePkgMessageService) HandlePkgInitialized(cmd CmdToHandlePkgInitialized) error {
-	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
-	if err != nil {
-		return err
-	}
-
-	if cmd.isSuccess() {
-		if err := pkg.HandleInitialized(cmd.RelevantPR); err != nil {
-			return err
-		}
-
-		//if !pkg.Repo.Platform.IsLocalPlatform() {
-		//s.notifyPkgInitialized(&pkg, &cmd)
-		//}
-	} else {
-		if !cmd.isPkgAreadyExisted() {
-			logrus.Errorf("pkg init failed, pkgid:%s, err:%s", cmd.PkgId, cmd.FiledReason)
-
-			return nil
-		}
-
-		if err := pkg.HandleAlreadyExisted(); err != nil {
-			return err
-		}
-
-		s.addCommentForExistedPkg(&cmd)
-	}
-
-	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
-		logrus.Errorf(
-			"save pkg failed when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
-
-	return nil
-}
-
-func (s softwarePkgMessageService) addCommentForExistedPkg(cmd *CmdToHandlePkgInitialized) {
-	str := fmt.Sprintf(
-		"I'am sorry to close this application. Because the pkg was imported sometimes ago. The repo address is %s. You can work on that repo.",
-		cmd.RepoLink,
-	)
-	content, _ := dp.NewReviewComment(str)
-	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
-
-	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
-		logrus.Errorf(
-			"failed to add a comment when %s, err:%s",
-			cmd.logString(), err.Error(),
-		)
-	}
 }
 
 // ImportPkg

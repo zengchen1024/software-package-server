@@ -8,7 +8,6 @@ import (
 
 var (
 	NewSoftwarePkgRetestedEvent     = NewSoftwarePkgAppliedEvent
-	NewSoftwarePkgInitializedEvent  = NewSoftwarePkgApprovedEvent
 	NewSoftwarePkgCodeUpdatedEvent  = NewSoftwarePkgAppliedEvent
 	NewSoftwarePkgCodeChangeedEvent = NewSoftwarePkgAppliedEvent
 )
@@ -53,7 +52,7 @@ func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgApprovedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
+func NewSoftwarePkgInitializedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
 	basic := &pkg.Basic
 	code := &pkg.Code
 

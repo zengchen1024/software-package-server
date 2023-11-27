@@ -20,6 +20,8 @@ const (
 	fieldAppliedAt    = "applied_at"
 	fieldBasicDesc    = "basic.desc"
 	fieldPrimaryKey   = "basic.name"
+	fieldCommunityPR  = "community_pr"
+	fieldInitialized  = "initialized"
 	fieldRepoPlatform = "repo.platform"
 )
 

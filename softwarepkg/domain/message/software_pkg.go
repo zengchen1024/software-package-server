@@ -8,12 +8,15 @@ type SoftwarePkgMessage interface {
 	SendPkgAppliedEvent(EventMessage) error
 	SendPkgCodeUpdatedEvent(EventMessage) error
 	SendPkgRetestedEvent(EventMessage) error
-	NotifyPkgApproved(EventMessage) error
 	NotifyPkgRejected(EventMessage) error
 	NotifyPkgAbandoned(EventMessage) error
 	SendPkgAlreadyExistedEvent(EventMessage) error
 }
 
 type SoftwarePkgIndirectMessage interface {
-	SendSoftwarePkgCodeChangedEvent(EventMessage) error
+	SendPkgCodeChangedEvent(EventMessage) error
+}
+
+type SoftwarePkgInitMessage interface {
+	SendPkgInitializedEvent(EventMessage) error
 }

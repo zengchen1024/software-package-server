@@ -47,6 +47,7 @@ type SoftwarePkg interface {
 	SaveAndIgnoreReview(pkg *domain.SoftwarePkg, version int) error
 
 	FindAll(*OptToFindSoftwarePkgs) (r []SoftwarePkgInfo, total int64, err error)
+	FindAllApproved(dp.PackagePhase) ([]string, error)
 }
 
 type SoftwarePkgComment interface {

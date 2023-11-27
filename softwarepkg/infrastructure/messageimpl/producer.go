@@ -26,11 +26,6 @@ func (p *producer) SendPkgRetestedEvent(e message.EventMessage) error {
 	return send(p.topics.SoftwarePkgRetested, e)
 }
 
-func (p *producer) NotifyPkgApproved(e message.EventMessage) error {
-	//return send(p.topics.ApprovedSoftwarePkg, e)
-	return nil
-}
-
 func (p *producer) NotifyPkgRejected(e message.EventMessage) error {
 	//return send(p.topics.RejectedSoftwarePkg, e)
 	return nil
@@ -52,4 +47,13 @@ func send(topic string, v message.EventMessage) error {
 	}
 
 	return kfklib.Publish(topic, nil, body)
+}
+
+// producerOfInit
+type producerOfInit struct {
+	topics TopicsOfInit
+}
+
+func (p *producerOfInit) NotifyPkgInitialized(e message.EventMessage) error {
+	return send(p.topics.SoftwarePkgInitialized, e)
 }

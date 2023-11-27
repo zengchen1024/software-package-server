@@ -6,6 +6,7 @@ import (
 
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 )
 
@@ -185,4 +186,28 @@ func (impl *softwarePkgAdapter) listFilter(opt *repository.OptToFindSoftwarePkgs
 	}
 
 	return filter
+}
+
+func (impl *softwarePkgAdapter) FindAllApproved(phase dp.PackagePhase) ([]string, error) {
+	filter := bson.M{
+		fieldPhase:       phase.PackagePhase(),
+		fieldCommunityPR: "",
+		fieldInitialized: false,
+	}
+
+	var docs []struct {
+		Id primitive.ObjectID `bson:"_id"`
+	}
+
+	err := impl.dao.GetDocs(filter, bson.M{fieldIndex: 1}, &docs)
+	if err != nil || len(docs) == 0 {
+		return nil, err
+	}
+
+	r := make([]string, len(docs))
+	for i := range docs {
+		r[i] = docs[i].Id.Hex()
+	}
+
+	return r, nil
 }

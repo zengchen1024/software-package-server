@@ -10,7 +10,7 @@ type producer struct {
 	softwarePkgCodeChanged string
 }
 
-func (p *producer) SendSoftwarePkgCodeChangedEvent(e message.EventMessage) error {
+func (p *producer) SendPkgCodeChangedEvent(e message.EventMessage) error {
 	body, err := e.Message()
 	if err != nil {
 		return err

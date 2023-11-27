@@ -3,8 +3,8 @@ package messageimpl
 type Topics struct {
 	SoftwarePkgApplied  string `json:"software_pkg_applied"          required:"true"`
 	SoftwarePkgRetested string `json:"software_pkg_retested"         required:"true"`
+
 	/*
-		SoftwarePkgApproved       string `json:"software_pkg_approved"         required:"true"`
 		SoftwarePkgRejected       string `json:"software_pkg_rejected"         required:"true"`
 		SoftwarePkgAbandoned      string `json:"software_pkg_abandoned"        required:"true"`
 	*/
@@ -12,4 +12,8 @@ type Topics struct {
 
 	// importer edited the pkg and want to reload code
 	SoftwarePkgCodeUpdated string `json:"software_pkg_code_updated"        required:"true"`
+}
+
+type TopicsOfInit struct {
+	SoftwarePkgInitialized string `json:"software_pkg_initialized"         required:"true"`
 }

@@ -30,7 +30,7 @@ func loadConfig(path string) (*Config, error) {
 }
 
 type domainConfig struct {
-	domain.Config
+	domain.CIConfig
 
 	DomainPrimitive dp.Config `json:"domain_primitive"`
 }
@@ -88,7 +88,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Table,
-		&cfg.SoftwarePkg.Config,
+		&cfg.SoftwarePkg.CIConfig,
 		&cfg.SoftwarePkg.DomainPrimitive,
 		&cfg.PkgManager,
 		&cfg.SigValidator,

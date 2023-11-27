@@ -149,7 +149,7 @@ func main() {
 	defer useradapterimpl.Exit()
 
 	// Domain
-	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter(), nil)
+	domain.Init(&cfg.SoftwarePkg.Config, useradapterimpl.UserAdapter())
 
 	dp.Init(
 		&cfg.SoftwarePkg.DomainPrimitive,

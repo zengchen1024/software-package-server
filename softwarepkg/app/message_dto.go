@@ -43,30 +43,6 @@ func (cmd *CmdToHandlePkgCIDone) logString() string {
 	)
 }
 
-// CmdToHandlePkgInitialized
-type CmdToHandlePkgInitialized struct {
-	PkgId      string
-	RelevantPR dp.URL
-	// RepoLink is the one of already existed pkg
-	RepoLink    dp.URL
-	FiledReason string
-}
-
-func (cmd *CmdToHandlePkgInitialized) isSuccess() bool {
-	return cmd.FiledReason == "" && cmd.RepoLink == nil
-}
-
-func (cmd *CmdToHandlePkgInitialized) isPkgAreadyExisted() bool {
-	return cmd.RepoLink != nil
-}
-
-func (cmd *CmdToHandlePkgInitialized) logString() string {
-	return fmt.Sprintf(
-		"handling pkg initialized, pkgid:%s, pr:%s",
-		cmd.PkgId, cmd.RelevantPR.URL(),
-	)
-}
-
 // CmdToHandlePkgRepoCodePushed
 type CmdToHandlePkgRepoCodePushed struct {
 	PkgId string

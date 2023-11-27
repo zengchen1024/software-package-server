@@ -21,6 +21,7 @@ type dao interface {
 
 	Count(filter bson.M) (n int64, err error)
 	GetDoc(filter, project bson.M, result interface{}) error
+	GetDocs(filter, project bson.M, result interface{}) error
 	UpdateDoc(filter bson.M, doc bson.M, version int) error
 	Paginate(filter, project, sortBy bson.M, pageNum, countPerPage int64, result interface{}) error
 }

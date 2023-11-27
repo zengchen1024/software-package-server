@@ -22,12 +22,17 @@ var (
 	commonCheckItems []CheckItem
 )
 
-func Init(cfg *Config, m maintainer, ci pkgCI) {
+func Init(cfg *Config, m maintainer) {
 	timeoutOfCI = cfg.CITimeout
 	commonCheckItems = cfg.checkItems
 
-	ciInstance = ci
 	maintainerInstance = m
+}
+
+func InitForMessageServer(cfg *CIConfig, ci pkgCI) {
+	timeoutOfCI = cfg.CITimeout
+
+	ciInstance = ci
 }
 
 func pkgModification(v string) (string, error) {
@@ -48,17 +53,22 @@ func pkgModification(v string) (string, error) {
 	return v, nil
 }
 
-type Config struct {
-	CITimeout  int64             `json:"ci_timeout"`
-	CheckItems []checkItemConfig `json:"check_items" required:"true"`
-
-	checkItems []CheckItem
+type CIConfig struct {
+	CITimeout int64 `json:"ci_timeout"`
 }
 
-func (cfg *Config) SetDefault() {
+func (cfg *CIConfig) SetDefault() {
 	if cfg.CITimeout <= 0 {
 		cfg.CITimeout = 3 * 3600 // 3 hours
 	}
+}
+
+type Config struct {
+	CIConfig
+
+	CheckItems []checkItemConfig `json:"check_items" required:"true"`
+
+	checkItems []CheckItem
 }
 
 func (cfg *Config) Validate() (err error) {

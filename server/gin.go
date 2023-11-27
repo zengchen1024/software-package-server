@@ -71,12 +71,15 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 		mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
 	)
 
+	commentRepo := repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table)
+
 	controller.AddRouteForSoftwarePkgController(
 		v1,
 		softwarepkgapp.NewSoftwarePkgService(
 			repo,
 			pkgmanagerimpl.Instance(),
 			messageimpl.Producer(&cfg.MQ.Topics),
+			commentRepo,
 		),
 		useradapterimpl.UserAdapter(),
 	)
@@ -86,7 +89,7 @@ func initSoftwarePkgService(v1 *gin.RouterGroup, cfg *config.Config) {
 		softwarepkgapp.NewSoftwarePkgCommentAppService(
 			repo,
 			translationimpl.Translation(),
-			repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table),
+			commentRepo,
 		),
 	)
 }
