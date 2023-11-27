@@ -30,8 +30,9 @@ RUN dnf -y update && \
 COPY --chown=root --from=BUILDER /git-lfs/bin/git-lfs /usr/local/bin/git-lfs
 COPY --chown=message-server --from=BUILDER /go/src/github.com/opensourceways/software-package-server/message-server/message-server /opt/app/message-server
 COPY --chown=message-server --from=BUILDER /go/src/github.com/opensourceways/software-package-server/download/download /opt/app/download
-COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/clone_repo.sh /opt/app/clone_repo.sh
-COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/pull_request.sh /opt/app/pull_request.sh
+COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/init.sh /opt/app/init.sh
+COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/clear.sh /opt/app/clear.sh
+COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/download.sh /opt/app/download.sh
 
 USER message-server
 

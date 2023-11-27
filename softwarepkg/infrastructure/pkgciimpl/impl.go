@@ -6,8 +6,6 @@ import (
 
 	"github.com/opensourceways/robot-gitee-lib/client"
 	libutils "github.com/opensourceways/server-common-lib/utils"
-	"github.com/sirupsen/logrus"
-	"sigs.k8s.io/yaml"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -36,7 +34,7 @@ func cloneRepo(cfg *Config) error {
 	user := &cfg.GitUser
 
 	params := []string{
-		cfg.CloneScript,
+		cfg.InitScript,
 		cfg.WorkDir,
 		user.User,
 		user.Email,
@@ -53,16 +51,6 @@ func PkgCI() *pkgCIImpl {
 	return instance
 }
 
-type softwarePkgInfo struct {
-	PkgId   string `json:"pkg_id"`
-	PkgName string `json:"pkg_name"`
-	Service string `json:"service"`
-}
-
-func (s *softwarePkgInfo) toYaml() ([]byte, error) {
-	return yaml.Marshal(s)
-}
-
 // pkgCIImpl
 type pkgCIImpl struct {
 	cli         client.Client
@@ -72,19 +60,17 @@ type pkgCIImpl struct {
 }
 
 func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
-	if pkg.CI.Id > 0 {
-		impl.closePR(pkg.CI.Id)
+	if v := pkg.CIId(); v > 0 {
+		impl.closePR(v)
 	}
 
-	name := pkg.Basic.Name.PackageName()
+	name := pkg.PackageName().PackageName()
+	cfg := &impl.cfg.CIRepo
 
 	pr, err := impl.cli.CreatePullRequest(
-		impl.cfg.CIRepo.Org,
-		impl.cfg.CIRepo.Repo,
+		cfg.Org, cfg.Repo,
 		fmt.Sprintf("test for new package: %s", name), pkg.Id,
-		name,
-		impl.cfg.TargetBranch,
-		true,
+		name, cfg.MainBranch, true,
 	)
 	if err != nil {
 		return 0, err
@@ -93,14 +79,24 @@ func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
 	return int(pr.Number), nil
 }
 
-func (impl *pkgCIImpl) ClearCI(pkg *domain.SoftwarePkg) error {
-	if pkg.CI.Id > 0 {
-		impl.closePR(pkg.CI.Id)
+func (impl *pkgCIImpl) Clear(pkg *domain.SoftwarePkg) error {
+	if v := pkg.CIId(); v > 0 {
+		impl.closePR(v)
 	}
 
 	// clear branch
 
-	return nil
+	cfg := &impl.cfg
+	params := []string{
+		cfg.DownloadScript,
+		impl.ciRepoDir,
+		cfg.CIRepo.MainBranch,
+		pkg.PackageName().PackageName(),
+	}
+
+	_, err, _ := libutils.RunCmd(params...)
+
+	return err
 }
 
 func (impl *pkgCIImpl) closePR(id int) error {
@@ -127,10 +123,10 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 
 	cfg := &impl.cfg
 	params := []string{
-		cfg.PRScript,
+		cfg.DownloadScript,
 		impl.ciRepoDir,
 		cfg.GitUser.Token,
-		cfg.TargetBranch,
+		cfg.CIRepo.MainBranch,
 		name.PackageName(),
 	}
 
@@ -161,16 +157,4 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 	}
 
 	return nil
-}
-
-func (impl *pkgCIImpl) runcmd(params []string) error {
-	out, err, _ := libutils.RunCmd(params...)
-	if err != nil {
-		logrus.Errorf(
-			"run create pull request shell, err=%s, out=%s, params=%v",
-			err.Error(), out, params[:len(params)-1],
-		)
-	}
-
-	return err
 }

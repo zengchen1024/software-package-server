@@ -134,7 +134,7 @@ func main() {
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
-		nil, // TODO download code
+		pkgciimpl.PkgCI(),
 		softwarepkgadapter.NewsoftwarePkgAdapter(
 			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
 		),

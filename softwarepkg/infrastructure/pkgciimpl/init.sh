@@ -15,7 +15,7 @@ set -e
 cd $work_dir
 
 if [ -d "$repo_name" ]; then
-    rm $repo_name
+    rm -f $repo_name
 fi
 
 git clone --depth=1 "$clone_url"
@@ -28,3 +28,5 @@ git config user.email "$git_email"
 set +e
 git config --global pack.threads 1
 set -e
+
+git lfs install
