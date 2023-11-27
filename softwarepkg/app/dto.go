@@ -194,6 +194,8 @@ func toSoftwarePkgReviewDTO(pkg *domain.SoftwarePkg) (dto SoftwarePkgReviewDTO) 
 		v[i] = toCheckItemReviewDTO(&reviews[i], pkg)
 	}
 
+	dto.Items = v
+
 	return
 }
 
