@@ -85,7 +85,7 @@ func (om *omClient) getToken() (string, error) {
 	req.Header.Set("Accept", "application/json")
 
 	v := new(omTokenResp)
-	cli := utils.HttpClient{MaxRetries: 3}
+	cli := utils.NewHttpClient(3)
 
 	if _, err = cli.ForwardTo(req, v); err != nil {
 		return "", err
@@ -112,7 +112,7 @@ func (om *omClient) getUserInfo(userId, platform string) (user domain.User, err 
 	req.Header.Set("token", token)
 
 	v := new(omUserInfoResp)
-	cli := utils.HttpClient{MaxRetries: 3}
+	cli := utils.NewHttpClient(3)
 
 	if _, err = cli.ForwardTo(req, v); err != nil {
 		return
