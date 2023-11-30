@@ -52,16 +52,3 @@ func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews [
 
 	return s.repo.Save(&pkg, version)
 }
-
-func (s *softwarePkgService) Reject(pid string, user *domain.Reviewer) error {
-	pkg, version, err := s.repo.FindAndIgnoreReview(pid)
-	if err != nil {
-		return parseErrorForFindingPkg(err)
-	}
-
-	if err = pkg.RejectBy(user); err != nil {
-		return err
-	}
-
-	return s.repo.SaveAndIgnoreReview(&pkg, version)
-}

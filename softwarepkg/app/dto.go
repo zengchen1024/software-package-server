@@ -31,10 +31,10 @@ type CmdToWriteSoftwarePkgReviewComment struct {
 	Content dp.ReviewComment
 }
 
-type CmdToAbandonPkg struct {
+type CmdToClosePkg struct {
 	PkgId    string
 	Comment  dp.ReviewComment
-	Importer dp.Account
+	Reviewer domain.Reviewer
 }
 
 type NewSoftwarePkgDTO struct {

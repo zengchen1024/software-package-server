@@ -213,7 +213,7 @@ definitions:
       signed:
         type: boolean
     type: object
-  controller.reqToAbandonPkg:
+  controller.reqToClosePkg:
     properties:
       comment:
         type: string
@@ -476,11 +476,11 @@ paths:
       summary: get software package
       tags:
       - SoftwarePkg
-  /v1/softwarepkg/{id}/abandon:
+  /v1/softwarepkg/{id}/close:
     put:
       consumes:
       - application/json
-      description: abandon software package
+      description: close software package
       parameters:
       - description: id of software package
         in: path
@@ -492,7 +492,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/controller.reqToAbandonPkg'
+          $ref: '#/definitions/controller.reqToClosePkg'
       responses:
         "202":
           description: Accepted
@@ -502,30 +502,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.ResponseData'
-      summary: abandon software package
-      tags:
-      - SoftwarePkg
-  /v1/softwarepkg/{id}/reject:
-    put:
-      consumes:
-      - application/json
-      description: reject software package
-      parameters:
-      - description: id of software package
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "202":
-          description: Accepted
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/controller.ResponseData'
-      summary: reject software package
+      summary: close software package
       tags:
       - SoftwarePkg
   /v1/softwarepkg/{id}/retest:

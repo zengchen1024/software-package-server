@@ -15,7 +15,7 @@ import (
 type SoftwarePkgService interface {
 	ApplyNewPkg(*CmdToApplyNewSoftwarePkg) (NewSoftwarePkgDTO, error)
 
-	Abandon(*CmdToAbandonPkg) error
+	Close(*CmdToClosePkg) error
 
 	Update(*CmdToUpdateSoftwarePkgApplication) error
 	Retest(string, *domain.User) error
@@ -23,7 +23,6 @@ type SoftwarePkgService interface {
 	Get(string) (SoftwarePkgDTO, error)
 	ListPkgs(*CmdToListPkgs) (SoftwarePkgSummariesDTO, error)
 
-	Reject(string, *domain.Reviewer) error
 	Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) (err error)
 	GetReview(pid string, user *domain.User) ([]CheckItemUserReviewDTO, error)
 }
@@ -144,13 +143,13 @@ func (s *softwarePkgService) Update(cmd *CmdToUpdateSoftwarePkgApplication) erro
 	return nil
 }
 
-func (s *softwarePkgService) Abandon(cmd *CmdToAbandonPkg) error {
+func (s *softwarePkgService) Close(cmd *CmdToClosePkg) error {
 	pkg, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
 	}
 
-	if err = pkg.Abandon(cmd.Importer); err != nil {
+	if err = pkg.Close(&cmd.Reviewer); err != nil {
 		return err
 	}
 
@@ -162,10 +161,10 @@ func (s *softwarePkgService) Abandon(cmd *CmdToAbandonPkg) error {
 		return nil
 	}
 
-	comment := domain.NewSoftwarePkgReviewComment(cmd.Importer, cmd.Comment)
+	comment := domain.NewSoftwarePkgReviewComment(cmd.Reviewer.Account, cmd.Comment)
 	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
 		logrus.Errorf(
-			"failed to add a comment when abandonning a pkg:%s, err:%s",
+			"failed to add a comment when closing a pkg:%s, err:%s",
 			cmd.PkgId, err.Error(),
 		)
 	}

@@ -216,12 +216,12 @@ func (s softwarePkgListQuery) toCmd() (pkg app.CmdToListPkgs, err error) {
 	return
 }
 
-// reqToAbandonPkg
-type reqToAbandonPkg struct {
+// reqToClosePkg
+type reqToClosePkg struct {
 	Comment string `json:"comment"`
 }
 
-func (req *reqToAbandonPkg) toCmd(pkgId string, user *domain.User) (cmd app.CmdToAbandonPkg, err error) {
+func (req *reqToClosePkg) toCmd(pkgId string, user *domain.User) (cmd app.CmdToClosePkg, err error) {
 	if req.Comment != "" {
 		if cmd.Comment, err = dp.NewReviewComment(req.Comment); err != nil {
 			return
@@ -229,7 +229,10 @@ func (req *reqToAbandonPkg) toCmd(pkgId string, user *domain.User) (cmd app.CmdT
 	}
 
 	cmd.PkgId = pkgId
-	cmd.Importer = user.Account
+	cmd.Reviewer = domain.Reviewer{
+		Account: user.Account,
+		GiteeID: user.GiteeID,
+	}
 
 	return
 }

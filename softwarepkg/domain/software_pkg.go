@@ -207,43 +207,27 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) RejectBy(user *Reviewer) error {
+func (entity *SoftwarePkg) Close(user *Reviewer) error {
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
 	}
 
-	if tc, _ := maintainerInstance.Roles(entity, user); !tc {
-		return allerror.NewNoPermission("not the tc")
+	var action dp.PackageOperationLogAction
+
+	if dp.IsSameAccount(user.Account, entity.Importer) {
+		action = dp.PackageOperationLogActionAbandon
+	} else {
+		if tc, _ := maintainerInstance.Roles(entity, user); !tc {
+			return notfound
+		}
+
+		action = dp.PackageOperationLogActionReject
 	}
 
 	entity.Phase = dp.PackagePhaseClosed
 
 	entity.Logs = append(
-		entity.Logs,
-		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionReject,
-		),
-	)
-
-	return nil
-}
-
-func (entity *SoftwarePkg) Abandon(user dp.Account) error {
-	if !dp.IsSameAccount(user, entity.Importer) {
-		return notfound
-	}
-
-	if !entity.Phase.IsReviewing() {
-		return incorrectPhase
-	}
-
-	entity.Phase = dp.PackagePhaseClosed
-
-	entity.Logs = append(
-		entity.Logs,
-		NewSoftwarePkgOperationLog(
-			user, dp.PackageOperationLogActionAbandon,
-		),
+		entity.Logs, NewSoftwarePkgOperationLog(user.Account, action),
 	)
 
 	return nil

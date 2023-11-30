@@ -29,14 +29,14 @@ func AddRouteForSoftwarePkgController(
 	m := middleware.UserChecking().CheckUser
 
 	r.POST("/v1/softwarepkg/committers", m, ctl.CheckCommitters)
+
 	r.POST("/v1/softwarepkg", m, ctl.ApplyNewPkg)
-	r.PUT("/v1/softwarepkg/:id/abandon", m, ctl.Abandon)
+	r.GET("/v1/softwarepkg", ctl.ListPkgs)
+	r.GET("/v1/softwarepkg/:id", ctl.Get)
 	r.PUT("/v1/softwarepkg/:id", m, ctl.Update)
 	r.PUT("/v1/softwarepkg/:id/retest", m, ctl.Retest)
-	r.GET("/v1/softwarepkg/:id", ctl.Get)
-	r.GET("/v1/softwarepkg", ctl.ListPkgs)
+	r.PUT("/v1/softwarepkg/:id/close", m, ctl.Close)
 
-	r.PUT("/v1/softwarepkg/:id/reject", m, ctl.Reject)
 	r.POST("/v1/softwarepkg/:id/review", m, ctl.Review)
 	r.GET("/v1/softwarepkg/:id/review", m, ctl.GetReview)
 }
@@ -237,16 +237,17 @@ func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
 	}
 }
 
-// Reject
-// @Summary reject software package
-// @Description reject software package
+// Close
+// @Summary close software package
+// @Description close software package
 // @Tags  SoftwarePkg
 // @Accept json
-// @Param	id  path	 string	 true	"id of software package"
+// @Param  id    path   string          true  "id of software package"
+// @Param  body  body   reqToClosePkg   true  "comment"
 // @Success 202 {object} ResponseData
 // @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/reject [put]
-func (ctl SoftwarePkgController) Reject(ctx *gin.Context) {
+// @Router /v1/softwarepkg/{id}/close [put]
+func (ctl SoftwarePkgController) Close(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
 		commonctl.SendFailedResp(ctx, "", err)
@@ -254,37 +255,7 @@ func (ctl SoftwarePkgController) Reject(ctx *gin.Context) {
 		return
 	}
 
-	reviewer := domain.Reviewer{
-		Account: user.Account,
-		GiteeID: user.GiteeID,
-	}
-
-	if err := ctl.service.Reject(ctx.Param("id"), &reviewer); err != nil {
-		commonctl.SendError(ctx, err)
-	} else {
-		commonctl.SendRespOfPut(ctx)
-	}
-}
-
-// Abandon
-// @Summary abandon software package
-// @Description abandon software package
-// @Tags  SoftwarePkg
-// @Accept json
-// @Param  id    path   string            true  "id of software package"
-// @Param  body  body   reqToAbandonPkg   true  "comment"
-// @Success 202 {object} ResponseData
-// @Failure 400 {object} ResponseData
-// @Router /v1/softwarepkg/{id}/abandon [put]
-func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
-	user, err := middleware.UserChecking().FetchUser(ctx)
-	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
-
-		return
-	}
-
-	var req reqToAbandonPkg
+	var req reqToClosePkg
 	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
@@ -298,7 +269,7 @@ func (ctl SoftwarePkgController) Abandon(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctl.service.Abandon(&cmd); err != nil {
+	if err := ctl.service.Close(&cmd); err != nil {
 		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfPut(ctx)

@@ -289,16 +289,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/softwarepkg/{id}/abandon": {
+        "/v1/softwarepkg/{id}/close": {
             "put": {
-                "description": "abandon software package",
+                "description": "close software package",
                 "consumes": [
                     "application/json"
                 ],
                 "tags": [
                     "SoftwarePkg"
                 ],
-                "summary": "abandon software package",
+                "summary": "close software package",
                 "parameters": [
                     {
                         "type": "string",
@@ -313,43 +313,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.reqToAbandonPkg"
+                            "$ref": "#/definitions/controller.reqToClosePkg"
                         }
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ResponseData"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/softwarepkg/{id}/reject": {
-            "put": {
-                "description": "reject software package",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SoftwarePkg"
-                ],
-                "summary": "reject software package",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of software package",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -934,7 +899,7 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.reqToAbandonPkg": {
+        "controller.reqToClosePkg": {
             "type": "object",
             "properties": {
                 "comment": {
