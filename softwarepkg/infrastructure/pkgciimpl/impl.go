@@ -11,6 +11,8 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
+const codeChanged = "code_changed!!"
+
 var instance *pkgCIImpl
 
 func Init(cfg *Config) error {
@@ -103,12 +105,12 @@ func (impl *pkgCIImpl) closePR(id int) error {
 	return impl.cli.ClosePR(impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, int32(id))
 }
 
-func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) error {
+func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) (bool, error) {
 	if len(files) == 0 {
-		return nil
+		return false, nil
 	}
 
-	other := []string{"-", "-", "-", "-"}
+	other := []string{"-", "-", "-", "-", codeChanged}
 	specIndex, srpmIndex := 0, 2
 	for _, item := range files {
 		i := specIndex
@@ -134,8 +136,10 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 
 	out, err, _ := libutils.RunCmd(params...)
 	if err != nil {
-		return err
+		return false, err
 	}
+
+	changed := strings.Contains(string(out), codeChanged)
 
 	// fetch download addr
 	for _, item := range files {
@@ -150,11 +154,11 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 
 		v, err := cfg.CIRepo.fileAddr(f, lfs)
 		if err != nil {
-			return err
+			return changed, err
 		}
 
 		item.DownloadAddr = v
 	}
 
-	return nil
+	return changed, nil
 }

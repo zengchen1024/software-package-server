@@ -9,7 +9,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/utils"
 )
@@ -29,6 +28,14 @@ func loadConfig(path string) (*Config, error) {
 	return cfg, nil
 }
 
+type configValidate interface {
+	Validate() error
+}
+
+type configSetDefault interface {
+	SetDefault()
+}
+
 type domainConfig struct {
 	domain.CIConfig
 
@@ -46,15 +53,14 @@ type mongoConfig struct {
 }
 
 type Config struct {
-	CI           pkgciimpl.Config        `json:"ci"`
-	Mongo        mongoConfig             `json:"mongo"`
-	Kafka        kfklib.Config           `json:"kafka"`
-	Topics       Topics                  `json:"topics"`
-	Encryption   utils.Config            `json:"encryption"`
-	Postgresql   postgresqlConfig        `json:"postgresql"`
-	PkgManager   pkgmanagerimpl.Config   `json:"pkg_manager"`
-	SoftwarePkg  domainConfig            `json:"software_pkg"`
-	SigValidator sigvalidatorimpl.Config `json:"sig"`
+	CI          pkgciimpl.Config      `json:"ci"`
+	Mongo       mongoConfig           `json:"mongo"`
+	Kafka       kfklib.Config         `json:"kafka"`
+	Topics      Topics                `json:"topics"`
+	Encryption  utils.Config          `json:"encryption"`
+	Postgresql  postgresqlConfig      `json:"postgresql"`
+	PkgManager  pkgmanagerimpl.Config `json:"pkg_manager"`
+	SoftwarePkg domainConfig          `json:"software_pkg"`
 }
 
 type Topics struct {
@@ -71,14 +77,6 @@ type Topics struct {
 	SoftwarePkgCodeChanged string `json:"software_pkg_code_changed"        required:"true"`
 }
 
-type configValidate interface {
-	Validate() error
-}
-
-type configSetDefault interface {
-	SetDefault()
-}
-
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
 		&cfg.CI,
@@ -88,10 +86,9 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Table,
+		&cfg.PkgManager,
 		&cfg.SoftwarePkg.CIConfig,
 		&cfg.SoftwarePkg.DomainPrimitive,
-		&cfg.PkgManager,
-		&cfg.SigValidator,
 	}
 }
 

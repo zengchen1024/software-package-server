@@ -10,6 +10,10 @@ func Init(cfg *Config, sv SigValidator, words sensitiveWordsValidator) {
 	sensitiveWords = words
 }
 
+func InitForMessageServer(cfg *Config) {
+	config = *cfg
+}
+
 type Config struct {
 	// map platform -> org address. such as gitee --> https://gitee.com/src-openeuler/
 	PlatformOrgLinks              map[string]string `json:"platform_org_links"            required:"true"`

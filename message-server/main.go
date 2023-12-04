@@ -21,7 +21,6 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgmanagerimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
-	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/sigvalidatorimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/utils"
 )
@@ -73,27 +72,28 @@ func main() {
 		return
 	}
 
-	// Sig Validator
-	if err = sigvalidatorimpl.Init(&cfg.SigValidator); err != nil {
-		logrus.Errorf("init sig validator failed, err:%s", err.Error())
-
-		return
-	}
-
-	defer sigvalidatorimpl.Exit()
-
 	// Domain
 	domain.InitForMessageServer(&cfg.SoftwarePkg.CIConfig, pkgciimpl.PkgCI())
-	dp.Init(&cfg.SoftwarePkg.DomainPrimitive, sigvalidatorimpl.SigValidator(), nil)
+	dp.InitForMessageServer(&cfg.SoftwarePkg.DomainPrimitive)
 
-	// Pkg manager
+	// Pkg manager depends on the domain, so it should be initialized after domain
+	logrus.Debugln("pkg manager")
 	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
 		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
 
 		return
 	}
 
+	// ci
+	logrus.Debugln("init ci")
+	if err = pkgciimpl.Init(&cfg.CI); err != nil {
+		logrus.Errorf("init pkg ci failed, err:%s", err.Error())
+
+		return
+	}
+
 	// mongo
+	logrus.Debugln("init mongo")
 	if err := mongdblib.Init(&cfg.Mongo.DB); err != nil {
 		logrus.Errorf("init mongo failed, err:%s", err.Error())
 
@@ -102,12 +102,15 @@ func main() {
 
 	defer mongdblib.Close()
 
-	// Postgresql
-	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
-		logrus.Errorf("init db, err:%s", err.Error())
+	// mq
+	logrus.Debugln("init mq")
+	if err = kfklib.Init(&cfg.Kafka, log, nil, "", true); err != nil {
+		logrus.Errorf("initialize mq failed, err:%v", err)
 
 		return
 	}
+
+	defer kfklib.Exit()
 
 	// Encryption
 	if err = utils.InitEncryption(cfg.Encryption.EncryptionKey); err != nil {
@@ -116,21 +119,13 @@ func main() {
 		return
 	}
 
-	// ci
-	if err = pkgciimpl.Init(&cfg.CI); err != nil {
-		logrus.Errorf("init pkg ci failed, err:%s", err.Error())
+	// Postgresql
+	logrus.Debugln("init postgresql")
+	if err = postgresql.Init(&cfg.Postgresql.DB); err != nil {
+		logrus.Errorf("init db, err:%s", err.Error())
 
 		return
 	}
-
-	// mq
-	if err = kfklib.Init(&cfg.Kafka, log, nil, "", true); err != nil {
-		logrus.Errorf("initialize mq failed, err:%v", err)
-
-		return
-	}
-
-	defer kfklib.Exit()
 
 	// service
 	messageService := app.NewSoftwarePkgMessageService(

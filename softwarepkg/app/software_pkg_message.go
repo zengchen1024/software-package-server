@@ -62,10 +62,12 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return nil
 	}
 
-	if err := s.code.Download(files, pkg.Basic.Name); err != nil {
+	changed, err := s.code.Download(files, pkg.Basic.Name)
+	if err != nil {
 		return err
 	}
 
+	// update
 	pkg1, version, err := s.repo.FindAndIgnoreReview(cmd.PkgId)
 	if err != nil {
 		return err
@@ -84,7 +86,10 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	s.notifyPkgCodeChanged(&pkg1)
+	if changed {
+		// CI can be started manually. So don't notify everytime.
+		s.notifyPkgCodeChanged(&pkg1)
+	}
 
 	return nil
 }
@@ -132,14 +137,16 @@ func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) err
 		return err
 	}
 
-	s.addCIComment(&cmd)
-
 	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
+
+		return err
 	}
+
+	s.addCIComment(&cmd)
 
 	return nil
 }
@@ -167,14 +174,14 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 		return err
 	}
 
-	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
+	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
 		logrus.Errorf(
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
 	}
 
-	return nil
+	return err
 }
 
 // ImportPkg

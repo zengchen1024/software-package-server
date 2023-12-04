@@ -9,6 +9,8 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 )
 
+const retryNum = 3
+
 type server struct {
 	service app.SoftwarePkgMessageService
 }
@@ -26,7 +28,7 @@ func (s *server) run(ctx context.Context, cfg *Config) error {
 func (s *server) subscribe(cfg *Config) error {
 	topics := &cfg.Topics
 
-	err := kfklib.Subscribe(
+	err := kfklib.SubscribeWithStrategyOfSendBack(
 		"software_pkg_download_code", s.downloadPkgCode,
 		[]string{topics.SoftwarePkgApplied, topics.SoftwarePkgCodeUpdated},
 	)
@@ -34,39 +36,35 @@ func (s *server) subscribe(cfg *Config) error {
 		return err
 	}
 
-	err = kfklib.Subscribe(
+	err = kfklib.SubscribeWithStrategyOfRetry(
 		"software_pkg_start_ci", s.startCI,
 		[]string{topics.SoftwarePkgCodeChanged, topics.SoftwarePkgRetested},
+		retryNum,
 	)
 	if err != nil {
 		return err
 	}
 
-	err = kfklib.Subscribe(
+	err = kfklib.SubscribeWithStrategyOfRetry(
 		"software_pkg_ci_done", s.handlePkgCIDone,
-		[]string{topics.SoftwarePkgCIDone},
+		[]string{topics.SoftwarePkgCIDone}, retryNum,
 	)
 	if err != nil {
 		return err
 	}
 
-	err = kfklib.Subscribe(
+	err = kfklib.SubscribeWithStrategyOfRetry(
+		"software_pkg_repo_code_pushed", s.handlePkgRepoCodePushed,
+		[]string{topics.SoftwarePkgRepoCodePushed}, retryNum,
+	)
+	if err != nil {
+		return err
+	}
+
+	return kfklib.Subscribe(
 		"software_pkg_import_existed", s.importPkg,
 		[]string{topics.SoftwarePkgAlreadyExisted},
 	)
-	if err != nil {
-		return err
-	}
-
-	err = kfklib.Subscribe(
-		"software_pkg_repo_code_pushed", s.handlePkgRepoCodePushed,
-		[]string{topics.SoftwarePkgRepoCodePushed},
-	)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *server) downloadPkgCode(data []byte, m map[string]string) error {

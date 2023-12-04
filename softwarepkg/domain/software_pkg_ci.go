@@ -33,12 +33,11 @@ func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
 		return errors.New("can't do this")
 	}
 
-	ci.status = dp.PackageCIStatusRunning
-	ci.StartTime = utils.Now()
-
 	v, err := ciInstance.StartNewCI(pkg)
 	if err == nil {
 		ci.Id = v
+		ci.status = dp.PackageCIStatusRunning
+		ci.StartTime = utils.Now()
 	}
 
 	return err

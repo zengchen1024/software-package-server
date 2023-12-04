@@ -179,7 +179,7 @@ type softwarePkgDO struct {
 func (do *softwarePkgDO) toDomain(pkg *domain.SoftwarePkg) (err error) {
 	pkg.Id = do.Id.Hex()
 
-	if pkg.Sig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
+	if pkg.Sig, err = dp.NewImportingPkgSigInternal(do.Sig); err != nil {
 		return
 	}
 
@@ -229,7 +229,7 @@ func (do *softwarePkgDO) toDomain(pkg *domain.SoftwarePkg) (err error) {
 func (do *softwarePkgDO) toSoftwarePkgInfo(info *repository.SoftwarePkgInfo) (err error) {
 	info.Id = do.Id.Hex()
 
-	if info.Sig, err = dp.NewImportingPkgSig(do.Sig); err != nil {
+	if info.Sig, err = dp.NewImportingPkgSigInternal(do.Sig); err != nil {
 		return
 	}
 

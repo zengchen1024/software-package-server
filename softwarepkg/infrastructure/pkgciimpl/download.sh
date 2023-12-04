@@ -10,6 +10,7 @@ spec_url=$5
 spec_file_name=$6
 srpm_url=$7
 srpm_file_name=$8
+code_changed=$9
 
 wanted_spec_name="${branch_name}.spec"
 wanted_srpm_name="${branch_name}.src.rpm"
@@ -107,6 +108,8 @@ commit() {
     if [ -z "$(git ls-files -om)" ]; then
         return
     fi
+
+    echo "$code_changed"
 
     # track lfs, ignore .git dir
     lfs=$(find . -path '*/.git' -prune -o -type f -size +$lfs_size -print)
