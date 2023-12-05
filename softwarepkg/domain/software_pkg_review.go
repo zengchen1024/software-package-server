@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/opensourceways/software-package-server/allerror"
@@ -353,7 +354,11 @@ func (item *CheckItem) OwnerDesc(pkg *SoftwarePkg) string {
 		return item.Id + " Sig Maintainer"
 
 	case dp.CommunityRoleRepoMember.CommunityRole():
-		return item.Id + " Sig Maintainer or committers: " + strings.Join(pkg.Repo.CommitterIds(), ", ")
+		return fmt.Sprintf(
+			"%s Sig Maintainer or committers: %s",
+			pkg.Sig.ImportingPkgSig(),
+			strings.Join(pkg.Repo.CommitterIds(), ", "),
+		)
 
 	default:
 		return ""

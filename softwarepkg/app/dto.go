@@ -249,12 +249,17 @@ type UserCheckItemReviewDTO struct {
 }
 
 func toUserCheckItemReviewDTO(r *domain.UserCheckItemReview) UserCheckItemReviewDTO {
-	return UserCheckItemReviewDTO{
+	dto := UserCheckItemReviewDTO{
 		Owner:   r.IsOwner,
 		Pass:    r.Pass,
 		Account: r.Account.Account(),
 		Comment: r.Comment.ReviewComment(),
 	}
+	if r.Comment != nil {
+		dto.Comment = r.Comment.ReviewComment()
+	}
+
+	return dto
 }
 
 // CheckItemUserReviewDTO

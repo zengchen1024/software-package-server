@@ -52,7 +52,7 @@ func AddRouteForSoftwarePkgController(
 // @Router /v1/softwarepkg/committers [post]
 func (ctl SoftwarePkgController) CheckCommitters(ctx *gin.Context) {
 	var req softwarePkgRepoRequest
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err := ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return
@@ -88,7 +88,7 @@ func (ctl SoftwarePkgController) CheckCommitters(ctx *gin.Context) {
 // @Router /v1/softwarepkg [post]
 func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 	var req softwarePkgRequest
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err := ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return
@@ -207,7 +207,7 @@ func (ctl SoftwarePkgController) GetReview(ctx *gin.Context) {
 func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
 	var req reviewRequest
 
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err := ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return
@@ -256,7 +256,7 @@ func (ctl SoftwarePkgController) Close(ctx *gin.Context) {
 	}
 
 	var req reqToClosePkg
-	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err = ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return
@@ -289,7 +289,7 @@ func (ctl SoftwarePkgController) Close(ctx *gin.Context) {
 func (ctl SoftwarePkgController) Update(ctx *gin.Context) {
 	var req reqToUpdateSoftwarePkg
 
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err := ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return

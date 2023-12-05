@@ -47,7 +47,7 @@ func (ctl SoftwarePkgCommentController) NewReviewComment(ctx *gin.Context) {
 	}
 
 	var req reviewCommentRequest
-	if err = ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err = ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestBody(ctx, err)
 
 		return
@@ -97,7 +97,7 @@ func (ctl SoftwarePkgCommentController) List(ctx *gin.Context) {
 // @Router /v1/softwarepkg/{id}/review/comment/{cid}/translate [post]
 func (ctl SoftwarePkgCommentController) TranslateReviewComment(ctx *gin.Context) {
 	var req translationCommentRequest
-	if err := ctx.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+	if err := ctx.ShouldBindWith(&req, binding.JSON); err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
 
 		return

@@ -320,11 +320,14 @@ func (do *softwarePkgRepoDO) toDomain(repo *domain.SoftwarePkgRepo) (err error) 
 	}
 
 	cs := make([]domain.PkgCommitter, len(do.Committers))
+
 	for i := range do.Committers {
 		if err = do.Committers[i].toDomain(&cs[i]); err != nil {
 			return
 		}
 	}
+
+	repo.Committers = cs
 
 	return
 }
