@@ -169,7 +169,11 @@ func (entity *SoftwarePkg) RepoLink() string {
 }
 
 func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeSourceFile {
-	return entity.Code.filesToDownload()
+	if entity.Phase.IsReviewing() {
+		return entity.Code.filesToDownload()
+	}
+
+	return nil
 }
 
 func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile) bool {
