@@ -10,6 +10,11 @@ import (
 	libutil "github.com/opensourceways/server-common-lib/utils"
 )
 
+const (
+	SRPMSuffix = ".src.rpm"
+	SpecSuffix = ".spec"
+)
+
 var (
 	reName = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 )
@@ -71,7 +76,7 @@ func (v dpURL) FileName() string {
 }
 
 func IsSRPM(name string) bool {
-	return strings.HasSuffix(strings.ToLower(name), ".src.rpm")
+	return strings.HasSuffix(strings.ToLower(name), SRPMSuffix)
 }
 
 // Email

@@ -104,15 +104,16 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 
 	other := []string{"-", "-", "-", "-", codeChanged}
 	specIndex, srpmIndex := 0, 2
-	for _, item := range files {
+	for i := range files {
+		item := &files[i]
+
 		i := specIndex
-		v := item.FileName()
-		if dp.IsSRPM(v) {
+		if item.IsSRPM() {
 			i = srpmIndex
 		}
 
 		other[i] = item.Src.URL()
-		other[i+1] = v
+		other[i+1] = item.FileName()
 	}
 
 	cfg := &impl.cfg
@@ -134,17 +135,14 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 	changed := strings.Contains(string(out), codeChanged)
 
 	// fetch download addr
-	for _, item := range files {
-		f := ""
-		lfs := false
-		if dp.IsSRPM(item.FileName()) {
-			f = name.PackageName() + ".src.rpm"
-			lfs = strings.Contains(string(out), f)
-		} else {
-			f = name.PackageName() + ".spec"
-		}
+	for i := range files {
+		item := &files[i] // need update files item.
+		f := item.FormatedFileName(name)
 
-		v, err := cfg.CIRepo.fileAddr(name, f, lfs)
+		v, err := cfg.CIRepo.fileAddr(
+			name, f,
+			item.IsSRPM() && strings.Contains(string(out), f),
+		)
 		if err != nil {
 			return changed, err
 		}

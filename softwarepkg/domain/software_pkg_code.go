@@ -108,6 +108,18 @@ func (f *SoftwarePkgCodeSourceFile) FileName() string {
 	return f.Src.FileName()
 }
 
+func (f *SoftwarePkgCodeSourceFile) IsSRPM() bool {
+	return dp.IsSRPM(f.FileName())
+}
+
+func (f *SoftwarePkgCodeSourceFile) FormatedFileName(name dp.PackageName) string {
+	if f.IsSRPM() {
+		return name.PackageName() + dp.SRPMSuffix
+	}
+
+	return name.PackageName() + dp.SpecSuffix
+}
+
 func (f *SoftwarePkgCodeSourceFile) isSame(f1 *SoftwarePkgCodeSourceFile) bool {
 	return f.UpdatedAt == f1.UpdatedAt && f.Src.URL() == f1.Src.URL()
 }
