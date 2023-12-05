@@ -24,9 +24,8 @@ func Init(cfg *Config) error {
 		cli: client.NewClient(func() []byte {
 			return []byte(cfg.GitUser.Token)
 		}),
-		cfg:         *cfg,
-		ciRepoDir:   cfg.WorkDir + "/" + cfg.CIRepo.Repo,
-		pkgInfoFile: cfg.WorkDir + "/pkginfo.yaml",
+		cfg:       *cfg,
+		ciRepoDir: cfg.WorkDir + "/" + cfg.CIRepo.Repo,
 	}
 
 	return nil
@@ -57,10 +56,9 @@ func PkgCI() *pkgCIImpl {
 
 // pkgCIImpl
 type pkgCIImpl struct {
-	cli         client.Client
-	cfg         Config
-	ciRepoDir   string
-	pkgInfoFile string
+	cli       client.Client
+	cfg       Config
+	ciRepoDir string
 }
 
 func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {

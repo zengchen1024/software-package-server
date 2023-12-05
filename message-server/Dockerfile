@@ -16,7 +16,7 @@ RUN cd /go/src/github.com/opensourceways/software-package-server/download && GO1
 # copy binary config and utils
 FROM openeuler/openeuler:22.03
 RUN dnf -y update && \
-    dnf in -y shadow curl git && \
+    dnf in -y shadow curl git cpio && \
     dnf remove -y gdb-gdbserver && \
     groupadd -g 1000 message-server && \
     useradd -u 1000 -g message-server -s /sbin/nologin -m message-server && \

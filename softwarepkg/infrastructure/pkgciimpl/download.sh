@@ -44,7 +44,7 @@ checkout_branch() {
 download() {
     local url=$1
 
-    if [[ $url == *"gitee.com"* ]]; then
+    if [[ "$url" =~ "gitee.com" ]]; then
         /opt/app/download "$url" "${git_token}"
     else
         curl -LO "$url"
@@ -85,7 +85,7 @@ handle_srpm() {
     if [ -n "$(ls $files_in_srpm)" ]; then
         while read f
         do
-            if [[ "$i" ~= *".spec" ]]; then
+            if [[ ! "$i" =~ *".spec" ]]; then
                 rm -f $f
             fi
         done < $files_in_srpm
