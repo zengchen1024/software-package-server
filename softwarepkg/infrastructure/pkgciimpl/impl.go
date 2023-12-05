@@ -44,9 +44,11 @@ func cloneRepo(cfg *Config) error {
 		cfg.CIRepo.cloneURL(user),
 	}
 
-	_, err, _ := libutils.RunCmd(params...)
+	if out, err, _ := libutils.RunCmd(params...); err != nil {
+		return fmt.Errorf("%s, %s", string(out), err.Error())
+	}
 
-	return err
+	return nil
 }
 
 func PkgCI() *pkgCIImpl {
