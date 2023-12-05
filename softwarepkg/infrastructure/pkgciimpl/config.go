@@ -24,7 +24,7 @@ func (cfg *Config) SetDefault() {
 	}
 
 	if cfg.ClearScript == "" {
-		cfg.InitScript = "/opt/app/clear.sh"
+		cfg.ClearScript = "/opt/app/clear.sh"
 	}
 
 	if cfg.DownloadScript == "" {
