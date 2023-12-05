@@ -141,9 +141,14 @@ func (d *userInfoData) toUser() (v domain.User, err error) {
 	v.Email, err = dp.NewEmail(d.Email)
 
 	for _, identity := range d.Identities {
-		if identity.Identity == "gitee" {
+		switch identity.Identity {
+		case dp.Gitee:
 			v.GiteeID = identity.LoginName
-			break
+
+		case dp.Github:
+			v.GithubID = identity.LoginName
+
+		default:
 		}
 	}
 
