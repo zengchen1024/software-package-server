@@ -13,22 +13,18 @@ import (
 
 const codeChanged = "code_changed!!"
 
-var instance *pkgCIImpl
-
-func Init(cfg *Config) error {
+func Init(cfg *Config) (*pkgCIImpl, error) {
 	if err := cloneRepo(cfg); err != nil {
-		return err
+		return nil, err
 	}
 
-	instance = &pkgCIImpl{
+	return &pkgCIImpl{
 		cli: client.NewClient(func() []byte {
 			return []byte(cfg.GitUser.Token)
 		}),
 		cfg:       *cfg,
 		ciRepoDir: cfg.WorkDir + "/" + cfg.CIRepo.Repo,
-	}
-
-	return nil
+	}, nil
 }
 
 func cloneRepo(cfg *Config) error {
@@ -48,10 +44,6 @@ func cloneRepo(cfg *Config) error {
 	}
 
 	return nil
-}
-
-func PkgCI() *pkgCIImpl {
-	return instance
 }
 
 // pkgCIImpl

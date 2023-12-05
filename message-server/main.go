@@ -72,21 +72,10 @@ func main() {
 		return
 	}
 
-	// Domain
-	domain.InitForMessageServer(&cfg.SoftwarePkg.CIConfig, pkgciimpl.PkgCI())
-	dp.InitForMessageServer(&cfg.SoftwarePkg.DomainPrimitive)
-
-	// Pkg manager depends on the domain, so it should be initialized after domain
-	logrus.Debugln("pkg manager")
-	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
-		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
-
-		return
-	}
-
 	// ci
 	logrus.Debugln("init ci")
-	if err = pkgciimpl.Init(&cfg.CI); err != nil {
+	pkgCI, err := pkgciimpl.Init(&cfg.CI)
+	if err != nil {
 		logrus.Errorf("init pkg ci failed, err:%s", err.Error())
 
 		return
@@ -127,9 +116,21 @@ func main() {
 		return
 	}
 
+	// Domain
+	domain.InitForMessageServer(&cfg.SoftwarePkg.CIConfig, pkgCI)
+	dp.InitForMessageServer(&cfg.SoftwarePkg.DomainPrimitive)
+
+	// Pkg manager depends on the domain, so it should be initialized after domain
+	logrus.Debugln("pkg manager")
+	if err = pkgmanagerimpl.Init(&cfg.PkgManager); err != nil {
+		logrus.Errorf("init pkg manager failed, err:%s", err.Error())
+
+		return
+	}
+
 	// service
 	messageService := app.NewSoftwarePkgMessageService(
-		pkgciimpl.PkgCI(),
+		pkgCI,
 		softwarepkgadapter.NewsoftwarePkgAdapter(
 			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
 		),
