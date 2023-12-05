@@ -53,12 +53,13 @@ func (cfg *CIRepo) setDefault() {
 	}
 }
 
-func (cfg *CIRepo) fileAddr(name string, lfs bool) (dp.URL, error) {
+func (cfg *CIRepo) fileAddr(pkgName dp.PackageName, fileName string, lfs bool) (dp.URL, error) {
+	s := cfg.FileAddr
 	if lfs {
-		return dp.NewURL(fmt.Sprintf(cfg.LFSFileAddr, name))
+		s = cfg.LFSFileAddr
 	}
 
-	return dp.NewURL(fmt.Sprintf(cfg.FileAddr, name))
+	return dp.NewURL(fmt.Sprintf(s, pkgName.PackageName(), fileName))
 }
 
 func (cfg *CIRepo) cloneURL(user *GitUser) string {

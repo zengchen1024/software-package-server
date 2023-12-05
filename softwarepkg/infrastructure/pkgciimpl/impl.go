@@ -152,7 +152,7 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 			f = name.PackageName() + ".spec"
 		}
 
-		v, err := cfg.CIRepo.fileAddr(f, lfs)
+		v, err := cfg.CIRepo.fileAddr(name, f, lfs)
 		if err != nil {
 			return changed, err
 		}

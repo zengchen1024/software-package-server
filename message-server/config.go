@@ -57,8 +57,8 @@ type Config struct {
 	Mongo       mongoConfig           `json:"mongo"`
 	Kafka       kfklib.Config         `json:"kafka"`
 	Topics      Topics                `json:"topics"`
-	Encryption  utils.Config          `json:"encryption"`
 	Postgresql  postgresqlConfig      `json:"postgresql"`
+	Encryption  utils.Config          `json:"encryption"`
 	PkgManager  pkgmanagerimpl.Config `json:"pkg_manager"`
 	SoftwarePkg domainConfig          `json:"software_pkg"`
 }
