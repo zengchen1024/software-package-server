@@ -36,7 +36,7 @@ COPY --chown=message-server softwarepkg/infrastructure/pkgciimpl/download.sh /op
 
 USER message-server
 
-RUN chmod 550 /opt/app/download /opt/app/message-server /opt/app/clone_repo.sh /opt/app/pull_request.sh
+RUN chmod 550 /opt/app/download /opt/app/message-server /opt/app/*.sh
 
 WORKDIR /opt/app/
 
