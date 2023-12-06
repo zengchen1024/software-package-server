@@ -11,7 +11,10 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
 
-const codeChanged = "code_changed!!"
+const (
+	codeChangedTag = "code_changed!!"
+	srpmFileLFSTag = "srpm_file_is_lfs!!"
+)
 
 func Init(cfg *Config) (*pkgCIImpl, error) {
 	if err := cloneRepo(cfg); err != nil {
@@ -102,7 +105,7 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 		return false, nil
 	}
 
-	other := []string{"-", "-", "-", "-", codeChanged}
+	other := []string{"-", "-", "-", "-", codeChangedTag, srpmFileLFSTag}
 	specIndex, srpmIndex := 0, 2
 	for i := range files {
 		item := &files[i]
@@ -132,16 +135,16 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 		return false, err
 	}
 
-	changed := strings.Contains(string(out), codeChanged)
+	outStr := string(out)
+	changed := strings.Contains(outStr, codeChangedTag)
 
 	// fetch download addr
 	for i := range files {
-		item := &files[i] // need update files item.
-		f := item.FormatedFileName(name)
+		item := &files[i] // need update files item by pointer.
 
 		v, err := cfg.CIRepo.fileAddr(
-			name, f,
-			item.IsSRPM() && strings.Contains(string(out), f),
+			name, item.FormatedFileName(name),
+			item.IsSRPM() && strings.Contains(outStr, srpmFileLFSTag),
 		)
 		if err != nil {
 			return changed, err

@@ -2,18 +2,19 @@
 
 set -euo pipefail
 
-repo_dir=$1
+work_dir=$1
 git_token=$2
 main_branch=$3
-branch_name=$4
+pkg_name=$4
 spec_url=$5
 spec_file_name=$6
 srpm_url=$7
 srpm_file_name=$8
-code_changed=$9
+code_changed_tag=$9
+srpm_file_lfs_tag=${10}
 
-wanted_spec_name="${branch_name}.spec"
-wanted_srpm_name="${branch_name}.src.rpm"
+wanted_spec_name="${pkg_name}.spec"
+wanted_srpm_name="${pkg_name}.src.rpm"
 
 srpm_files_dir="./code"
 files_in_srpm="./files_in_srpm.txt"
@@ -28,14 +29,14 @@ checkout_branch() {
     git checkout $main_branch
 
     set +e
-    git rev-parse --verify "$branch_name" 2>/dev/null
+    git rev-parse --verify "$pkg_name" 2>/dev/null
     local has=$?
     set -e
 
     if [ $has -eq 0 ]; then
-        git checkout "$branch_name"
+        git checkout "$pkg_name"
     else
-        git checkout -b "$branch_name"
+        git checkout -b "$pkg_name"
     fi
 
     has_submitted=$(git ls-files $wanted_spec_name)
@@ -79,27 +80,39 @@ handle_srpm() {
     fi
 
     # if srpm file is lfs, echo it
-    find $wanted_srpm_name -size +$lfs_size -print
-
-    # delete the files of last srpm
-    if [ -n "$(ls $files_in_srpm)" ]; then
-        while read f
-        do
-            if [[ ! "$i" =~ *".spec" ]]; then
-                rm -f $f
-            fi
-        done < $files_in_srpm
+    if [ -n "$(find $wanted_srpm_name -size +$lfs_size -print)" ]; then
+        echo "$srpm_file_lfs_tag"
     fi
 
-    > $files_in_srpm
+    # delete the files of last srpm
+    if [ -f "$files_in_srpm" ]; then
+        while read fn
+        do
+            if [[ ! "$fn" =~ ".spec" ]]; then
+                rm -f $fn
+            fi
+        done < $files_in_srpm
 
+        > $files_in_srpm
+    fi
+
+    # decompress
     test -d $srpm_files_dir || mkdir $srpm_files_dir
 
     rpm2cpio $wanted_srpm_name | cpio -div --quiet -D $srpm_files_dir > $files_in_srpm 2>&1
 
-    if [ -n "$(ls $srpm_files_dir/*.spec)" ]; then
-        rm $srpm_files_dir/*.spec
-        mv $srpm_files_dir/* .
+    # mv the files of srpm
+    if [ -f "$files_in_srpm" ]; then
+        while read fn
+        do
+            fn=${srpm_files_dir}/$fn
+
+            if [[ "$fn" =~ ".spec" ]]; then
+                rm -f $fn
+            else
+                mv $fn .
+            fi
+        done < $files_in_srpm
     fi
 }
 
@@ -109,7 +122,7 @@ commit() {
         return
     fi
 
-    echo "$code_changed"
+    echo "$code_changed_tag"
 
     # track lfs, ignore .git dir
     lfs=$(find . -path '*/.git' -prune -o -type f -size +$lfs_size -print)
@@ -123,17 +136,17 @@ commit() {
     git add .
 
     if [ -z "$has_submitted" ]; then
-        git commit -m "apply new package $branch_name"
+        git commit -m "apply new package $pkg_name"
     else
         git commit --amend --no-edit --quiet
     fi
 
-    git push -f origin "$branch_name"
+    git push -f origin "$pkg_name"
 
     git checkout $main_branch
 }
 
-cd $repo_dir
+cd $work_dir
 
 checkout_branch
 

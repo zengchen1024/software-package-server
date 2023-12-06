@@ -39,9 +39,15 @@ type GitUser struct {
 }
 
 type CIRepo struct {
-	Org         string `json:"org"              required:"true"`
-	Repo        string `json:"repo"             required:"true"`
-	Link        string `json:"link"             required:"true"`
+	// Org is the remote org of repo for CI
+	Org string `json:"org"                      required:"true"`
+
+	// Repo is the repo for CI. Suppose that the remote and local repo is the same name.
+	Repo string `json:"repo"                    required:"true"`
+
+	// Link is the local repo address.
+	Link string `json:"link"                    required:"true"`
+
 	FileAddr    string `json:"file_addr"        required:"true"`
 	MainBranch  string `json:"main_branch"`
 	LFSFileAddr string `json:"lfs_file_addr"    required:"true"`
