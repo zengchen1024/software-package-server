@@ -205,7 +205,7 @@ func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
 }
 
 func (s *softwarePkgService) addCommentToRetest(pkgId string) {
-	content, _ := dp.NewReviewComment("The CI will run now.")
+	content, _ := dp.NewReviewCommentInternal("The CI will run now.")
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
 	if err := s.commentRepo.AddReviewComment(pkgId, &comment); err != nil {

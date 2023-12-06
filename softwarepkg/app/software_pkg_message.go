@@ -153,7 +153,7 @@ func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) err
 }
 
 func (s softwarePkgMessageService) addCIComment(cmd *CmdToHandlePkgCIDone) {
-	content, _ := dp.NewReviewComment(cmd.Detail)
+	content, _ := dp.NewReviewCommentInternal(cmd.Detail)
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
 	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {

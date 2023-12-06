@@ -303,6 +303,20 @@ type CheckItemReviewInfo struct {
 	Comment dp.ReviewComment
 }
 
+func (info *CheckItemReviewInfo) String() string {
+	pass := "Pass"
+	if !info.Pass {
+		pass = "Request Change"
+	}
+
+	v := ""
+	if info.Comment != nil {
+		v = info.Comment.ReviewComment()
+	}
+
+	return fmt.Sprintf("%s. %s, %s", info.Id, pass, v)
+}
+
 // CheckItem
 type CheckItem struct {
 	Id    string

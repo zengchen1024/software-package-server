@@ -109,7 +109,7 @@ func (s *softwarePkgInitAppService) addCommentForExistedPkg(pkg *domain.Software
 		"I'am sorry to close this application. Because the pkg was imported sometimes ago. The repo address is %s. You can work on that repo.",
 		repoLink,
 	)
-	content, _ := dp.NewReviewComment(str)
+	content, _ := dp.NewReviewCommentInternal(str)
 	comment := domain.NewSoftwarePkgReviewComment(s.robot, content)
 
 	if err := s.commentRepo.AddReviewComment(pkg.Id, &comment); err != nil {

@@ -1,6 +1,13 @@
 package app
 
-import "github.com/opensourceways/software-package-server/softwarepkg/domain"
+import (
+	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
+)
 
 func (s *softwarePkgService) GetReview(pid string, user *domain.User) ([]CheckItemUserReviewDTO, error) {
 	pkg, _, err := s.repo.Find(pid)
@@ -54,5 +61,28 @@ func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews [
 		return err
 	}
 
-	return s.repo.Save(&pkg, version)
+	if err := s.repo.Save(&pkg, version); err != nil {
+		return err
+	}
+
+	s.addCommentOfReview(pid, user, reviews)
+
+	return nil
+}
+
+func (s *softwarePkgService) addCommentOfReview(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) {
+	items := make([]string, len(reviews))
+	for i := range reviews {
+		items[i] = reviews[i].String()
+	}
+
+	content, _ := dp.NewReviewCommentInternal(strings.Join(items, "\n"))
+	comment := domain.NewSoftwarePkgReviewComment(user.Account, content)
+
+	if err := s.commentRepo.AddReviewComment(pid, &comment); err != nil {
+		logrus.Errorf(
+			"failed to add a comment when review for pkg:%s, err:%s",
+			pid, err.Error(),
+		)
+	}
 }
