@@ -23,7 +23,7 @@ func Init(cfg *Config) (*pkgCIImpl, error) {
 
 	return &pkgCIImpl{
 		cli: client.NewClient(func() []byte {
-			return []byte(cfg.GitUser.Token)
+			return []byte(cfg.CIRepo.Token)
 		}),
 		cfg:       *cfg,
 		ciRepoDir: cfg.WorkDir + "/" + cfg.CIRepo.Repo,
@@ -31,15 +31,15 @@ func Init(cfg *Config) (*pkgCIImpl, error) {
 }
 
 func cloneRepo(cfg *Config) error {
-	user := &cfg.GitUser
+	repo := &cfg.CIRepo
 
 	params := []string{
 		cfg.InitScript,
 		cfg.WorkDir,
-		user.User,
-		user.Email,
+		repo.Owner,
+		repo.Email,
 		cfg.CIRepo.Repo,
-		cfg.CIRepo.cloneURL(user),
+		cfg.CIRepo.cloneURL(),
 	}
 
 	if out, err, _ := libutils.RunCmd(params...); err != nil {
@@ -62,12 +62,12 @@ func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
 	}
 
 	name := pkg.PackageName().PackageName()
-	cfg := &impl.cfg.CIRepo
+	repo := &impl.cfg.CIRepo
 
 	pr, err := impl.cli.CreatePullRequest(
-		cfg.Org, cfg.Repo,
+		repo.Org, repo.Repo,
 		fmt.Sprintf("test for new package: %s", name), pkg.Id,
-		name, cfg.MainBranch, true,
+		repo.Owner+":"+name, repo.MainBranch, true,
 	)
 	if err != nil {
 		return 0, err
@@ -119,12 +119,12 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 		other[i+1] = item.FileName()
 	}
 
-	cfg := &impl.cfg
+	repo := &impl.cfg.CIRepo
 	params := []string{
-		cfg.DownloadScript,
+		impl.cfg.DownloadScript,
 		impl.ciRepoDir,
-		cfg.GitUser.Token,
-		cfg.CIRepo.MainBranch,
+		repo.Token,
+		repo.MainBranch,
 		name.PackageName(),
 	}
 
@@ -142,7 +142,7 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 	for i := range files {
 		item := &files[i] // need update files item by pointer.
 
-		v, err := cfg.CIRepo.fileAddr(
+		v, err := repo.fileAddr(
 			name, item.FormatedFileName(name),
 			item.IsSRPM() && strings.Contains(outStr, srpmFileLFSTag),
 		)

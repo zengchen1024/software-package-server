@@ -8,12 +8,11 @@ import (
 )
 
 type Config struct {
-	CIRepo         CIRepo  `json:"ci_repo"`
-	GitUser        GitUser `json:"git_user"`
-	WorkDir        string  `json:"work_dir" required:"true"`
-	InitScript     string  `json:"init_script"`
-	ClearScript    string  `json:"clear_script"`
-	DownloadScript string  `json:"download_script"`
+	CIRepo         CIRepo `json:"ci_repo"`
+	WorkDir        string `json:"work_dir" required:"true"`
+	InitScript     string `json:"init_script"`
+	ClearScript    string `json:"clear_script"`
+	DownloadScript string `json:"download_script"`
 }
 
 func (cfg *Config) SetDefault() {
@@ -32,18 +31,17 @@ func (cfg *Config) SetDefault() {
 	}
 }
 
-type GitUser struct {
-	User  string `json:"user"   required:"true"`
-	Email string `json:"email"  required:"true"`
-	Token string `json:"token"  required:"true"`
-}
-
 type CIRepo struct {
 	// Org is the remote org of repo for CI
 	Org string `json:"org"                      required:"true"`
 
 	// Repo is the repo for CI. Suppose that the remote and local repo is the same name.
 	Repo string `json:"repo"                    required:"true"`
+
+	// Owner is the owner of local repo
+	Owner string `json:"owner"                  required:"true"`
+	Email string `json:"email"                  required:"true"`
+	Token string `json:"token"                  required:"true"`
 
 	// Link is the local repo address.
 	Link string `json:"link"                    required:"true"`
@@ -68,10 +66,10 @@ func (cfg *CIRepo) fileAddr(pkgName dp.PackageName, fileName string, lfs bool) (
 	return dp.NewURL(fmt.Sprintf(s, pkgName.PackageName(), fileName))
 }
 
-func (cfg *CIRepo) cloneURL(user *GitUser) string {
+func (cfg *CIRepo) cloneURL() string {
 	return fmt.Sprintf(
 		"https://%s:%s@%s",
-		user.User, user.Token,
+		cfg.Owner, cfg.Token,
 		strings.TrimPrefix(cfg.Link, "https://"),
 	)
 }
