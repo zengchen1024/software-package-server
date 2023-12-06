@@ -17,6 +17,7 @@ type SoftwarePkgMessageService interface {
 	StartCI(cmd CmdToStartCI) error
 	HandlePkgCIDone(CmdToHandlePkgCIDone) error
 
+	HandlePkgClosed(*domain.SoftwarePkgClosedEvent) error
 	HandlePkgRepoCodePushed(CmdToHandlePkgRepoCodePushed) error
 
 	ImportPkg(CmdToHandlePkgAlreadyExisted) error
@@ -179,9 +180,29 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 			"save pkg failed when %s, err:%s",
 			cmd.logString(), err.Error(),
 		)
+
+		return err
 	}
 
-	return err
+	if err := s.code.Clear(pkg.CIId(), pkg.PackageName()); err != nil {
+		logrus.Errorf("failed to clear pkg, pkg:%s, err:%s", pkg.Id, err.Error())
+	}
+
+	return nil
+}
+
+// HandlePkgClosed
+func (s softwarePkgMessageService) HandlePkgClosed(event *domain.SoftwarePkgClosedEvent) error {
+	name, err := dp.NewPackageName(event.PackageName)
+	if err != nil {
+		return nil
+	}
+
+	if err := s.code.Clear(event.CIId, name); err != nil {
+		logrus.Errorf("failed to clear pkg, pkg:%s, err:%s", event.PkgId, err.Error())
+	}
+
+	return nil
 }
 
 // ImportPkg

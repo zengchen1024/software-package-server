@@ -26,14 +26,8 @@ func (p *producer) SendPkgRetestedEvent(e message.EventMessage) error {
 	return send(p.topics.SoftwarePkgRetested, e)
 }
 
-func (p *producer) NotifyPkgRejected(e message.EventMessage) error {
-	//return send(p.topics.RejectedSoftwarePkg, e)
-	return nil
-}
-
-func (p *producer) NotifyPkgAbandoned(e message.EventMessage) error {
-	//return send(p.topics.AbandonedSoftwarePkg, e)
-	return nil
+func (p *producer) SendPkgClosedEvent(e message.EventMessage) error {
+	return send(p.topics.SoftwarePkgClosed, e)
 }
 
 func (p *producer) SendPkgAlreadyExistedEvent(e message.EventMessage) error {

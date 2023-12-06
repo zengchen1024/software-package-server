@@ -7,6 +7,7 @@ import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 )
 
 const retryNum = 3
@@ -61,6 +62,14 @@ func (s *server) subscribe(cfg *Config) error {
 		return err
 	}
 
+	err = kfklib.SubscribeWithStrategyOfRetry(
+		"software_pkg_closed", s.handlePkgClosed,
+		[]string{topics.SoftwarePkgClosed}, retryNum,
+	)
+	if err != nil {
+		return err
+	}
+
 	return kfklib.Subscribe(
 		"software_pkg_import_existed", s.importPkg,
 		[]string{topics.SoftwarePkgAlreadyExisted},
@@ -108,6 +117,15 @@ func (s *server) handlePkgRepoCodePushed(data []byte, m map[string]string) error
 	}
 
 	return s.service.HandlePkgRepoCodePushed(cmd)
+}
+
+func (s *server) handlePkgClosed(data []byte, m map[string]string) error {
+	e, err := domain.UnmarshalToSoftwarePkgClosedEvent(data)
+	if err != nil {
+		return err
+	}
+
+	return s.service.HandlePkgClosed(&e)
 }
 
 func (s *server) importPkg(data []byte, m map[string]string) error {

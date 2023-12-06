@@ -169,6 +169,14 @@ func (s *softwarePkgService) Close(cmd *CmdToClosePkg) error {
 		)
 	}
 
+	e := domain.NewSoftwarePkgClosedEvent(&pkg)
+	if err = s.message.SendPkgClosedEvent(&e); err != nil {
+		logrus.Errorf(
+			"failed to send pkg closed event, pkg:%s, err:%s",
+			cmd.PkgId, err.Error(),
+		)
+	}
+
 	return nil
 }
 

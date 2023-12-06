@@ -33,6 +33,31 @@ func UnmarshalToSoftwarePkgAppliedEvent(data []byte) (e softwarePkgAppliedEvent,
 	return
 }
 
+// SoftwarePkgClosedEvent
+type SoftwarePkgClosedEvent struct {
+	CIId        int    `json:"ci_id"`
+	PkgId       string `json:"pkg_id"`
+	PackageName string `json:"pkg_name"`
+}
+
+func (e *SoftwarePkgClosedEvent) Message() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func NewSoftwarePkgClosedEvent(pkg *SoftwarePkg) SoftwarePkgClosedEvent {
+	return SoftwarePkgClosedEvent{
+		CIId:        pkg.CIId(),
+		PkgId:       pkg.Id,
+		PackageName: pkg.PackageName().PackageName(),
+	}
+}
+
+func UnmarshalToSoftwarePkgClosedEvent(data []byte) (e SoftwarePkgClosedEvent, err error) {
+	err = json.Unmarshal(data, &e)
+
+	return
+}
+
 // softwarePkgInitializedEvent
 type softwarePkgInitializedEvent struct {
 	Importer string `json:"importer"`

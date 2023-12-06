@@ -3,9 +3,11 @@ package pkgciimpl
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/opensourceways/robot-gitee-lib/client"
 	libutils "github.com/opensourceways/server-common-lib/utils"
+	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -53,6 +55,7 @@ func cloneRepo(cfg *Config) error {
 type pkgCIImpl struct {
 	cli       client.Client
 	cfg       Config
+	mutex     sync.Mutex
 	ciRepoDir string
 }
 
@@ -76,28 +79,34 @@ func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
 	return int(pr.Number), nil
 }
 
-func (impl *pkgCIImpl) Clear(pkg *domain.SoftwarePkg) error {
-	if v := pkg.CIId(); v > 0 {
-		impl.closePR(v)
+func (impl *pkgCIImpl) Clear(ciId int, name dp.PackageName) error {
+	if ciId > 0 {
+		impl.closePR(ciId)
 	}
-
-	// clear branch
 
 	cfg := &impl.cfg
 	params := []string{
-		cfg.DownloadScript,
+		cfg.ClearScript,
 		impl.ciRepoDir,
 		cfg.CIRepo.MainBranch,
-		pkg.PackageName().PackageName(),
+		name.PackageName(),
 	}
+
+	// lock to avoid modifing the repo dir concurrently
+	impl.mutex.Lock()
+	defer impl.mutex.Unlock()
 
 	_, err, _ := libutils.RunCmd(params...)
 
 	return err
 }
 
-func (impl *pkgCIImpl) closePR(id int) error {
-	return impl.cli.ClosePR(impl.cfg.CIRepo.Org, impl.cfg.CIRepo.Repo, int32(id))
+func (impl *pkgCIImpl) closePR(prNum int) {
+	repo := &impl.cfg.CIRepo
+
+	if err := impl.cli.ClosePR(repo.Org, repo.Repo, int32(prNum)); err != nil {
+		logrus.Errorf("failed to close pr:%v", prNum)
+	}
 }
 
 func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) (bool, error) {
@@ -129,6 +138,10 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 	}
 
 	params = append(params, other...)
+
+	// lock to avoid modifing the repo dir concurrently
+	impl.mutex.Lock()
+	defer impl.mutex.Unlock()
 
 	out, err, _ := libutils.RunCmd(params...)
 	if err != nil {

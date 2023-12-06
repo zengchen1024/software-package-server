@@ -64,6 +64,7 @@ type Config struct {
 }
 
 type Topics struct {
+	SoftwarePkgClosed         string `json:"software_pkg_closed"           required:"true"`
 	SoftwarePkgCIDone         string `json:"software_pkg_ci_done"          required:"true"`
 	SoftwarePkgApplied        string `json:"software_pkg_applied"          required:"true"`
 	SoftwarePkgRetested       string `json:"software_pkg_retested"         required:"true"`

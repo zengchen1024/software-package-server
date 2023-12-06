@@ -5,11 +5,10 @@ type EventMessage interface {
 }
 
 type SoftwarePkgMessage interface {
+	SendPkgClosedEvent(EventMessage) error
 	SendPkgAppliedEvent(EventMessage) error
 	SendPkgCodeUpdatedEvent(EventMessage) error
 	SendPkgRetestedEvent(EventMessage) error
-	NotifyPkgRejected(EventMessage) error
-	NotifyPkgAbandoned(EventMessage) error
 	SendPkgAlreadyExistedEvent(EventMessage) error
 }
 
