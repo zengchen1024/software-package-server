@@ -48,12 +48,3 @@ func send(topic string, v message.EventMessage) error {
 
 	return kfklib.Publish(topic, nil, body)
 }
-
-// producerOfInit
-type producerOfInit struct {
-	topics TopicsOfInit
-}
-
-func (p *producerOfInit) NotifyPkgInitialized(e message.EventMessage) error {
-	return send(p.topics.SoftwarePkgInitialized, e)
-}

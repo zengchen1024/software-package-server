@@ -6,14 +6,13 @@ import (
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
-	"github.com/opensourceways/software-package-server/softwarepkg/domain/pkgmanager"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
 	"github.com/sirupsen/logrus"
 )
 
 type SoftwarePkgInitAppService interface {
-	ListApprovedPkgs() ([]string, error)
 	SoftwarePkg(pkgId string) (domain.SoftwarePkg, error)
+	ListApprovedPkgs() ([]string, error)
 	HandlePkgInitDone(pkgId string, pr dp.URL) error
 	HandlePkgInitStarted(pkgId string, pr dp.URL) error
 	HandlePkgAlreadyExisted(pkgId string, repoLink string) error
@@ -23,7 +22,6 @@ var _ SoftwarePkgInitAppService = (*softwarePkgInitAppService)(nil)
 
 func NewSoftwarePkgInitAppService(
 	repo repository.SoftwarePkg,
-	manager pkgmanager.PkgManager,
 	message message.SoftwarePkgInitMessage,
 	commentRepo repository.SoftwarePkgComment,
 ) *softwarePkgInitAppService {

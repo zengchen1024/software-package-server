@@ -8,6 +8,7 @@
 software-package-server
 message-server/message-server
 test
+watch/watch
 
 # Test binary, built with `go test -c`
 *.test

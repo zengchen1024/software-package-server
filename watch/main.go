@@ -16,6 +16,8 @@ import (
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
@@ -91,11 +93,17 @@ func main() {
 
 	defer mongdblib.Close()
 
+	// Domain
+	domain.Init(&cfg.SoftwarePkg.Config, nil)
+	dp.InitForMessageServer(&cfg.SoftwarePkg.DomainPrimitive)
+
 	run(cfg)
 }
 
 func run(cfg *Config) {
-	pullRequestImpl, err := pullrequestimpl.NewPullRequestImpl(&cfg.PullRequest, useradapterimpl.UserAdapter())
+	pullRequestImpl, err := pullrequestimpl.NewPullRequestImpl(
+		&cfg.PullRequest, useradapterimpl.UserAdapter(),
+	)
 	if err != nil {
 		logrus.Errorf("new pull request impl err:%s", err.Error())
 
@@ -106,7 +114,6 @@ func run(cfg *Config) {
 		softwarepkgadapter.NewsoftwarePkgAdapter(
 			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
 		),
-		nil,
 		&producer{cfg.Topics.SoftwarePkgInitialized},
 		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table),
 	)

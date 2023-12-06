@@ -8,6 +8,8 @@ import (
 	"github.com/opensourceways/server-common-lib/utils"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain"
+	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/repositoryimpl"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/softwarepkgadapter"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/useradapterimpl"
@@ -24,13 +26,13 @@ type configSetDefault interface {
 	SetDefault()
 }
 
-type PostgresqlConfig struct {
+type postgresqlConfig struct {
 	DB         postgresql.Config    `json:"db"          required:"true"`
 	Table      repositoryimpl.Table `json:"table"       required:"true"`
 	WatchTable watchrepoimpl.Table  `json:"watch_table" require:"true"`
 }
 
-type Watch struct {
+type watch struct {
 	RobotToken     string `json:"robot_token"      required:"true"`
 	CommunityOrg   string `json:"community_org"    required:"true"`
 	CommunityRepo  string `json:"community_repo"   required:"true"`
@@ -49,15 +51,23 @@ type Topics struct {
 	SoftwarePkgInitialized string `json:"software_pkg_initialized" required:"true"`
 }
 
+// domainConfig
+type domainConfig struct {
+	domain.Config
+
+	DomainPrimitive dp.Config `json:"domain_primitive"`
+}
+
 type Config struct {
+	User        useradapterimpl.Config `json:"user"`
 	Kafka       kafka.Config           `json:"kafka"`
-	Postgresql  PostgresqlConfig       `json:"postgresql"`
-	Watch       Watch                  `json:"watch"`
-	PullRequest pullrequestimpl.Config `json:"pull_request"`
+	Watch       watch                  `json:"watch"`
 	Email       emailimpl.Config       `json:"email"`
 	Mongo       mongoConfig            `json:"mongo"`
 	Topics      Topics                 `json:"topics"`
-	User        useradapterimpl.Config `json:"user"`
+	Postgresql  postgresqlConfig       `json:"postgresql"`
+	PullRequest pullrequestimpl.Config `json:"pull_request"`
+	SoftwarePkg domainConfig           `json:"software_pkg"`
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -77,14 +87,16 @@ func loadConfig(path string) (*Config, error) {
 
 func (cfg *Config) configItems() []interface{} {
 	return []interface{}{
+		&cfg.User,
 		&cfg.Kafka,
-		&cfg.Postgresql.DB,
-		&cfg.Postgresql.Table,
 		&cfg.Watch,
 		&cfg.PullRequest,
 		&cfg.Mongo.DB,
 		&cfg.Mongo.Collections,
-		&cfg.User,
+		&cfg.Postgresql.DB,
+		&cfg.Postgresql.Table,
+		&cfg.SoftwarePkg.Config,
+		&cfg.SoftwarePkg.DomainPrimitive,
 	}
 }
 
@@ -97,7 +109,7 @@ func (cfg *Config) SetDefault() {
 	}
 }
 
-func (w *Watch) SetDefault() {
+func (w *watch) SetDefault() {
 	if w.CommunityOrg == "" {
 		w.CommunityOrg = "openeuler"
 	}
@@ -136,6 +148,6 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-func (w *Watch) IntervalDuration() time.Duration {
+func (w *watch) IntervalDuration() time.Duration {
 	return time.Second * time.Duration(w.Interval)
 }

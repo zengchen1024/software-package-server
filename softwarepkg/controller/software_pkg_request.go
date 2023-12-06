@@ -324,7 +324,7 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 		return
 	}
 
-	r := []domain.PkgCommitter{{Account: importer.Account, PlatformId: importerId}}
+	var r []domain.PkgCommitter
 
 	// committers
 	for _, c := range req.Committers {

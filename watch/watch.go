@@ -21,7 +21,7 @@ type iClient interface {
 }
 
 func NewWatchingImpl(
-	cfg *Watch,
+	cfg *watch,
 	initService app.SoftwarePkgInitAppService,
 	watchService watchapp.SoftwarePkgWatchService,
 ) *WatchingImpl {
@@ -41,7 +41,7 @@ func NewWatchingImpl(
 }
 
 type WatchingImpl struct {
-	cfg            *Watch
+	cfg            *watch
 	cli            iClient
 	initAppService app.SoftwarePkgInitAppService
 	watchService   watchapp.SoftwarePkgWatchService

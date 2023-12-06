@@ -13,7 +13,3 @@ type Topics struct {
 	// importer edited the pkg and want to reload code
 	SoftwarePkgCodeUpdated string `json:"software_pkg_code_updated"        required:"true"`
 }
-
-type TopicsOfInit struct {
-	SoftwarePkgInitialized string `json:"software_pkg_initialized"         required:"true"`
-}
