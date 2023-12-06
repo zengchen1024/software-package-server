@@ -33,41 +33,26 @@ func UnmarshalToSoftwarePkgAppliedEvent(data []byte) (e softwarePkgAppliedEvent,
 	return
 }
 
-// softwarePkgApprovedEvent
-type softwarePkgApprovedEvent struct {
-	Importer           string `json:"importer"`
-	PkgId              string `json:"pkg_id"`
-	PkgName            string `json:"pkg_name"`
-	PkgDesc            string `json:"pkg_desc"`
-	SpecURL            string `json:"spec_url"`
-	Upstream           string `json:"upstream"`
-	SrcRPMURL          string `json:"src_rpm_url"`
-	Platform           string `json:"platform"`
-	ImportingPkgSig    string `json:"sig"`
-	PurposeToImportPkg string `json:"reason_to_import"`
-	CIPRNum            int    `json:"ci_pr_num"`
+// softwarePkgInitializedEvent
+type softwarePkgInitializedEvent struct {
+	Importer string `json:"importer"`
+	PkgId    string `json:"pkg_id"`
+	PkgName  string `json:"pkg_name"`
+	Platform string `json:"platform"`
 }
 
-func (e *softwarePkgApprovedEvent) Message() ([]byte, error) {
+func (e *softwarePkgInitializedEvent) Message() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func NewSoftwarePkgInitializedEvent(pkg *SoftwarePkg) softwarePkgApprovedEvent {
+func NewSoftwarePkgInitializedEvent(pkg *SoftwarePkg) softwarePkgInitializedEvent {
 	basic := &pkg.Basic
-	code := &pkg.Code
 
-	return softwarePkgApprovedEvent{
-		Importer:           pkg.Importer.Account(),
-		PkgId:              pkg.Id,
-		PkgName:            basic.Name.PackageName(),
-		PkgDesc:            basic.Desc.PackageDesc(),
-		SpecURL:            code.Spec.Src.URL(),
-		Upstream:           basic.Upstream.URL(),
-		SrcRPMURL:          code.SRPM.Src.URL(),
-		CIPRNum:            pkg.CI.Id,
-		Platform:           pkg.Repo.platform(),
-		ImportingPkgSig:    pkg.Sig.ImportingPkgSig(),
-		PurposeToImportPkg: basic.Purpose.PurposeToImportPkg(),
+	return softwarePkgInitializedEvent{
+		Importer: pkg.Importer.Account(),
+		PkgId:    pkg.Id,
+		PkgName:  basic.Name.PackageName(),
+		Platform: pkg.Repo.platform(),
 	}
 }
 
