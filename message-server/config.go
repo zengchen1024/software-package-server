@@ -56,14 +56,14 @@ type Config struct {
 	CI          pkgciimpl.Config      `json:"ci"`
 	Mongo       mongoConfig           `json:"mongo"`
 	Kafka       kfklib.Config         `json:"kafka"`
-	Topics      Topics                `json:"topics"`
+	Topics      topics                `json:"topics"`
 	Postgresql  postgresqlConfig      `json:"postgresql"`
 	Encryption  utils.Config          `json:"encryption"`
 	PkgManager  pkgmanagerimpl.Config `json:"pkg_manager"`
 	SoftwarePkg domainConfig          `json:"software_pkg"`
 }
 
-type Topics struct {
+type topics struct {
 	SoftwarePkgClosed         string `json:"software_pkg_closed"           required:"true"`
 	SoftwarePkgCIDone         string `json:"software_pkg_ci_done"          required:"true"`
 	SoftwarePkgApplied        string `json:"software_pkg_applied"          required:"true"`

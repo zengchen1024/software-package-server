@@ -59,12 +59,12 @@ func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserA
 		return
 	}
 
-	cmd.Spec, err = dp.NewURL(req.Spec)
+	cmd.Spec, err = parseSpec(req.Spec)
 	if err != nil {
 		return
 	}
 
-	cmd.SRPM, err = dp.NewURL(req.SRPM)
+	cmd.SRPM, err = parseSRPM(req.SRPM)
 	if err != nil {
 		return
 	}
@@ -77,6 +77,32 @@ func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserA
 	cmd.Repo, err, _ = req.toRepo(importer, ua)
 
 	return
+}
+
+func parseSpec(url string) (dp.URL, error) {
+	spec, err := dp.NewURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if !dp.IsSpec(spec.FileName()) {
+		err = errors.New("not spec file")
+	}
+
+	return spec, err
+}
+
+func parseSRPM(url string) (dp.URL, error) {
+	srpm, err := dp.NewURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if !dp.IsSRPM(srpm.FileName()) {
+		err = errors.New("not srpm file")
+	}
+
+	return srpm, err
 }
 
 // reqToUpdateSoftwarePkg
@@ -121,13 +147,13 @@ func (req *reqToUpdateSoftwarePkg) toCmd(
 	}
 
 	if req.Spec != "" {
-		if cmd.Spec, err = dp.NewURL(req.Spec); err != nil {
+		if cmd.Spec, err = parseSpec(req.Spec); err != nil {
 			return
 		}
 	}
 
 	if req.SRPM != "" {
-		if cmd.SRPM, err = dp.NewURL(req.SRPM); err != nil {
+		if cmd.SRPM, err = parseSRPM(req.SRPM); err != nil {
 			return
 		}
 	}

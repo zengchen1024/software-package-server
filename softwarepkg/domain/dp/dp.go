@@ -79,6 +79,10 @@ func IsSRPM(name string) bool {
 	return strings.HasSuffix(strings.ToLower(name), SRPMSuffix)
 }
 
+func IsSpec(name string) bool {
+	return strings.HasSuffix(strings.ToLower(name), SpecSuffix)
+}
+
 // Email
 type Email interface {
 	Email() string
