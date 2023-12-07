@@ -3,22 +3,33 @@ package allerror
 import "strings"
 
 const (
+	ErrorCodeParamNotSpec                   = "param_not_spec_file"
+	ErrorCodeParamNotSRPM                   = "param_not_srpm_file"
+	ErrorCodeParamUserNotFound              = "param_user_not_found"
+	ErrorCodeParamMissingRepoLink           = "param_missing_repo_link"
+	ErrorCodeParamTooManyCommitters         = "param_too_many_committers"
+	ErrorCodeParamDuplicateCommitters       = "param_duplicate_committers"
+	ErrorCodeParamMissingChekItemComment    = "param_missing_check_item_comment"
+	ErrorCodeParamImporterMissingPlatformId = "param_importer_missing_platform_id"
+
 	errorCodeNoPermission = "no_permission"
 
 	ErrorCodeAccessTokenMissing = "access_token_missing"
 	ErrorCodeAccessTokenInvalid = "access_token_invalid"
 
-	ErrorCodeTooManyRequest   = "too_many_request"
 	ErrorCodeSensitiveContent = "sensitive_content"
 
-	ErrorCodePkgExists         = "software_pkg_exists"
-	ErrorCodePkgNotFound       = "software_pkg_not_found"
-	ErrorCodeCIIsRunning       = "software_pkg_ci_is_running"
-	ErrorCodeCIIsWaiting       = "software_pkg_ci_is_waiting"
-	ErrorCodeCIIsNotReady      = "software_pkg_ci_is_not_ready"
-	ErrorCodeIncorrectPhase    = "software_pkg_incorrect_phase"
-	ErrorCodePkgCodeNotReady   = "software_pkg_code_not_ready"
-	ErrorCodePkgCommentIllegal = "software_pkg_comment_illegal"
+	ErrorCodePkgExists   = "software_pkg_exists"
+	ErrorCodePkgNotFound = "software_pkg_not_found"
+
+	ErrorCodeCIIsRunning      = "software_pkg_ci_is_running"
+	ErrorCodeCIIsNotReady     = "software_pkg_ci_is_not_ready"
+	ErrorCodeRetestRepeatedly = "software_pkg_retest_repeatedly"
+
+	ErrorCodeIncorrectPhase  = "software_pkg_incorrect_phase"
+	ErrorCodePkgCodeNotReady = "software_pkg_code_not_ready"
+
+	ErrorCodePkgCommentNotFound = "software_pkg_comment_not_found"
 )
 
 // errorImpl

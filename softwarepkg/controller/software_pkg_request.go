@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -86,7 +87,7 @@ func parseSpec(url string) (dp.URL, error) {
 	}
 
 	if !dp.IsSpec(spec.FileName()) {
-		err = errors.New("not spec file")
+		err = allerror.New(allerror.ErrorCodeParamNotSpec, "not spec file")
 	}
 
 	return spec, err
@@ -99,7 +100,7 @@ func parseSRPM(url string) (dp.URL, error) {
 	}
 
 	if !dp.IsSRPM(srpm.FileName()) {
-		err = errors.New("not srpm file")
+		err = allerror.New(allerror.ErrorCodeParamNotSRPM, "not srpm file")
 	}
 
 	return srpm, err
@@ -168,8 +169,11 @@ func (req *reqToUpdateSoftwarePkg) toCmd(
 		return
 	}
 
-	if !(req.RepoLink != "" && len(req.Committers) != 0) {
-		err = errors.New("repo_link and committers must be set at same time")
+	if len(req.Committers) != 0 && req.RepoLink == "" {
+		err = allerror.New(
+			allerror.ErrorCodeParamMissingRepoLink,
+			"need repo_link when updating committers",
+		)
 
 		return
 	}
@@ -293,7 +297,7 @@ type checkItemReviewInfo struct {
 
 func (req *checkItemReviewInfo) toInfo() (info domain.CheckItemReviewInfo, err error) {
 	if !req.Pass && req.Comment == "" {
-		err = errors.New("lack of comment")
+		err = allerror.New(allerror.ErrorCodeParamMissingChekItemComment, "lack of comment")
 
 		return
 	}
@@ -313,14 +317,14 @@ func (req *checkItemReviewInfo) toInfo() (info domain.CheckItemReviewInfo, err e
 // softwarePkgRepoRequest
 type softwarePkgRepoRequest struct {
 	RepoLink   string   `json:"repo_link"    binding:"required"`
-	Committers []string `json:"committers"   binding:"required"`
+	Committers []string `json:"committers"`
 }
 
 func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
 	repo domain.SoftwarePkgRepo, err error, invalidCommitter []string,
 ) {
 	if len(req.Committers) > config.MaxNumOfCommitters {
-		err = errors.New("too many committers")
+		err = allerror.New(allerror.ErrorCodeParamTooManyCommitters, "too many committers")
 
 		return
 	}
@@ -331,7 +335,7 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 	}
 
 	if len(m) != len(req.Committers) {
-		err = errors.New("duplicate committers")
+		err = allerror.New(allerror.ErrorCodeParamDuplicateCommitters, "duplicate committers")
 
 		return
 	}
@@ -345,7 +349,7 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 	// importer
 	importerId := importer.Id(platform)
 	if importerId == "" {
-		err = errors.New("no platform Id")
+		err = allerror.New(allerror.ErrorCodeParamImporterMissingPlatformId, "no platform Id")
 
 		return
 	}

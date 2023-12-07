@@ -7,6 +7,7 @@ import (
 
 	"github.com/opensourceways/server-common-lib/utils"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
@@ -119,7 +120,7 @@ func (om *omClient) getUserInfo(userId, platform string) (user domain.User, err 
 	}
 
 	if v.Code != 200 {
-		err = errors.New(v.Msg)
+		err = allerror.New(allerror.ErrorCodeParamUserNotFound, v.Msg)
 
 		return
 	}

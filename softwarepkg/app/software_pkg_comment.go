@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/opensourceways/software-package-server/allerror"
 	commonrepo "github.com/opensourceways/software-package-server/common/domain/repository"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/repository"
@@ -76,7 +77,9 @@ func (s *softwarePkgCommentAppService) TranslateReviewComment(
 	// translate it
 	comment, err := s.commentRepo.FindReviewComment(cmd.PkgId, cmd.CommentId)
 	if err != nil {
-		err = parseErrorForFindingPkg(err)
+		if commonrepo.IsErrorResourceNotFound(err) {
+			err = allerror.NewNotFound(allerror.ErrorCodePkgCommentNotFound, err.Error())
+		}
 
 		return
 	}
