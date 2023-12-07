@@ -380,14 +380,16 @@ func NewSoftwarePkg(
 	srpm dp.URL,
 	importer *User,
 ) SoftwarePkg {
+	now := utils.Now()
+
 	pkg := SoftwarePkg{
-		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting},
+		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting, StartTime: now},
 		Sig:       sig,
 		Repo:      *repo,
 		Basic:     *basic,
 		Phase:     dp.PackagePhaseReviewing,
 		Importer:  importer.Account,
-		AppliedAt: utils.Now(),
+		AppliedAt: now,
 	}
 
 	pkg.Code.update(spec, srpm)

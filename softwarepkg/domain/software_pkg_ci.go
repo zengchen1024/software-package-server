@@ -51,10 +51,17 @@ func (ci *SoftwarePkgCI) retest() error {
 	}
 
 	if s.IsCIWaiting() {
-		return allerror.New(allerror.ErrorCodeCIIsWaiting, "duplicate operation")
+		now := utils.Now()
+		if now < ci.StartTime+ciConfig.CIWaitTimeout {
+			return allerror.New(allerror.ErrorCodeCIIsWaiting, "duplicate operation")
+		}
+		ci.StartTime = now
+
+		return nil
 	}
 
 	ci.status = dp.PackageCIStatusWaiting
+	ci.StartTime = utils.Now()
 
 	return nil
 }
@@ -84,7 +91,7 @@ func (ci *SoftwarePkgCI) Status() dp.PackageCIStatus {
 		return nil
 	}
 
-	if ci.status.IsCIRunning() && ci.StartTime+timeoutOfCI < utils.Now() {
+	if ci.status.IsCIRunning() && ci.StartTime+ciConfig.CITimeout < utils.Now() {
 		return dp.PackageCIStatusTimeout
 	}
 

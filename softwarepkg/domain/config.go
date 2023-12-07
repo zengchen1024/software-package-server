@@ -18,19 +18,19 @@ const (
 )
 
 var (
-	timeoutOfCI      int64
+	ciConfig         CIConfig
 	commonCheckItems []CheckItem
 )
 
 func Init(cfg *Config, m maintainer) {
-	timeoutOfCI = cfg.CITimeout
+	ciConfig = cfg.CIConfig
 	commonCheckItems = cfg.checkItems
 
 	maintainerInstance = m
 }
 
 func InitForMessageServer(cfg *CIConfig, ci pkgCI) {
-	timeoutOfCI = cfg.CITimeout
+	ciConfig = *cfg
 
 	ciInstance = ci
 }
@@ -54,12 +54,17 @@ func pkgModification(v string) (string, error) {
 }
 
 type CIConfig struct {
-	CITimeout int64 `json:"ci_timeout"`
+	CITimeout     int64 `json:"ci_timeout"`
+	CIWaitTimeout int64 `json:"ci_wait_timeout"`
 }
 
 func (cfg *CIConfig) SetDefault() {
 	if cfg.CITimeout <= 0 {
 		cfg.CITimeout = 3 * 3600 // 3 hours
+	}
+
+	if cfg.CIWaitTimeout <= 0 {
+		cfg.CIWaitTimeout = 600 // 10m
 	}
 }
 
