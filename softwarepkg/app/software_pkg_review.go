@@ -47,7 +47,10 @@ func (s *softwarePkgService) GetReview(pid string, user *domain.User) ([]CheckIt
 	return r, nil
 }
 
-func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) error {
+func (s *softwarePkgService) Review(
+	pid string, user *domain.Reviewer,
+	reviews []domain.CheckItemReviewInfo,
+) error {
 	pkg, version, err := s.repo.Find(pid)
 	if err != nil {
 		return parseErrorForFindingPkg(err)
@@ -65,24 +68,30 @@ func (s *softwarePkgService) Review(pid string, user *domain.Reviewer, reviews [
 		return err
 	}
 
-	s.addCommentOfReview(pid, user, reviews)
+	s.addCommentOfReview(&pkg, user, reviews)
 
 	return nil
 }
 
-func (s *softwarePkgService) addCommentOfReview(pid string, user *domain.Reviewer, reviews []domain.CheckItemReviewInfo) {
+func (s *softwarePkgService) addCommentOfReview(
+	pkg *domain.SoftwarePkg,
+	user *domain.Reviewer,
+	reviews []domain.CheckItemReviewInfo,
+) {
+	itemMap := pkg.CheckItemsMap()
+
 	items := make([]string, len(reviews))
 	for i := range reviews {
-		items[i] = reviews[i].String()
+		items[i] = reviews[i].String(itemMap[reviews[i].Id])
 	}
 
 	content, _ := dp.NewReviewCommentInternal(strings.Join(items, "\n"))
 	comment := domain.NewSoftwarePkgReviewComment(user.Account, content)
 
-	if err := s.commentRepo.AddReviewComment(pid, &comment); err != nil {
+	if err := s.commentRepo.AddReviewComment(pkg.Id, &comment); err != nil {
 		logrus.Errorf(
 			"failed to add a comment when review for pkg:%s, err:%s",
-			pid, err.Error(),
+			pkg.Id, err.Error(),
 		)
 	}
 }

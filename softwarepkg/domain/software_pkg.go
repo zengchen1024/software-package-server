@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -99,45 +98,6 @@ type SoftwarePkg struct {
 	AppliedAt   int64
 	CommunityPR dp.URL
 	Initialized bool
-}
-
-func (entity *SoftwarePkg) CheckItems() []CheckItem {
-	other := entity.otherCheckItems()
-
-	r := make([]CheckItem, 0, len(other)+len(commonCheckItems))
-	r = append(r, commonCheckItems...) // don't change commonCheckItems by copy it.
-	r = append(r, other...)
-
-	return r
-}
-
-func (entity *SoftwarePkg) otherCheckItems() []CheckItem {
-	v := []CheckItem{
-		{
-			Id:            entity.Sig.ImportingPkgSig(),
-			Name:          "Sig",
-			Desc:          fmt.Sprintf("软件包被%s Sig接纳", entity.Sig.ImportingPkgSig()),
-			Owner:         dp.CommunityRoleSigMaintainer,
-			OnlyOwner:     true,
-			Modifications: []string{pkgModificationSig},
-		},
-	}
-
-	for i := range entity.Repo.Committers {
-		c := entity.Repo.Committers[i].Account.Account()
-
-		v = append(v, CheckItem{
-			Id:            c,
-			Name:          "软件包维护人",
-			Desc:          fmt.Sprintf("%s 同意作为此软件包的维护人", c),
-			Owner:         dp.CommunityRoleCommitter,
-			Keep:          true,
-			OnlyOwner:     true,
-			Modifications: []string{pkgModificationCommitter},
-		})
-	}
-
-	return v
 }
 
 func (entity *SoftwarePkg) isCommitter(user dp.Account) bool {
