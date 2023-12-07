@@ -65,7 +65,7 @@ func (ctl SoftwarePkgController) CheckCommitters(ctx *gin.Context) {
 		return
 	}
 
-	_, err, invalidCommitters := req.toRepo(&user, ctl.userAdapter)
+	invalidCommitters, err := req.check(&user, ctl.userAdapter)
 	if err != nil {
 		if len(invalidCommitters) > 0 {
 			commonctl.SendRespOfPost(ctx, checkCommittersResp{invalidCommitters})

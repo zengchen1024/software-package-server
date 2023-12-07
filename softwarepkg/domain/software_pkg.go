@@ -90,7 +90,7 @@ type SoftwarePkg struct {
 	Repo     SoftwarePkgRepo
 	Code     SoftwarePkgCode
 	Basic    SoftwarePkgBasicInfo
-	Importer dp.Account
+	Importer PkgCommitter
 
 	CI          SoftwarePkgCI
 	Logs        []SoftwarePkgOperationLog
@@ -125,10 +125,6 @@ func (entity *SoftwarePkg) otherCheckItems() []CheckItem {
 
 	for i := range entity.Repo.Committers {
 		c := entity.Repo.Committers[i].Account.Account()
-
-		if c == entity.Importer.Account() {
-			continue
-		}
 
 		v = append(v, CheckItem{
 			Id:            c,
@@ -218,7 +214,7 @@ func (entity *SoftwarePkg) Close(user *Reviewer) error {
 
 	var action dp.PackageOperationLogAction
 
-	if dp.IsSameAccount(user.Account, entity.Importer) {
+	if entity.Importer.isMe(user.Account) {
 		action = dp.PackageOperationLogActionAbandon
 	} else {
 		if tc, _ := maintainerInstance.Roles(entity, user); !tc {
@@ -238,7 +234,7 @@ func (entity *SoftwarePkg) Close(user *Reviewer) error {
 }
 
 func (entity *SoftwarePkg) Retest(user *User) error {
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
+	if !entity.Importer.isMe(user.Account) {
 		return notfound
 	}
 
@@ -264,8 +260,8 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 	return nil
 }
 
-func (entity *SoftwarePkg) Update(user *User, info *SoftwarePkgUpdateInfo) error {
-	if !dp.IsSameAccount(user.Account, entity.Importer) {
+func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdateInfo) error {
+	if !entity.Importer.isMe(importer.Account) {
 		return notfound
 	}
 
@@ -283,6 +279,8 @@ func (entity *SoftwarePkg) Update(user *User, info *SoftwarePkgUpdateInfo) error
 
 	if v := entity.Repo.update(&info.Repo); v != "" {
 		ms = append(ms, v)
+
+		entity.Importer.PlatformId = importer.PlatformId
 	}
 
 	if info.Spec != nil || info.SRPM != nil {
@@ -300,15 +298,13 @@ func (entity *SoftwarePkg) Update(user *User, info *SoftwarePkgUpdateInfo) error
 	entity.Logs = append(
 		entity.Logs,
 		NewSoftwarePkgOperationLog(
-			user.Account, dp.PackageOperationLogActionUpdate,
+			importer.Account, dp.PackageOperationLogActionUpdate,
 		),
 	)
 
-	/*
-		if entity.doesPassReview(items) {
-			entity.Phase = dp.PackagePhaseCreatingRepo
-		}
-	*/
+	if entity.doesPassReview(items) {
+		entity.Phase = dp.PackagePhaseCreatingRepo
+	}
 
 	return nil
 }
@@ -378,7 +374,7 @@ func NewSoftwarePkg(
 	basic *SoftwarePkgBasicInfo,
 	spec dp.URL,
 	srpm dp.URL,
-	importer *User,
+	importer *PkgCommitter,
 ) SoftwarePkg {
 	now := utils.Now()
 
@@ -388,7 +384,7 @@ func NewSoftwarePkg(
 		Repo:      *repo,
 		Basic:     *basic,
 		Phase:     dp.PackagePhaseReviewing,
-		Importer:  importer.Account,
+		Importer:  *importer,
 		AppliedAt: now,
 	}
 

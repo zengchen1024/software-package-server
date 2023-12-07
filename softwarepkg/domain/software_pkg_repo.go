@@ -7,6 +7,10 @@ type PkgCommitter struct {
 	PlatformId string     // gitee id or github id which depends on the platform of pkg repo
 }
 
+func (c *PkgCommitter) isMe(a dp.Account) bool {
+	return dp.IsSameAccount(a, c.Account)
+}
+
 // SoftwarePkgRepo
 type SoftwarePkgRepo struct {
 	Platform   dp.PackagePlatform

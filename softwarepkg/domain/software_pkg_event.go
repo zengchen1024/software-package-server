@@ -74,7 +74,7 @@ func NewSoftwarePkgInitializedEvent(pkg *SoftwarePkg) softwarePkgInitializedEven
 	basic := &pkg.Basic
 
 	return softwarePkgInitializedEvent{
-		Importer: pkg.Importer.Account(),
+		Importer: pkg.Importer.Account.Account(),
 		PkgId:    pkg.Id,
 		PkgName:  basic.Name.PackageName(),
 		Platform: pkg.Repo.platform(),

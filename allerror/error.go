@@ -6,7 +6,6 @@ const (
 	ErrorCodeParamNotSpec                   = "param_not_spec_file"
 	ErrorCodeParamNotSRPM                   = "param_not_srpm_file"
 	ErrorCodeParamUserNotFound              = "param_user_not_found"
-	ErrorCodeParamMissingRepoLink           = "param_missing_repo_link"
 	ErrorCodeParamTooManyCommitters         = "param_too_many_committers"
 	ErrorCodeParamDuplicateCommitters       = "param_duplicate_committers"
 	ErrorCodeParamMissingChekItemComment    = "param_missing_check_item_comment"

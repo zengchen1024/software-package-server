@@ -29,9 +29,12 @@ const (
 
 func toSoftwarePkgDO(pkg *domain.SoftwarePkg, do *softwarePkgDO) {
 	*do = softwarePkgDO{
-		Sig:         pkg.Sig.ImportingPkgSig(),
-		Phase:       pkg.Phase.PackagePhase(),
-		Importer:    pkg.Importer.Account(),
+		Sig:   pkg.Sig.ImportingPkgSig(),
+		Phase: pkg.Phase.PackagePhase(),
+		Importer: committerDO{
+			Account:    pkg.Importer.Account.Account(),
+			PlatformId: pkg.Importer.PlatformId,
+		},
 		AppliedAt:   pkg.AppliedAt,
 		Initialized: pkg.Initialized,
 		CI:          toSoftwarePkgCIDO(&pkg.CI),
@@ -161,7 +164,7 @@ type softwarePkgDO struct {
 	Id          primitive.ObjectID `bson:"_id"           json:"-"`
 	Sig         string             `bson:"sig"           json:"sig"           required:"true"`
 	Phase       string             `bson:"phase"         json:"phase"         required:"true"`
-	Importer    string             `bson:"importer"      json:"importer"      required:"true"`
+	Importer    committerDO        `bson:"importer"      json:"importer"      required:"true"`
 	AppliedAt   int64              `bson:"applied_at"    json:"applied_at"    required:"true"`
 	CommunityPR string             `bson:"community_pr"  json:"community_pr"`
 	Initialized bool               `bson:"initialized"   json:"initialized"`
@@ -187,7 +190,7 @@ func (do *softwarePkgDO) toDomain(pkg *domain.SoftwarePkg) (err error) {
 		return
 	}
 
-	if pkg.Importer, err = dp.NewAccount(do.Importer); err != nil {
+	if err = do.Importer.toDomain(&pkg.Importer); err != nil {
 		return
 	}
 
@@ -253,7 +256,7 @@ func (do *softwarePkgDO) toSoftwarePkgInfo(info *repository.SoftwarePkgInfo) (er
 		return
 	}
 
-	if info.Importer, err = dp.NewAccount(do.Importer); err != nil {
+	if info.Importer, err = dp.NewAccount(do.Importer.Account); err != nil {
 		return
 	}
 

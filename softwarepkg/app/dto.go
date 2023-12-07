@@ -13,12 +13,12 @@ type CmdToApplyNewSoftwarePkg struct {
 	SRPM     dp.URL
 	Repo     domain.SoftwarePkgRepo
 	Basic    domain.SoftwarePkgBasicInfo
-	Importer domain.User
+	Importer domain.PkgCommitter
 }
 
 type CmdToUpdateSoftwarePkgApplication struct {
 	PkgId    string
-	Importer domain.User
+	Importer domain.PkgCommitter
 
 	domain.SoftwarePkgUpdateInfo
 }
@@ -112,7 +112,7 @@ func toSoftwarePkgDTO(pkg *domain.SoftwarePkg, dto *SoftwarePkgDTO) {
 			Platform:  pkg.Repo.Platform.PackagePlatform(),
 			RepoLink:  pkg.RepoLink(),
 			CIStatus:  pkg.CI.Status().PackageCIStatus(),
-			Importer:  pkg.Importer.Account(),
+			Importer:  pkg.Importer.Account.Account(),
 			AppliedAt: utils.ToDate(pkg.AppliedAt),
 		},
 		Spec:       toSoftwarePkgCodeFileDTO(&pkg.Code.Spec),

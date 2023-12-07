@@ -51,11 +51,9 @@ func (req *softwarePkgRequest) toBasic() (basic domain.SoftwarePkgBasicInfo, err
 	return
 }
 
-func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserAdapter) (
+func (req *softwarePkgRequest) toCmd(user *domain.User, ua useradapter.UserAdapter) (
 	cmd app.CmdToApplyNewSoftwarePkg, err error,
 ) {
-	cmd.Importer = *importer
-
 	if cmd.Basic, err = req.toBasic(); err != nil {
 		return
 	}
@@ -75,7 +73,7 @@ func (req *softwarePkgRequest) toCmd(importer *domain.User, ua useradapter.UserA
 		return
 	}
 
-	cmd.Repo, err, _ = req.toRepo(importer, ua)
+	cmd.Repo, cmd.Importer, err = req.toRepo(user, ua)
 
 	return
 }
@@ -121,12 +119,11 @@ type reqToUpdateSoftwarePkg struct {
 }
 
 func (req *reqToUpdateSoftwarePkg) toCmd(
-	pkgId string, importer *domain.User, ua useradapter.UserAdapter,
+	pkgId string, user *domain.User, ua useradapter.UserAdapter,
 ) (
 	cmd app.CmdToUpdateSoftwarePkgApplication, err error,
 ) {
 	cmd.PkgId = pkgId
-	cmd.Importer = *importer
 
 	if req.Desc != "" {
 		if cmd.Desc, err = dp.NewPackageDesc(req.Desc); err != nil {
@@ -165,16 +162,10 @@ func (req *reqToUpdateSoftwarePkg) toCmd(
 		}
 	}
 
-	if req.RepoLink == "" && len(req.Committers) == 0 {
-		return
-	}
-
-	if len(req.Committers) != 0 && req.RepoLink == "" {
-		err = allerror.New(
-			allerror.ErrorCodeParamMissingRepoLink,
-			"need repo_link when updating committers",
-		)
-
+	// 1. It must pass repo link if updating committers or repo link.
+	// 2. It will override the committers,
+	// so it should pass committers event if it didn't not change.
+	if req.RepoLink == "" {
 		return
 	}
 
@@ -182,8 +173,7 @@ func (req *reqToUpdateSoftwarePkg) toCmd(
 		RepoLink:   req.RepoLink,
 		Committers: req.Committers,
 	}
-
-	cmd.Repo, err, _ = v.toRepo(importer, ua)
+	cmd.Repo, cmd.Importer, err = v.toRepo(user, ua)
 
 	return
 }
@@ -320,8 +310,8 @@ type softwarePkgRepoRequest struct {
 	Committers []string `json:"committers"`
 }
 
-func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.UserAdapter) (
-	repo domain.SoftwarePkgRepo, err error, invalidCommitter []string,
+func (req *softwarePkgRepoRequest) toRepo(user *domain.User, ua useradapter.UserAdapter) (
+	repo domain.SoftwarePkgRepo, importer domain.PkgCommitter, err error,
 ) {
 	if len(req.Committers) > config.MaxNumOfCommitters {
 		err = allerror.New(allerror.ErrorCodeParamTooManyCommitters, "too many committers")
@@ -347,16 +337,21 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 	platform := repo.Platform.PackagePlatform()
 
 	// importer
-	importerId := importer.Id(platform)
+	importerId := user.Id(platform)
 	if importerId == "" {
 		err = allerror.New(allerror.ErrorCodeParamImporterMissingPlatformId, "no platform Id")
 
 		return
 	}
 
-	var r []domain.PkgCommitter
+	importer = domain.PkgCommitter{
+		Account:    user.Account,
+		PlatformId: importerId,
+	}
 
 	// committers
+	var r []domain.PkgCommitter
+
 	for _, c := range req.Committers {
 		if c == importerId {
 			continue
@@ -364,7 +359,6 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 
 		if u, err1 := ua.Find(c, platform); err1 != nil {
 			err = err1
-			invalidCommitter = append(invalidCommitter, c)
 		} else {
 			r = append(r, domain.PkgCommitter{Account: u.Account, PlatformId: c})
 		}
@@ -373,6 +367,31 @@ func (req *softwarePkgRepoRequest) toRepo(importer *domain.User, ua useradapter.
 	repo.Committers = r
 
 	return
+}
+
+func (req *softwarePkgRepoRequest) check(user *domain.User, ua useradapter.UserAdapter) ([]string, error) {
+	if len(req.Committers) > config.MaxNumOfCommitters {
+		return nil, allerror.New(allerror.ErrorCodeParamTooManyCommitters, "too many committers")
+	}
+
+	// platform
+	platform, err := dp.NewPackagePlatformByRepoLink(req.RepoLink)
+	if err != nil {
+		return nil, err
+	}
+	platformStr := platform.PackagePlatform()
+
+	// committers
+	var r []string
+
+	for _, c := range req.Committers {
+		if _, err1 := ua.Find(c, platformStr); err1 != nil {
+			err = err1
+			r = append(r, c)
+		}
+	}
+
+	return r, err
 }
 
 type checkCommittersResp struct {

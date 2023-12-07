@@ -53,7 +53,7 @@ func (ci *SoftwarePkgCI) retest() error {
 	if s.IsCIWaiting() {
 		now := utils.Now()
 		if now < ci.StartTime+ciConfig.CIWaitTimeout {
-			return allerror.New(allerror.ErrorCodeCIIsWaiting, "duplicate operation")
+			return allerror.New(allerror.ErrorCodeRetestRepeatedly, "duplicate operation")
 		}
 		ci.StartTime = now
 

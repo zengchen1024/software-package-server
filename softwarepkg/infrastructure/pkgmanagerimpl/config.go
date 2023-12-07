@@ -68,7 +68,7 @@ func (cfg *ExistingPkgDefaultInfo) toPkgBasicInfo() (info domain.SoftwarePkg, er
 	info.Phase = dp.PackagePhaseImported
 
 	// importer
-	if info.Importer, err = dp.NewAccount(cfg.ImporterName); err != nil {
+	if info.Importer.Account, err = dp.NewAccount(cfg.ImporterName); err != nil {
 		return
 	}
 
