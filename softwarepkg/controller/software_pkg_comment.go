@@ -41,7 +41,7 @@ func AddRouteForSoftwarePkgCommentController(
 func (ctl SoftwarePkgCommentController) NewReviewComment(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}

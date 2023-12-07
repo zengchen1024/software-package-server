@@ -7,11 +7,19 @@ import (
 )
 
 func SendBadRequestBody(ctx *gin.Context, err error) {
-	SendFailedResp(ctx, errorBadRequestBody, err)
+	if _, ok := err.(errorCode); ok {
+		SendError(ctx, err)
+	} else {
+		sendFailedResp(ctx, errorBadRequestBody, err)
+	}
 }
 
 func SendBadRequestParam(ctx *gin.Context, err error) {
-	SendFailedResp(ctx, errorBadRequestParam, err)
+	if _, ok := err.(errorCode); ok {
+		SendError(ctx, err)
+	} else {
+		sendFailedResp(ctx, errorBadRequestParam, err)
+	}
 }
 
 func SendRespOfCreate(ctx *gin.Context) {
@@ -30,7 +38,7 @@ func SendRespOfPost(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusCreated, newResponseData(data))
 }
 
-func SendFailedResp(ctx *gin.Context, code string, err error) {
+func sendFailedResp(ctx *gin.Context, code string, err error) {
 	if code == "" {
 		ctx.JSON(
 			http.StatusInternalServerError,

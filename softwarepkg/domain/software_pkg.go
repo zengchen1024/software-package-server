@@ -18,7 +18,7 @@ var (
 	ciInstance pkgCI
 
 	notfound       = allerror.NewNotFound(allerror.ErrorCodePkgNotFound, "not found")
-	incorrectPhase = allerror.New(allerror.ErrorCodeIncorrectPhase, "incorrect phase")
+	incorrectPhase = allerror.New(allerror.ErrorCodePkgIncorrectPhase, "incorrect phase")
 )
 
 type SoftwarePkgUpdateInfo struct {
@@ -289,7 +289,7 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 	}
 
 	if len(ms) == 0 {
-		return errors.New("nothing changed")
+		return allerror.New(allerror.ErrorCodePkgNothingChanged, "nothing changed")
 	}
 
 	items := append(entity.otherCheckItems(), commonCheckItems...)
@@ -311,7 +311,7 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 
 func (entity *SoftwarePkg) StartCI() error {
 	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
 	return entity.CI.start(entity)
@@ -319,7 +319,7 @@ func (entity *SoftwarePkg) StartCI() error {
 
 func (entity *SoftwarePkg) HandleCIDone(ciId int, success bool) error {
 	if !entity.Phase.IsReviewing() {
-		return errors.New("can't do this")
+		return incorrectPhase
 	}
 
 	return entity.CI.done(ciId, success)

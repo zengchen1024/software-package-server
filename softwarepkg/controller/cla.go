@@ -31,13 +31,13 @@ func AddRouteForCLAController(r *gin.RouterGroup, service clavalidator.ClaValida
 func (c CLAController) VerifyCla(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
 
 	if v, err := c.service.HasSignedCLA(user.Email); err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfGet(ctx, claSingedResp{v})
 	}

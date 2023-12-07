@@ -25,8 +25,9 @@ const (
 	ErrorCodeCIIsNotReady     = "software_pkg_ci_is_not_ready"
 	ErrorCodeRetestRepeatedly = "software_pkg_retest_repeatedly"
 
-	ErrorCodeIncorrectPhase  = "software_pkg_incorrect_phase"
-	ErrorCodePkgCodeNotReady = "software_pkg_code_not_ready"
+	ErrorCodePkgCodeNotReady   = "software_pkg_code_not_ready"
+	ErrorCodePkgIncorrectPhase = "software_pkg_incorrect_phase"
+	ErrorCodePkgNothingChanged = "software_pkg_nothing_changed"
 
 	ErrorCodePkgCommentNotFound = "software_pkg_comment_not_found"
 )

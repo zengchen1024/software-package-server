@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/opensourceways/server-common-lib/utils"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	commonstl "github.com/opensourceways/software-package-server/common/controller"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -17,9 +18,8 @@ const (
 	keyUserInfo                = "user_info"
 	headerPrivateToken         = "PRIVATE-TOKEN"
 	errorBadRequestHaventLogin = "bad_request_havent_login"
+	errorNoLoginMsg            = "no login"
 )
-
-var errorNoLogin = errors.New("no login")
 
 var instance *userCheckingMiddleware
 
@@ -54,8 +54,8 @@ func (m *userCheckingMiddleware) FetchUser(ctx *gin.Context) (domain.User, error
 }
 
 func (m *userCheckingMiddleware) CheckUser(ctx *gin.Context) {
-	if code, err := m.doCheck(ctx); err != nil {
-		commonstl.SendFailedResp(ctx, code, err)
+	if err := m.doCheck(ctx); err != nil {
+		commonstl.SendError(ctx, err)
 
 		ctx.Abort()
 	} else {
@@ -63,23 +63,23 @@ func (m *userCheckingMiddleware) CheckUser(ctx *gin.Context) {
 	}
 }
 
-func (m *userCheckingMiddleware) doCheck(ctx *gin.Context) (string, error) {
+func (m *userCheckingMiddleware) doCheck(ctx *gin.Context) error {
 	t := m.token(ctx)
 	if t == "" {
-		return errorBadRequestHaventLogin, errorNoLogin
+		return allerror.New(errorBadRequestHaventLogin, errorNoLoginMsg)
 	}
 
 	c := m.cookie(ctx)
 	if c == "" {
-		return errorBadRequestHaventLogin, errorNoLogin
+		return allerror.New(errorBadRequestHaventLogin, errorNoLoginMsg)
 	}
 
-	v, code, err := m.getUserInfo(t, c)
+	v, err := m.getUserInfo(t, c)
 	if err == nil {
 		ctx.Set(keyUserInfo, v)
 	}
 
-	return code, err
+	return err
 }
 
 func (m *userCheckingMiddleware) token(ctx *gin.Context) string {
@@ -97,7 +97,7 @@ func (m *userCheckingMiddleware) cookieHeader(cookie string) string {
 }
 
 func (m *userCheckingMiddleware) getUserInfo(token, cookie string) (
-	r domain.User, code string, err error,
+	r domain.User, err error,
 ) {
 	req, err := http.NewRequest(http.MethodGet, m.userInfoURL, nil)
 	if err != nil {
@@ -114,8 +114,7 @@ func (m *userCheckingMiddleware) getUserInfo(token, cookie string) (
 	status, err := m.client.ForwardTo(req, &result)
 	if err != nil {
 		if status == http.StatusUnauthorized {
-			code = errorBadRequestHaventLogin
-			err = errorNoLogin
+			err = allerror.New(errorBadRequestHaventLogin, errorNoLoginMsg)
 		}
 	} else {
 		r, err = result.Data.toUser()

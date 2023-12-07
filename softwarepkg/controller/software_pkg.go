@@ -60,7 +60,7 @@ func (ctl SoftwarePkgController) CheckCommitters(ctx *gin.Context) {
 
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -96,7 +96,7 @@ func (ctl SoftwarePkgController) ApplyNewPkg(ctx *gin.Context) {
 
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -147,7 +147,7 @@ func (ctl SoftwarePkgController) ListPkgs(ctx *gin.Context) {
 	}
 
 	if v, err := ctl.service.ListPkgs(&cmd); err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 	} else {
 		commonctl.SendRespOfGet(ctx, v)
 	}
@@ -182,7 +182,7 @@ func (ctl SoftwarePkgController) Get(ctx *gin.Context) {
 func (ctl SoftwarePkgController) GetReview(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -216,11 +216,13 @@ func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
 	info, err := req.toCmd()
 	if err != nil {
 		commonctl.SendBadRequestParam(ctx, err)
+
+		return
 	}
 
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -250,7 +252,7 @@ func (ctl SoftwarePkgController) Review(ctx *gin.Context) {
 func (ctl SoftwarePkgController) Close(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -297,7 +299,7 @@ func (ctl SoftwarePkgController) Update(ctx *gin.Context) {
 
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
@@ -328,7 +330,7 @@ func (ctl SoftwarePkgController) Update(ctx *gin.Context) {
 func (ctl SoftwarePkgController) Retest(ctx *gin.Context) {
 	user, err := middleware.UserChecking().FetchUser(ctx)
 	if err != nil {
-		commonctl.SendFailedResp(ctx, "", err)
+		commonctl.SendError(ctx, err)
 
 		return
 	}
