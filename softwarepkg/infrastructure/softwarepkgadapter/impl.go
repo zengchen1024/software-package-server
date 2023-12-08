@@ -1,6 +1,7 @@
 package softwarepkgadapter
 
 import (
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -89,8 +90,12 @@ func (impl *softwarePkgAdapter) save(pkg *domain.SoftwarePkg, version int, ignor
 		pkg.Reviews = nil
 	}
 
+	logrus.Infof("save pkg, pkg.Logs=%#v", pkg.Logs)
+
 	do := new(softwarePkgDO)
 	toSoftwarePkgDO(pkg, do)
+
+	logrus.Infof("save pkg, do.Logs=%#v", do.Logs)
 
 	doc, err := do.toDoc()
 	if err != nil {
