@@ -58,7 +58,6 @@ func (s *softwarePkgService) Review(
 		return parseErrorForFindingPkg(err)
 	}
 
-	logrus.Infof("before add review, pkg.logs=%#v", pkg.Logs)
 	err = pkg.AddReview(&domain.UserReview{
 		Reviewer: *user,
 		Reviews:  reviews,
@@ -66,8 +65,6 @@ func (s *softwarePkgService) Review(
 	if err != nil {
 		return err
 	}
-
-	logrus.Infof("after add review, pkg.logs=%#v", pkg.Logs)
 
 	if err := s.repo.Save(&pkg, version); err != nil {
 		return err
