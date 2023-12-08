@@ -65,9 +65,11 @@ func (s *softwarePkgService) ApplyNewPkg(cmd *CmdToApplyNewSoftwarePkg) (
 		cmd.Sig, &cmd.Repo, &cmd.Basic, cmd.Spec, cmd.SRPM, &cmd.Importer,
 	)
 	if s.pkgService.IsPkgExisted(cmd.Basic.Name) {
+		/* TODO recover later
 		err = errorSoftwarePkgExists
 
 		return
+		*/
 	}
 
 	if err = s.repo.Add(&v); err != nil {
