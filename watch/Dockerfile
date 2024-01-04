@@ -1,6 +1,7 @@
 FROM openeuler/openeuler:23.03 as BUILDER
 RUN dnf update -y && \
-    dnf install -y golang
+    dnf install -y golang &&\
+    go env -w GOPROXY=https://goproxy.cn,direct
 
 COPY . /go/src/github.com/opensourceways/software-package-watch
 RUN cd /go/src/github.com/opensourceways/software-package-watch/watch && GO111MODULE=on CGO_ENABLED=0 go build
