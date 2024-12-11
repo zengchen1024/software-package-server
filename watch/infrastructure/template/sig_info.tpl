@@ -3,7 +3,7 @@
   - src-openeuler/{{.PkgName}}
   committers:
   {{- range .Committers }}
-  - openeuler_id: {{.OpeneulerId}}
+  - gitee_id: {{.GiteeId}}
     name: {{.Name}}
     email: {{.Email}}
   {{- end}}

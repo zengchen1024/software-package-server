@@ -74,9 +74,9 @@ func (impl *pullRequestImpl) genAppendSigInfoData(pkg *domain.SoftwarePkg) (stri
 		}
 
 		data.Committers = append(data.Committers, committer{
-			OpeneulerId: v.Account.Account(),
-			Name:        v.Account.Account(),
-			Email:       user.Email.Email(),
+			GiteeId: v.PlatformId,
+			Name:    v.Account.Account(),
+			Email:   user.Email.Email(),
 		})
 	}
 
