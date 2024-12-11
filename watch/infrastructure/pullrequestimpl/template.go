@@ -12,9 +12,9 @@ type sigInfoTplData struct {
 }
 
 type committer struct {
-	OpeneulerId string
-	Name        string
-	Email       string
+	Name    string
+	Email   string
+	GiteeId string
 }
 
 type repoYamlTplData struct {
