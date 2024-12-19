@@ -1,4 +1,4 @@
-FROM openeuler/openeuler:23.03 as BUILDER
+FROM openeuler/openeuler:24.03-lts as BUILDER
 RUN dnf update -y && \
     dnf install -y golang git make && \
     go env -w GOPROXY=https://goproxy.cn,direct
