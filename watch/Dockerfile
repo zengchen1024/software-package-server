@@ -4,7 +4,7 @@ RUN dnf update -y && \
     go env -w GOPROXY=https://goproxy.cn,direct
 
 COPY . /go/src/github.com/opensourceways/software-package-watch
-RUN cd /go/src/github.com/opensourceways/software-package-watch/watch && GO111MODULE=on CGO_ENABLED=0 go build
+RUN cd /go/src/github.com/opensourceways/software-package-watch/watch && go mod tidy && GO111MODULE=on CGO_ENABLED=0 go build
 
 # copy binary config and utils
 FROM openeuler/openeuler:22.03

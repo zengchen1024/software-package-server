@@ -8,7 +8,7 @@ RUN git clone https://github.com/git-lfs/git-lfs.git -b v3.4.0 && \
 
 # build binary
 COPY . /go/src/github.com/opensourceways/software-package-server
-RUN cd /go/src/github.com/opensourceways/software-package-server/message-server && GO111MODULE=on CGO_ENABLED=0 go build
+RUN cd /go/src/github.com/opensourceways/software-package-server/message-server && go mod tidy && GO111MODULE=on CGO_ENABLED=0 go build
 
 WORKDIR /go/src/github.com/opensourceways/software-package-server/download
 RUN cd /go/src/github.com/opensourceways/software-package-server/download && GO111MODULE=on CGO_ENABLED=0 go build -a -o download .

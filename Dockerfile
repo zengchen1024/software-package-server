@@ -5,7 +5,7 @@ RUN dnf update -y && \
 
 # build binary
 COPY . /go/src/github.com/opensourceways/software-package-server
-RUN cd /go/src/github.com/opensourceways/software-package-server && GO111MODULE=on CGO_ENABLED=0 go build
+RUN cd /go/src/github.com/opensourceways/software-package-server && go mod tidy && GO111MODULE=on CGO_ENABLED=0 go build
 
 # copy binary config and utils
 FROM openeuler/openeuler:22.03
