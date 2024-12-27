@@ -21,10 +21,6 @@ type PullRequest struct {
 	Link string
 }
 
-func (r *PkgWatch) SetPkgStatusInitialized() {
-	r.Status = PkgStatusInitialized
-}
-
 func (r *PkgWatch) SetPkgStatusPRCreated() {
 	r.Status = PkgStatusPRCreated
 }
@@ -43,4 +39,12 @@ func (r *PkgWatch) SetPkgStatusException() {
 
 func (r *PkgWatch) IsPkgStatusMerged() bool {
 	return r.Status == PkgStatusPRMerged
+}
+
+func (r *PkgWatch) IsPkgStatusInitialized() bool {
+	return r.Status == PkgStatusInitialized
+}
+
+func (r *PkgWatch) IsPkgInProgress() bool {
+	return r.Status == PkgStatusPRCreated || r.Status == PkgStatusPRMerged
 }

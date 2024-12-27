@@ -95,12 +95,26 @@ func (impl *WatchingImpl) watch() {
 			logrus.Errorf("find watch pkg failed, err: %s", err.Error())
 		}
 
+		// There is a case that when two or more software pkgs are handled at one,
+		// it will be conflict when submitting prs of them to community repository.
+		// The best way is to handle pkg one by one.
+		var newOne *watchdomain.PkgWatch
 		for _, v := range watchPkgs {
-			impl.handle(v)
+			if v.IsPkgInProgress() {
+				impl.handle(v)
+				newOne = nil
+
+				break
+			} else if newOne == nil && v.IsPkgStatusInitialized() {
+				newOne = v
+			}
 
 			if needStop() {
 				return
 			}
+		}
+		if newOne != nil {
+			impl.handle(newOne)
 		}
 
 		// time starts.
