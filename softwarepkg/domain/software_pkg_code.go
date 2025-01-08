@@ -39,7 +39,7 @@ func (code *SoftwarePkgCode) filesToDownload() []SoftwarePkgCodeSourceFile {
 	return r
 }
 
-func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeSourceFile) bool {
+func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeSourceFile) (bool, bool) {
 	spec := false
 	srpm := false
 
@@ -55,7 +55,7 @@ func (code *SoftwarePkgCode) saveDownloadedFiles(files []SoftwarePkgCodeSourceFi
 		}
 	}
 
-	return spec || srpm
+	return spec || srpm, code.isReady()
 }
 
 // SoftwarePkgCodeFile

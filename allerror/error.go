@@ -21,6 +21,7 @@ const (
 	ErrorCodePkgExists   = "software_pkg_exists"
 	ErrorCodePkgNotFound = "software_pkg_not_found"
 
+	ErrorCodeCIIsPassed       = "software_pkg_ci_is_passed"
 	ErrorCodeCIIsRunning      = "software_pkg_ci_is_running"
 	ErrorCodeCIIsNotReady     = "software_pkg_ci_is_not_ready"
 	ErrorCodeRetestRepeatedly = "software_pkg_retest_repeatedly"

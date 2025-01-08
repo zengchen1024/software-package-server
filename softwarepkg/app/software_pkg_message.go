@@ -64,6 +64,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 
 	changed, err := s.code.Download(files, pkg.Basic.Name)
 	if err != nil {
+		// TODO maybe it can't retry, tell the reason to author and abandon
 		return err
 	}
 
@@ -73,7 +74,8 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	if !pkg1.SaveDownloadedFiles(files) {
+	updated, isReady := pkg1.SaveDownloadedFiles(files, changed)
+	if !updated {
 		return nil
 	}
 
@@ -86,8 +88,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	if changed {
-		// CI can be started manually. So don't notify everytime.
+	if changed && isReady {
 		s.notifyPkgCodeChanged(&pkg1)
 	}
 

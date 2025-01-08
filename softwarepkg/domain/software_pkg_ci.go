@@ -28,6 +28,12 @@ type SoftwarePkgCI struct {
 	StartTime int64 // deal with the case that the ci is timeout
 }
 
+func (ci *SoftwarePkgCI) reset() {
+	ci.Id = 0
+	ci.status = dp.PackageCIStatusWaiting
+	ci.StartTime = utils.Now()
+}
+
 func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
 	if !ci.status.IsCIWaiting() {
 		return errors.New("can't do this")
@@ -48,6 +54,11 @@ func (ci *SoftwarePkgCI) retest() error {
 
 	if s.IsCIRunning() {
 		return allerror.New(allerror.ErrorCodeCIIsRunning, "ci is running")
+	}
+
+	// no need to test if it is passed.
+	if s.IsCIPassed() {
+		return allerror.New(allerror.ErrorCodeCIIsPassed, "ci is passed")
 	}
 
 	if s.IsCIWaiting() {
@@ -82,7 +93,7 @@ func (ci *SoftwarePkgCI) done(ciId int, success bool) error {
 	return nil
 }
 
-func (ci *SoftwarePkgCI) isSuccess() bool {
+func (ci *SoftwarePkgCI) isPassed() bool {
 	return ci.status != nil && ci.status.IsCIPassed()
 }
 

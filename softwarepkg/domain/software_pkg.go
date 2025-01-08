@@ -100,6 +100,14 @@ type SoftwarePkg struct {
 	Initialized bool
 }
 
+func (entity *SoftwarePkg) isCodeReady() bool {
+	return entity.Code.isReady()
+}
+
+func (entity *SoftwarePkg) isCIPassed() bool {
+	return entity.isCodeReady() && entity.CI.isPassed()
+}
+
 func (entity *SoftwarePkg) isCommitter(user dp.Account) bool {
 	return entity.Repo.isCommitter(user)
 }
@@ -132,8 +140,18 @@ func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeSourceFile {
 	return nil
 }
 
-func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile) bool {
-	return entity.Code.saveDownloadedFiles(files)
+func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile, fileChanged bool) (updated, isReady bool) {
+	updated, isReady = entity.Code.saveDownloadedFiles(files)
+
+	if updated && fileChanged {
+		entity.CI.reset()
+
+		entity.clearReview(
+			[]string{pkgModificationCode}, append(entity.otherCheckItems(), commonCheckItems...),
+		)
+	}
+
+	return
 }
 
 func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
@@ -141,7 +159,7 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
 		return incorrectPhase
 	}
 
-	if !entity.CI.isSuccess() {
+	if !entity.isCIPassed() {
 		return allerror.New(
 			allerror.ErrorCodeCIIsNotReady, "ci is not successful yet",
 		)
@@ -202,7 +220,7 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 		return incorrectPhase
 	}
 
-	if !entity.Code.isReady() {
+	if !entity.isCodeReady() {
 		return allerror.New(allerror.ErrorCodePkgCodeNotReady, "code not ready")
 	}
 
@@ -243,17 +261,18 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 		entity.Importer.PlatformId = importer.PlatformId
 	}
 
-	if info.Spec != nil || info.SRPM != nil {
+	codeUpdated := info.Spec != nil || info.SRPM != nil
+	if codeUpdated {
 		entity.Code.update(info.Spec, info.SRPM)
-		ms = append(ms, pkgModificationCode)
+		// It can't know whether the codes are changed now until they are dowloaded.
+		// entity.Code.update will set the codes to be dirty and CI, Review will not work
+		// until the codes are downloaded.
 	}
 
-	if len(ms) == 0 {
+	otherUpdated := len(ms) != 0
+	if !otherUpdated && !codeUpdated {
 		return allerror.New(allerror.ErrorCodePkgNothingChanged, "nothing changed")
 	}
-
-	items := append(entity.otherCheckItems(), commonCheckItems...)
-	entity.clearReview(ms, items)
 
 	entity.Logs = append(
 		entity.Logs,
@@ -262,8 +281,13 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 		),
 	)
 
-	if entity.doesPassReview(items) {
-		entity.Phase = dp.PackagePhaseCreatingRepo
+	if otherUpdated {
+		items := append(entity.otherCheckItems(), commonCheckItems...)
+		entity.clearReview(ms, items)
+
+		if entity.doesPassReview(items) {
+			entity.Phase = dp.PackagePhaseCreatingRepo
+		}
 	}
 
 	return nil
@@ -272,6 +296,10 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 func (entity *SoftwarePkg) StartCI() error {
 	if !entity.Phase.IsReviewing() {
 		return incorrectPhase
+	}
+
+	if !entity.isCodeReady() {
+		return allerror.New(allerror.ErrorCodePkgCodeNotReady, "code not ready")
 	}
 
 	return entity.CI.start(entity)
@@ -336,18 +364,16 @@ func NewSoftwarePkg(
 	srpm dp.URL,
 	importer *PkgCommitter,
 ) SoftwarePkg {
-	now := utils.Now()
-
 	pkg := SoftwarePkg{
-		CI:        SoftwarePkgCI{status: dp.PackageCIStatusWaiting, StartTime: now},
 		Sig:       sig,
 		Repo:      *repo,
 		Basic:     *basic,
 		Phase:     dp.PackagePhaseReviewing,
 		Importer:  *importer,
-		AppliedAt: now,
+		AppliedAt: utils.Now(),
 	}
 
+	pkg.CI.reset()
 	pkg.Code.update(spec, srpm)
 
 	return pkg
