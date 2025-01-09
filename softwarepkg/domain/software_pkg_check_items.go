@@ -27,11 +27,11 @@ func (entity *SoftwarePkg) CheckItemsMap() map[string]string {
 }
 
 func (entity *SoftwarePkg) CheckItems() []CheckItem {
-	other := entity.otherCheckItems()
+	others := entity.otherCheckItems()
 
-	r := make([]CheckItem, 0, len(other)+len(commonCheckItems))
+	r := make([]CheckItem, 0, len(others)+len(commonCheckItems))
 	r = append(r, commonCheckItems...) // don't change commonCheckItems by copy it.
-	r = append(r, other...)
+	r = append(r, others...)
 
 	return r
 }

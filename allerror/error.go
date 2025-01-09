@@ -18,6 +18,8 @@ const (
 
 	ErrorCodeSensitiveContent = "sensitive_content"
 
+	ErrorCodeRemoteFileInvalid = "software_pkg_remote_file_invalid"
+
 	ErrorCodePkgExists   = "software_pkg_exists"
 	ErrorCodePkgNotFound = "software_pkg_not_found"
 
@@ -45,6 +47,14 @@ func (e errorImpl) Error() string {
 
 func (e errorImpl) ErrorCode() string {
 	return e.code
+}
+
+func IsError(err error, code string) bool {
+	v, ok := err.(interface {
+		ErrorCode() string
+	})
+
+	return ok && v.ErrorCode() == code
 }
 
 // New

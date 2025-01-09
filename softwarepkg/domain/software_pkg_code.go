@@ -15,7 +15,7 @@ func (code *SoftwarePkgCode) isReady() bool {
 	return code.Spec.isReady() && code.SRPM.isReady()
 }
 
-func (code *SoftwarePkgCode) update(spec, srpm dp.URL) {
+func (code *SoftwarePkgCode) update(spec, srpm dp.RemoteFile) {
 	if spec != nil {
 		code.Spec.update(spec)
 	}
@@ -71,7 +71,7 @@ func (f *SoftwarePkgCodeFile) isReady() bool {
 	return f.DownloadAddr != nil && !f.Dirty
 }
 
-func (f *SoftwarePkgCodeFile) update(src dp.URL) {
+func (f *SoftwarePkgCodeFile) update(src dp.RemoteFile) {
 	f.Src = src
 	f.Dirty = true
 	f.UpdatedAt = utils.Now()
@@ -99,25 +99,29 @@ func (f *SoftwarePkgCodeFile) fileToDownload() *SoftwarePkgCodeSourceFile {
 
 // SoftwarePkgCodeSourceFile
 type SoftwarePkgCodeSourceFile struct {
-	Src          dp.URL // Src is the url user inputed
-	UpdatedAt    int64  // UpdatedAt is the time when user changes the Src or wants to reload
+	Src          dp.RemoteFile // Src is the url user inputed
+	UpdatedAt    int64         // UpdatedAt is the time when user changes the Src or wants to reload
 	DownloadAddr dp.URL
+}
+
+func (f *SoftwarePkgCodeSourceFile) RemoteFileAddr() string {
+	return f.Src.URL()
 }
 
 func (f *SoftwarePkgCodeSourceFile) FileName() string {
 	return f.Src.FileName()
 }
 
+func (f *SoftwarePkgCodeSourceFile) CheckFile() error {
+	return f.Src.CheckFile()
+}
+
 func (f *SoftwarePkgCodeSourceFile) IsSRPM() bool {
-	return dp.IsSRPM(f.FileName())
+	return f.Src.IsSRPM()
 }
 
 func (f *SoftwarePkgCodeSourceFile) FormatedFileName(name dp.PackageName) string {
-	if f.IsSRPM() {
-		return name.PackageName() + dp.SRPMSuffix
-	}
-
-	return name.PackageName() + dp.SpecSuffix
+	return name.PackageName() + f.Src.Suffix()
 }
 
 func (f *SoftwarePkgCodeSourceFile) isSame(f1 *SoftwarePkgCodeSourceFile) bool {

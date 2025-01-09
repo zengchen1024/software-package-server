@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/sirupsen/logrus"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/message"
@@ -64,7 +65,11 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 
 	changed, err := s.code.Download(files, pkg.Basic.Name)
 	if err != nil {
-		// TODO maybe it can't retry, tell the reason to author and abandon
+		if allerror.IsError(err, allerror.ErrorCodeRemoteFileInvalid) {
+			return nil
+			// TODO should save the error and show it on the website.
+		}
+
 		return err
 	}
 

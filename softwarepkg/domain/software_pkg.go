@@ -23,8 +23,8 @@ var (
 type SoftwarePkgUpdateInfo struct {
 	Sig      dp.ImportingPkgSig
 	Repo     SoftwarePkgRepo
-	Spec     dp.URL
-	SRPM     dp.URL
+	Spec     dp.RemoteFile
+	SRPM     dp.RemoteFile
 	Desc     dp.PackageDesc
 	Purpose  dp.PurposeToImportPkg
 	Upstream dp.URL
@@ -112,6 +112,12 @@ func (entity *SoftwarePkg) isCommitter(user dp.Account) bool {
 	return entity.Repo.isCommitter(user)
 }
 
+func (entity *SoftwarePkg) createRepoIfReviewPassed(items []CheckItem) {
+	if entity.doesPassReview(items) {
+		entity.Phase = dp.PackagePhaseCreatingRepo
+	}
+}
+
 func (entity *SoftwarePkg) CanAddReviewComment() error {
 	if entity.Phase.IsReviewing() {
 		return nil
@@ -143,12 +149,17 @@ func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeSourceFile {
 func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile, fileChanged bool) (updated, isReady bool) {
 	updated, isReady = entity.Code.saveDownloadedFiles(files)
 
-	if updated && fileChanged {
-		entity.CI.reset()
+	if updated {
+		items := entity.CheckItems()
 
-		entity.clearReview(
-			[]string{pkgModificationCode}, append(entity.otherCheckItems(), commonCheckItems...),
-		)
+		if fileChanged {
+			entity.CI.reset()
+
+			entity.clearReview([]string{pkgModificationCode}, items)
+
+		} else if isReady {
+			entity.createRepoIfReviewPassed(items)
+		}
 	}
 
 	return
@@ -165,8 +176,7 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
 		)
 	}
 
-	items := append(entity.otherCheckItems(), commonCheckItems...)
-
+	items := entity.CheckItems()
 	if err := entity.addReview(ur, items); err != nil {
 		return err
 	}
@@ -178,9 +188,7 @@ func (entity *SoftwarePkg) AddReview(ur *UserReview) error {
 		),
 	)
 
-	if entity.doesPassReview(items) {
-		entity.Phase = dp.PackagePhaseCreatingRepo
-	}
+	entity.createRepoIfReviewPassed(items)
 
 	return nil
 }
@@ -282,11 +290,11 @@ func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdat
 	)
 
 	if otherUpdated {
-		items := append(entity.otherCheckItems(), commonCheckItems...)
+		items := entity.CheckItems()
 		entity.clearReview(ms, items)
 
-		if entity.doesPassReview(items) {
-			entity.Phase = dp.PackagePhaseCreatingRepo
+		if !codeUpdated {
+			entity.createRepoIfReviewPassed(items)
 		}
 	}
 
@@ -360,8 +368,8 @@ func NewSoftwarePkg(
 	sig dp.ImportingPkgSig,
 	repo *SoftwarePkgRepo,
 	basic *SoftwarePkgBasicInfo,
-	spec dp.URL,
-	srpm dp.URL,
+	spec dp.RemoteFile,
+	srpm dp.RemoteFile,
 	importer *PkgCommitter,
 ) SoftwarePkg {
 	pkg := SoftwarePkg{

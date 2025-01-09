@@ -98,8 +98,8 @@ func (s *service) toPkgBasicInfo(
 	info.CommunityPR = url
 
 	code := &info.Code
-	code.SRPM.Src = url
-	code.Spec.Src = url
+	code.SRPM.Src, _ = dp.CreateRemoteFile("https://fake.com/fake.spec")
+	code.Spec.Src, _ = dp.CreateRemoteFile("https://fake.com/fake.src.rpm")
 	info.Basic.Upstream = url
 	if upstream != nil {
 		info.Basic.Upstream = upstream

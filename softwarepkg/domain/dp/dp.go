@@ -5,14 +5,8 @@ import (
 	"net/url"
 	"path"
 	"regexp"
-	"strings"
 
 	libutil "github.com/opensourceways/server-common-lib/utils"
-)
-
-const (
-	SRPMSuffix = ".src.rpm"
-	SpecSuffix = ".spec"
 )
 
 var (
@@ -73,14 +67,6 @@ func (v dpURL) FileName() string {
 	}
 
 	return path.Base(r.Path)
-}
-
-func IsSRPM(name string) bool {
-	return strings.HasSuffix(strings.ToLower(name), SRPMSuffix)
-}
-
-func IsSpec(name string) bool {
-	return strings.HasSuffix(strings.ToLower(name), SpecSuffix)
 }
 
 // Email

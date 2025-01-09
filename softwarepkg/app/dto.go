@@ -9,8 +9,8 @@ import (
 
 type CmdToApplyNewSoftwarePkg struct {
 	Sig      dp.ImportingPkgSig
-	Spec     dp.URL
-	SRPM     dp.URL
+	Spec     dp.RemoteFile
+	SRPM     dp.RemoteFile
 	Repo     domain.SoftwarePkgRepo
 	Basic    domain.SoftwarePkgBasicInfo
 	Importer domain.PkgCommitter

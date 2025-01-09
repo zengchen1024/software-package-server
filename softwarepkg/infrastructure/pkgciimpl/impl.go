@@ -9,6 +9,7 @@ import (
 	libutils "github.com/opensourceways/server-common-lib/utils"
 	"github.com/sirupsen/logrus"
 
+	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 )
@@ -118,6 +119,12 @@ func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name d
 	specIndex, srpmIndex := 0, 2
 	for i := range files {
 		item := &files[i]
+
+		if err := item.CheckFile(); err != nil {
+			logrus.Errorf("can't download the %s, err:%s", item.RemoteFileAddr(), err.Error())
+
+			return false, allerror.New(allerror.ErrorCodeRemoteFileInvalid, err.Error())
+		}
 
 		i := specIndex
 		if item.IsSRPM() {

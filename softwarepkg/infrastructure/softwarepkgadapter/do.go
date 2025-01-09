@@ -363,7 +363,7 @@ type codeInfoDO struct {
 }
 
 func (do *codeInfoDO) toDomain(f *domain.SoftwarePkgCodeFile) (err error) {
-	if f.Src, err = dp.NewURL(do.Src); err != nil {
+	if f.Src, err = dp.CreateRemoteFile(do.Src); err != nil {
 		return
 	}
 
