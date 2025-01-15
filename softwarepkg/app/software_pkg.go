@@ -155,20 +155,12 @@ func (s *softwarePkgService) Close(cmd *CmdToClosePkg) error {
 		return err
 	}
 
-	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
+	if err = s.addCommentWhenClosingPkg(cmd); err != nil {
 		return err
 	}
 
-	if cmd.Comment == nil {
-		return nil
-	}
-
-	comment := domain.NewSoftwarePkgReviewComment(cmd.Reviewer.Account, cmd.Comment)
-	if err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment); err != nil {
-		logrus.Errorf(
-			"failed to add a comment when closing a pkg:%s, err:%s",
-			cmd.PkgId, err.Error(),
-		)
+	if err := s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
+		return err
 	}
 
 	e := domain.NewSoftwarePkgClosedEvent(&pkg)
@@ -180,6 +172,23 @@ func (s *softwarePkgService) Close(cmd *CmdToClosePkg) error {
 	}
 
 	return nil
+}
+
+func (s *softwarePkgService) addCommentWhenClosingPkg(cmd *CmdToClosePkg) error {
+	if cmd.Comment == nil {
+		return nil
+	}
+
+	comment := domain.NewSoftwarePkgReviewComment(cmd.Reviewer.Account, cmd.Comment)
+	err := s.commentRepo.AddReviewComment(cmd.PkgId, &comment)
+	if err != nil {
+		logrus.Errorf(
+			"failed to add a comment when closing a pkg:%s, err:%s",
+			cmd.PkgId, err.Error(),
+		)
+
+	}
+	return err
 }
 
 func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
