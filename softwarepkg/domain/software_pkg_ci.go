@@ -3,14 +3,19 @@ package domain
 import (
 	"errors"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/opensourceways/software-package-server/allerror"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/utils"
 )
 
 type pkgCI interface {
-	// return new pr num
+	// return new ci id(pr num)
 	StartNewCI(pkg *SoftwarePkg) (int, error)
+
+	// should return nil if the CI had been cleared(pr is closed)
+	ClearCI(int) error
 }
 
 func NewSoftwarePkgCI(cid int, status dp.PackageCIStatus, startTime int64) SoftwarePkgCI {
@@ -28,17 +33,33 @@ type SoftwarePkgCI struct {
 	StartTime int64 // deal with the case that the ci is timeout
 }
 
-func (ci *SoftwarePkgCI) reset() {
+func (ci *SoftwarePkgCI) init() {
 	ci.Id = 0
 	ci.status = dp.PackageCIStatusWaiting
 	ci.StartTime = utils.Now()
 }
 
-func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
-	if !ci.status.IsCIWaiting() {
-		return errors.New("can't do this")
+func (ci *SoftwarePkgCI) reset() error {
+	if ci.Id != 0 && !(ci.status.IsCIFailed() || ci.status.IsCIPassed()) {
+		if err := ciInstance.ClearCI(ci.Id); err != nil {
+			return err
+		}
 	}
 
+	ci.init()
+
+	return nil
+}
+
+func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
+	if !ci.status.IsCIWaiting() {
+		return errors.New("ci is not waiting")
+	}
+
+	return ci.startCI(pkg)
+}
+
+func (ci *SoftwarePkgCI) startCI(pkg *SoftwarePkg) error {
 	v, err := ciInstance.StartNewCI(pkg)
 	if err == nil {
 		ci.Id = v
@@ -49,7 +70,7 @@ func (ci *SoftwarePkgCI) start(pkg *SoftwarePkg) error {
 	return err
 }
 
-func (ci *SoftwarePkgCI) retest() error {
+func (ci *SoftwarePkgCI) retest(pkg *SoftwarePkg) error {
 	s := ci.Status()
 
 	if s.IsCIRunning() {
@@ -61,25 +82,27 @@ func (ci *SoftwarePkgCI) retest() error {
 		return allerror.New(allerror.ErrorCodeCIIsPassed, "ci is passed")
 	}
 
-	if s.IsCIWaiting() {
-		now := utils.Now()
-		if now < ci.StartTime+ciConfig.CIWaitTimeout {
-			return allerror.New(allerror.ErrorCodeRetestRepeatedly, "duplicate operation")
+	if ci.Id != 0 && !s.IsCIFailed() {
+		if err := ciInstance.ClearCI(ci.Id); err != nil {
+			return err
 		}
-		ci.StartTime = now
-
-		return nil
 	}
 
-	ci.status = dp.PackageCIStatusWaiting
-	ci.StartTime = utils.Now()
-
-	return nil
+	return ci.startCI(pkg)
 }
 
 func (ci *SoftwarePkgCI) done(ciId int, success bool) error {
-	if ci.Id != ciId || !ci.Status().IsCIRunning() {
-		return errors.New("ignore the ci result")
+	if err := ciInstance.ClearCI(ciId); err != nil {
+		return err
+	}
+
+	if ci.Id != ciId || !ci.status.IsCIRunning() {
+		logrus.Errorf(
+			"ignore the ci result, ci id %v != %v, status=%v",
+			ci.Id, ciId, ci.status,
+		)
+
+		return allerror.New(allerror.ErrorCodeCIIsUnmatched, "ignore the ci result")
 	}
 
 	if success {

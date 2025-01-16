@@ -6,6 +6,7 @@ import (
 )
 
 type PkgCodeAdapter interface {
-	Download([]domain.SoftwarePkgCodeSourceFile, dp.PackageName) (bool, error)
-	Clear(int, dp.PackageName) error
+	DownloadCodes([]domain.SoftwarePkgCodeSourceFile, dp.PackageName) (bool, error)
+	ClearCodes(dp.PackageName) error
+	ClearAll(int, dp.PackageName) error
 }

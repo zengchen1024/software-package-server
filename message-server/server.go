@@ -39,7 +39,7 @@ func (s *server) subscribe(cfg *Config) error {
 
 	err = kfklib.SubscribeWithStrategyOfRetry(
 		"software_pkg_start_ci", s.startCI,
-		[]string{topics.SoftwarePkgCodeChanged, topics.SoftwarePkgRetested},
+		[]string{topics.SoftwarePkgCodeChanged},
 		retryNum,
 	)
 	if err != nil {

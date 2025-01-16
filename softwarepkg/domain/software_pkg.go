@@ -146,14 +146,16 @@ func (entity *SoftwarePkg) FilesToDownload() []SoftwarePkgCodeSourceFile {
 	return nil
 }
 
-func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile, fileChanged bool) (updated, isReady bool) {
+func (entity *SoftwarePkg) SaveDownloadedFiles(files []SoftwarePkgCodeSourceFile, fileChanged bool) (updated, isReady bool, err error) {
 	updated, isReady = entity.Code.saveDownloadedFiles(files)
 
 	if updated {
 		items := entity.CheckItems()
 
 		if fileChanged {
-			entity.CI.reset()
+			if err = entity.CI.reset(); err != nil {
+				return
+			}
 
 			entity.clearReview([]string{pkgModificationCode}, items)
 
@@ -232,7 +234,7 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 		return allerror.New(allerror.ErrorCodePkgCodeNotReady, "code not ready")
 	}
 
-	if err := entity.CI.retest(); err != nil {
+	if err := entity.CI.retest(entity); err != nil {
 		return err
 	}
 
@@ -381,7 +383,7 @@ func NewSoftwarePkg(
 		AppliedAt: utils.Now(),
 	}
 
-	pkg.CI.reset()
+	pkg.CI.init()
 	pkg.Code.update(spec, srpm)
 
 	return pkg

@@ -63,7 +63,7 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return nil
 	}
 
-	changed, err := s.code.Download(files, pkg.Basic.Name)
+	changed, err := s.code.DownloadCodes(files, pkg.Basic.Name)
 	if err != nil {
 		if allerror.IsError(err, allerror.ErrorCodeRemoteFileInvalid) {
 			return nil
@@ -79,9 +79,9 @@ func (s softwarePkgMessageService) DownloadPkgCode(cmd CmdToDownloadPkgCode) err
 		return err
 	}
 
-	updated, isReady := pkg1.SaveDownloadedFiles(files, changed)
-	if !updated {
-		return nil
+	updated, isReady, err := pkg1.SaveDownloadedFiles(files, changed)
+	if err != nil || !updated {
+		return err
 	}
 
 	if err = s.repo.SaveAndIgnoreReview(&pkg1, version); err != nil {
@@ -140,6 +140,10 @@ func (s softwarePkgMessageService) HandlePkgCIDone(cmd CmdToHandlePkgCIDone) err
 	}
 
 	if err := pkg.HandleCIDone(cmd.PRNumber, cmd.Success); err != nil {
+		if allerror.IsError(err, allerror.ErrorCodeCIIsUnmatched) {
+			return nil
+		}
+
 		return err
 	}
 
@@ -189,7 +193,7 @@ func (s softwarePkgMessageService) HandlePkgRepoCodePushed(cmd CmdToHandlePkgRep
 		return err
 	}
 
-	if err := s.code.Clear(pkg.CIId(), pkg.PackageName()); err != nil {
+	if err := s.code.ClearCodes(pkg.PackageName()); err != nil {
 		logrus.Errorf("failed to clear pkg, pkg:%s, err:%s", pkg.Id, err.Error())
 	}
 
@@ -203,7 +207,7 @@ func (s softwarePkgMessageService) HandlePkgClosed(event *domain.SoftwarePkgClos
 		return nil
 	}
 
-	if err := s.code.Clear(event.CIId, name); err != nil {
+	if err := s.code.ClearAll(event.CIId, name); err != nil {
 		logrus.Errorf("failed to clear pkg, pkg:%s, err:%s", event.PkgId, err.Error())
 	}
 

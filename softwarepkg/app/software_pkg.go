@@ -188,6 +188,7 @@ func (s *softwarePkgService) addCommentWhenClosingPkg(cmd *CmdToClosePkg) error 
 		)
 
 	}
+
 	return err
 }
 
@@ -202,11 +203,6 @@ func (s *softwarePkgService) Retest(pid string, user *domain.User) error {
 	}
 
 	if err = s.repo.SaveAndIgnoreReview(&pkg, version); err != nil {
-		return err
-	}
-
-	e := domain.NewSoftwarePkgRetestedEvent(&pkg)
-	if err = s.message.SendPkgRetestedEvent(&e); err != nil {
 		return err
 	}
 

@@ -26,6 +26,7 @@ const (
 	ErrorCodeCIIsPassed       = "software_pkg_ci_is_passed"
 	ErrorCodeCIIsRunning      = "software_pkg_ci_is_running"
 	ErrorCodeCIIsNotReady     = "software_pkg_ci_is_not_ready"
+	ErrorCodeCIIsUnmatched    = "software_pkg_ci_is_unmatched"
 	ErrorCodeRetestRepeatedly = "software_pkg_retest_repeatedly"
 
 	ErrorCodePkgCodeNotReady   = "software_pkg_code_not_ready"

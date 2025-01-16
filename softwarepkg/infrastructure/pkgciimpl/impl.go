@@ -61,10 +61,6 @@ type pkgCIImpl struct {
 }
 
 func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
-	if v := pkg.CIId(); v > 0 {
-		impl.closePR(v)
-	}
-
 	name := pkg.PackageName().PackageName()
 	repo := &impl.cfg.CIRepo
 
@@ -80,11 +76,37 @@ func (impl *pkgCIImpl) StartNewCI(pkg *domain.SoftwarePkg) (int, error) {
 	return int(pr.Number), nil
 }
 
-func (impl *pkgCIImpl) Clear(ciId int, name dp.PackageName) error {
-	if ciId > 0 {
-		impl.closePR(ciId)
+func (impl *pkgCIImpl) ClearAll(prNum int, name dp.PackageName) error {
+	if err := impl.ClearCI(prNum); err != nil {
+		return err
 	}
 
+	return impl.ClearCodes(name)
+}
+
+func (impl *pkgCIImpl) ClearCI(prNum int) error {
+	if prNum <= 0 {
+		return nil
+	}
+
+	repo := &impl.cfg.CIRepo
+
+	err := impl.cli.ClosePR(repo.Org, repo.Repo, int32(prNum))
+	if err == nil {
+		return nil
+	}
+
+	pr, err1 := impl.cli.GetGiteePullRequest(repo.Org, repo.Repo, int32(prNum))
+	if err1 == nil && strings.ToLower(pr.State) == "closed" {
+		return nil
+	}
+
+	logrus.Errorf("failed to close pr:%v, err:%s", prNum, err.Error())
+
+	return err
+}
+
+func (impl *pkgCIImpl) ClearCodes(name dp.PackageName) error {
 	cfg := &impl.cfg
 	params := []string{
 		cfg.ClearScript,
@@ -102,15 +124,7 @@ func (impl *pkgCIImpl) Clear(ciId int, name dp.PackageName) error {
 	return err
 }
 
-func (impl *pkgCIImpl) closePR(prNum int) {
-	repo := &impl.cfg.CIRepo
-
-	if err := impl.cli.ClosePR(repo.Org, repo.Repo, int32(prNum)); err != nil {
-		logrus.Errorf("failed to close pr:%v", prNum)
-	}
-}
-
-func (impl *pkgCIImpl) Download(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) (bool, error) {
+func (impl *pkgCIImpl) DownloadCodes(files []domain.SoftwarePkgCodeSourceFile, name dp.PackageName) (bool, error) {
 	if len(files) == 0 {
 		return false, nil
 	}
