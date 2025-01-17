@@ -88,6 +88,29 @@ func (ci *SoftwarePkgCI) retest(pkg *SoftwarePkg) error {
 		}
 	}
 
+	// It is ok to start ci here even if retesting cocurrently,
+	// because there is only one pr to be created successfully at last.
+	return ci.startCI(pkg)
+}
+
+func (ci *SoftwarePkgCI) autoRetest(pkg *SoftwarePkg) error {
+	s := ci.Status()
+
+	if s.IsCIRunning() || s.IsCIPassed() || s.IsCIFailed() {
+		return errors.New("can't retest automatically, because the status is not correct")
+	}
+
+	// ci will be triggered by event, so wait until time is up.
+	if s.IsCIWaiting() && utils.Now() < ci.StartTime+ciConfig.CIWaitTimeout {
+		return errors.New("can't retest automatically, because it is not time yet")
+	}
+
+	if ci.Id != 0 {
+		if err := ciInstance.ClearCI(ci.Id); err != nil {
+			return err
+		}
+	}
+
 	return ci.startCI(pkg)
 }
 

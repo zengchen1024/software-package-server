@@ -118,7 +118,12 @@ func (s softwarePkgMessageService) StartCI(cmd CmdToStartCI) error {
 		return err
 	}
 
-	if err = pkg.StartCI(); err != nil {
+	if cmd.AutoRetest {
+		err = pkg.AutoRetest(s.robot)
+	} else {
+		err = pkg.StartCI()
+	}
+	if err != nil {
 		return err
 	}
 

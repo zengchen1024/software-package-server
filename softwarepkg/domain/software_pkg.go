@@ -248,6 +248,29 @@ func (entity *SoftwarePkg) Retest(user *User) error {
 	return nil
 }
 
+func (entity *SoftwarePkg) AutoRetest(robot dp.Account) error {
+	if !entity.Phase.IsReviewing() {
+		return incorrectPhase
+	}
+
+	if !entity.isCodeReady() {
+		return allerror.New(allerror.ErrorCodePkgCodeNotReady, "code not ready")
+	}
+
+	if err := entity.CI.autoRetest(entity); err != nil {
+		return err
+	}
+
+	entity.Logs = append(
+		entity.Logs,
+		NewSoftwarePkgOperationLog(
+			robot, dp.PackageOperationLogActionRetest,
+		),
+	)
+
+	return nil
+}
+
 func (entity *SoftwarePkg) Update(importer *PkgCommitter, info *SoftwarePkgUpdateInfo) error {
 	if !entity.Importer.isMe(importer.Account) {
 		return notfound

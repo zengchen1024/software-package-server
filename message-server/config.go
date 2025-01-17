@@ -3,7 +3,9 @@ package main
 import (
 	kfklib "github.com/opensourceways/kafka-lib/agent"
 	mongdblib "github.com/opensourceways/mongodb-lib/mongodblib"
+
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/message-server/watch"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
 	"github.com/opensourceways/software-package-server/softwarepkg/infrastructure/pkgciimpl"
@@ -57,6 +59,7 @@ type Config struct {
 	Mongo       mongoConfig           `json:"mongo"`
 	Kafka       kfklib.Config         `json:"kafka"`
 	Topics      topics                `json:"topics"`
+	Watcher     watch.Config          `json:"watcher"`
 	Postgresql  postgresqlConfig      `json:"postgresql"`
 	Encryption  utils.Config          `json:"encryption"`
 	PkgManager  pkgmanagerimpl.Config `json:"pkg_manager"`
@@ -84,6 +87,7 @@ func (cfg *Config) configItems() []interface{} {
 		&cfg.Mongo.DB,
 		&cfg.Mongo.Collections,
 		&cfg.Kafka,
+		&cfg.Watcher,
 		&cfg.Encryption,
 		&cfg.Postgresql.DB,
 		&cfg.Postgresql.Table,

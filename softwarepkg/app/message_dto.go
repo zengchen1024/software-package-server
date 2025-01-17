@@ -19,10 +19,17 @@ func (cmd *CmdToDownloadPkgCode) logString() string {
 
 // CmdToStartCI
 type CmdToStartCI struct {
-	PkgId string
+	PkgId      string
+	AutoRetest bool
 }
 
 func (cmd *CmdToStartCI) logString() string {
+	if cmd.AutoRetest {
+		return fmt.Sprintf(
+			"retest pkg automatically, pkgid:%s", cmd.PkgId,
+		)
+	}
+
 	return fmt.Sprintf(
 		"starting pkg ci, pkgid:%s", cmd.PkgId,
 	)

@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/opensourceways/software-package-server/common/infrastructure/postgresql"
+	"github.com/opensourceways/software-package-server/message-server/watch"
 	"github.com/opensourceways/software-package-server/softwarepkg/app"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain"
 	"github.com/opensourceways/software-package-server/softwarepkg/domain/dp"
@@ -129,15 +130,21 @@ func main() {
 	}
 
 	// service
+	repo := softwarepkgadapter.NewsoftwarePkgAdapter(
+		mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
+	)
+
 	messageService := app.NewSoftwarePkgMessageService(
-		pkgCI,
-		softwarepkgadapter.NewsoftwarePkgAdapter(
-			mongdblib.DAO(cfg.Mongo.Collections.SoftwarePkg),
-		),
+		pkgCI, repo,
 		pkgmanagerimpl.Instance(),
 		&producer{cfg.Topics.SoftwarePkgCodeChanged},
 		repositoryimpl.NewSoftwarePkgComment(&cfg.Postgresql.Table),
 	)
+
+	// watch
+	w := watch.NewWatchingImpl(repo, messageService, &cfg.Watcher)
+	w.Start()
+	defer w.Stop()
 
 	// run
 	run(&server{messageService}, cfg)
