@@ -108,7 +108,7 @@ func (impl *WatchingImpl) doOnce(times int, needStop func() bool) bool {
 		cmd.PkgId = pkgs[i].Id
 
 		if err := impl.service.StartCI(cmd); err != nil {
-			logrus.Errorf("retest pkg automatically failed, err:%s", err.Error())
+			logrus.Errorf("retest pkg:(%s) automatically failed, err:%s", cmd.PkgId, err.Error())
 		}
 
 		if needStop() {
